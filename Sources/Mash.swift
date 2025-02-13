@@ -8,7 +8,8 @@
 import Foundation
 
 func mashFile(_ fileName: String, _ fileLines: [String]) {
-    var printURL = URL(fileURLWithPath: "/Users/gavin/Desktop/downlist/\(fileName)-mash.txt")
+    let homeDirURL = fileManager.homeDirectoryForCurrentUser
+    var printURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(fileName)-mash.txt")
     fileManager.createFile(atPath: printURL.path, contents: nil, attributes: nil)
 
     var originalStdout = dup(STDOUT_FILENO)
@@ -167,7 +168,7 @@ func mashFile(_ fileName: String, _ fileLines: [String]) {
 
 
 
-    printURL = URL(fileURLWithPath: "/Users/gavin/Desktop/downlist/\(fileName)-list.txt")
+    printURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(fileName)-list.txt")
     fileManager.createFile(atPath: printURL.path, contents: nil, attributes: nil)
 
     originalStdout = dup(STDOUT_FILENO)

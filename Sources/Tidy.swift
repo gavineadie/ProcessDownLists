@@ -21,7 +21,8 @@ import Foundation
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
 
 func tidyFile(_ fileName: String, _ fileText: String) -> [String] {
-    let printURL = URL(fileURLWithPath: "/Users/gavin/Desktop/downlist/\(fileName)-tidy.txt")
+    let homeDirURL = fileManager.homeDirectoryForCurrentUser
+    let printURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(fileName)-tidy.txt")
     fileManager.createFile(atPath: printURL.path, contents: nil, attributes: nil)
 
     let originalStdout = dup(STDOUT_FILENO)

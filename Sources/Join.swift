@@ -21,7 +21,9 @@ import Foundation
 var offset = 2                  // offset into memory
 
 func joinFile(_ fileName: String) {
-    let printURL = URL(fileURLWithPath: "/Users/gavin/Desktop/downlist/\(fileName)-join.txt")
+
+    let homeDirURL = fileManager.homeDirectoryForCurrentUser
+    let printURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(fileName)-join.txt")
     fileManager.createFile(atPath: printURL.path, contents: nil, attributes: nil)
 
     let originalStdout = dup(STDOUT_FILENO)

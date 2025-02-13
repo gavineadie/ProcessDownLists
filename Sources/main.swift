@@ -9,7 +9,11 @@ import Foundation
 import RegexBuilder
 
 let fileManager = FileManager.default
-let directoryURL = URL(fileURLWithPath: "/Users/gavin/Developer/virtualagc")
+
+let homeDirURL = fileManager.homeDirectoryForCurrentUser
+let workDirURL = homeDirURL.appendingPathComponent("Developer/virtualagc",
+                                                   isDirectory: true)
+
 let resourceKeys: [URLResourceKey] = [.nameKey, .isDirectoryKey]
 
 var fileURLs: [URL] = []
@@ -17,7 +21,7 @@ var fileURLs: [URL] = []
 /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
   │ make a list of all the "DOWNLINK_LISTS.agc" files ..                                             │
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
-if let enumerator = fileManager.enumerator(at: directoryURL,
+if let enumerator = fileManager.enumerator(at: workDirURL,
                                            includingPropertiesForKeys: resourceKeys,
                                            options: [.skipsHiddenFiles],
                                            errorHandler: { (url, error) -> Bool in
