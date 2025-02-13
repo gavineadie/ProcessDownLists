@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:ProcessDownLists}",
+            "name": "Debug ProcessDownLists",
+            "program": "${workspaceFolder:ProcessDownLists}/.build/debug/ProcessDownLists",
+            "preLaunchTask": "swift: Build Debug ProcessDownLists"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:ProcessDownLists}",
+            "name": "Release ProcessDownLists",
+            "program": "${workspaceFolder:ProcessDownLists}/.build/release/ProcessDownLists",
+            "preLaunchTask": "swift: Build Release ProcessDownLists"
+        }
+    ]
+}

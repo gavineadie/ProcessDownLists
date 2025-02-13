@@ -1,0 +1,25 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "swift",
+			"args": [
+				"build",
+				"-c",
+				"release",
+				"--product",
+				"ProcessDownLists",
+				"-Xswiftc",
+				"-diagnostic-style=llvm"
+			],
+			"env": {},
+			"cwd": "/home/gavin/Development/ProcessDownLists",
+			"disableTaskQueue": true,
+			"dontTriggerTestDiscovery": true,
+			"group": "build",
+			"problemMatcher": [],
+			"label": "swift: Build Release ProcessDownLists",
+			"detail": "swift build -c release --product ProcessDownLists -Xswiftc -diagnostic-style=llvm"
+		}
+	]
+}
