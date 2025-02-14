@@ -53,8 +53,6 @@ func joinFile(_ fileName: String) {
         }
 
         print("\(label.padTo10())OCT \(downListCode), OCT 77340                #   (  000  ) # IDCODE,SYNCODE")
-//        print("\(" ".padTo10())SYNC")
-//        print("\("ID/SYNC".padTo10())\("7777n,77340".padTo36())#   (  000  ) # IDCODE +0,+1")
 
         for line in lines {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
