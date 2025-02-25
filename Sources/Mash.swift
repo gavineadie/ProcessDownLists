@@ -7,28 +7,24 @@
 
 import Foundation
 
-func mashFile(_ fileName: String, _ fileLines: [String]) {
-    let homeDirURL = fileManager.homeDirectoryForCurrentUser
-    var printURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(fileName)-mash.txt")
-    fileManager.createFile(atPath: printURL.path, contents: nil, attributes: nil)
+func mashFile(_ fileName: String, _ fileLines: [String]) -> [String] {
 
-    var originalStdout = dup(STDOUT_FILENO)
-
-    if let fileHandle = try? FileHandle(forWritingTo: printURL) {
-        defer { fileHandle.closeFile() }
-        dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
-    }
+    print("###  \((fileName.uppercased() + "  ").padding(toLength: 72, withPad: "=", startingAt: 0))")
+    print("###     extract downlists, snapshots, common data and equals   ")
+    print("###  \(("").padding(toLength: 72, withPad: "=", startingAt: 0))\n")
 
 /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
   │ process the lines of the file to isolate downlists ..                                            │
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
-    
+
     var inDownlist = false
     var inCopylist = false
     var inSnapshot = false
 
     var downListLabel = ""
     var copyListLabel = ""
+
+    var newLines: [String] = []
 
     for lineIndex in 0..<fileLines.count {
 
@@ -41,7 +37,7 @@ func mashFile(_ fileName: String, _ fileLines: [String]) {
             inDownlist = true
 
             let line2 = "\((fileLines[lineIndex-1].uppercased() + "  ").padTo72("-"))"
-            print("\n" + line2)
+            newLines.append("\n" + line2)
         }
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
@@ -54,7 +50,7 @@ func mashFile(_ fileName: String, _ fileLines: [String]) {
   ┆ "# ...................                          transfer a comment as is ..                      ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
                 if line.starts(with: "#") {
-                    print("#> \(line)")
+                    newLines.append("#> \(line)")
 
                     continue
                 }
@@ -63,7 +59,7 @@ func mashFile(_ fileName: String, _ fileLines: [String]) {
   ┆ "LABEL  EQUALS  ADDRESS         «COMMENT»"      make a symbol connection (ADDRESS ← LABEL)       ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
                 if let match = opcode.firstMatch(of: #/EQUALS\s+(\w+)/#) {
-                    print("E> \(label.padTo10()) EQUALS \(match.1)")
+                    newLines.append("E> \(label.padTo10()) EQUALS \(match.1)")
 
                     equalites[label] = String(match.1).trimmingCharacters(in: .whitespaces)
 
@@ -74,7 +70,7 @@ func mashFile(_ fileName: String, _ fileLines: [String]) {
   ┆ "LABEL  GENADR  ADDRESS         «COMMENT»"      make a symbol connection (ADDRESS ← LABEL)       ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
                 if let match = opcode.firstMatch(of: #/GENADR\s+(\w+)/#) {
-                    print("G> \(label.padTo10()) GENADR \(match.1)")
+                    newLines.append("G> \(label.padTo10()) GENADR \(match.1)")
 
                     continue                                // no list actions required
                 }
@@ -83,7 +79,7 @@ func mashFile(_ fileName: String, _ fileLines: [String]) {
   ┆ "LABEL  =       ADDRESS         «COMMENT»"      make a symbol connection (ADDRESS ← LABEL)       ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
                 if let match = opcode.firstMatch(of: #/=\s+(\w+)/#) {
-                    print("=> \(label.padTo10()) = \(match.1)")
+                    newLines.append("=> \(label.padTo10()) = \(match.1)")
 
                     continue                                // no list actions required
                 }
@@ -92,7 +88,7 @@ func mashFile(_ fileName: String, _ fileLines: [String]) {
   ┆ "LABEL  EQUALS                  «COMMENT»"      starts a downlist ..                             ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
                 if label.isNotEmpty && opcode == "EQUALS" {
-                    print("L> \(label.padTo10()) \("EQUALS".padTo36()) ← downlist starts")
+                    newLines.append("L> \(label.padTo10()) \("EQUALS".padTo36()) ← downlist starts")
 
                     downListLabel = String(label)           // start a downlist dictionary
                     downlists[downListLabel] = []           // no need to copy the line
@@ -105,7 +101,7 @@ func mashFile(_ fileName: String, _ fileLines: [String]) {
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
                 if label.isNotEmpty && opcode.starts(with: "-") {
                     let newLine = "\(label.padTo10()) \(opcode.padTo36()) \(comment)"
-                    print("S> \(label.padTo10()) \(opcode.padTo36()) ← snapshot starts")
+                    newLines.append("S> \(label.padTo10()) \(opcode.padTo36()) ← snapshot starts")
 
                     inCopylist = true
 
@@ -117,7 +113,7 @@ func mashFile(_ fileName: String, _ fileLines: [String]) {
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
                 } else if label.isNotEmpty {
                     let newLine = "\(label.padTo10()) \(opcode.padTo36()) \(comment)"
-                    print("L> \(label.padTo10()) \(opcode.padTo36()) ← copylist starts")
+                    newLines.append("L> \(label.padTo10()) \(opcode.padTo36()) ← copylist starts")
 
                     inCopylist = true
 
@@ -134,9 +130,9 @@ func mashFile(_ fileName: String, _ fileLines: [String]) {
   ┆ "        DNPTR   ADDRESS"       «COMMENT»"      copy a list from ADDRESS ..                      ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
                     if opcode.starts(with: "DNPTR") {
-                        print("=> \(newLine)")
+                        newLines.append("=> \(newLine)")
                     } else {
-                        print("+> \(newLine)")
+                        newLines.append("+> \(newLine)")
                     }
 
                     if inCopylist {
@@ -154,62 +150,13 @@ func mashFile(_ fileName: String, _ fileLines: [String]) {
                     if label.isNotEmpty {
                         inSnapshot = true
                     } else {
-                        print(">> \("-".padTo36("-")) \(inSnapshot ? "SNAPSHOT" : "DOWNLIST")")
+                        newLines.append(">> \("-".padTo36("-")) \(inSnapshot ? "SNAPSHOT" : "DOWNLIST")")
                         inCopylist = false
                         inSnapshot = false
                     }
                 }
             }
-
     }
-
-    dup2(originalStdout, STDOUT_FILENO)
-    close(originalStdout)
-
-
-
-    printURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(fileName)-list.txt")
-    fileManager.createFile(atPath: printURL.path, contents: nil, attributes: nil)
-
-    originalStdout = dup(STDOUT_FILENO)
-
-    if let fileHandle = try? FileHandle(forWritingTo: printURL) {
-        defer { fileHandle.closeFile() }
-        dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
-    }
-
-    print(">>> DOWNLISTS")
-    prettyPrint(downlists)
-
-    print(">>> COPYLISTS")
-    prettyPrint(copylists)
-
-//    print(">>> EQUALS")
-//    print(equalites)
-
-    dup2(originalStdout, STDOUT_FILENO)
-    close(originalStdout)
-
-    print("\(#function): Processed \(fileName).")
-}
-
-fileprivate func prettyPrint(_ downlists: [String: [String]]) {
-    for (label, lines) in downlists.sorted(by: { $0.key < $1.key }) {
-        print("")
-        if lines.isNotEmpty {
-            print("~".padTo36("~"))
-            if lines.first?.first == " " {
-                print("\(label.padTo10()) [DOWNLIST]")
-            } else {
-                print("\(label.padTo10()) \(lines.first!.contains("  -") ? "[SNAPSHOT]" : "[COPYLIST]")")
-            }
-            print("~".padTo36("~"))
-            for line in lines {
-                print("\(line)")
-            }
-            print("")
-        } else {
-            print("\(label.padTo10()) [MISSING]")
-        }
-    }
+    
+    return newLines
 }

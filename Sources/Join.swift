@@ -20,39 +20,29 @@ import Foundation
 
 var offset = 2                  // offset into memory
 
-func joinFile(_ fileName: String) {
+func joinFile(_ fileName: String) -> [String] {
 
-    let homeDirURL = fileManager.homeDirectoryForCurrentUser
-    let printURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(fileName)-join.txt")
-    fileManager.createFile(atPath: printURL.path, contents: nil, attributes: nil)
-
-    let originalStdout = dup(STDOUT_FILENO)
-
-    if let fileHandle = try? FileHandle(forWritingTo: printURL) {
-        defer { fileHandle.closeFile() }
-        dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
-    }
-
-//    print("\n===  \((fileName.uppercased() + "  ").padding(toLength: 72, withPad: "=", startingAt: 0))")
+    var newLines: [String] = []
 
     for (label, lines) in downlists.sorted(by: { $0.key < $1.key }) {
 
         let downListName = downListIDs[label] ?? "Unknown Downlist Label (XX-00000)"
         let downListCode = downListName.dropLast().suffix(5)
 
-        print("# ".padding(toLength: 78, withPad: "=", startingAt: 0))
-        print("# \(fileName) -- \(downListName)")
-        print("# ".padding(toLength: 78, withPad: "=", startingAt: 0))
-        print("")
+        newLines.append("## ".padding(toLength: 78, withPad: "=", startingAt: 0))
+        newLines.append("## \(fileName) -- \(downListName)")
+        newLines.append("## ".padding(toLength: 78, withPad: "=", startingAt: 0))
+        newLines.append("")
 
         offset = 2
 
         guard lines.isNotEmpty else {
-            print("\(label.padTo10()) [MISSING]")
+            newLines.append("\(label.padTo10()) [MISSING]")
             continue
         }
 
-        print("\(label.padTo10())OCT \(downListCode), OCT 77340                #   (  000  ) # IDCODE,SYNCODE")
+        let opCode = "1DNADR \(downListCode)"
+        newLines.append("\(" ".padTo10())\(opCode.padTo36())#   (  000  ) # ID,SYNC")
 
         for line in lines {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
@@ -64,11 +54,11 @@ func joinFile(_ fileName: String) {
   │ "DNPTR" indicates a need to copy a list into the DOWNLIST ..                 NO DATA IN DOWNLIST │
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
             if opcode.starts(with: "DNPTR") {
-                print("#       → \(opcode.padTo36())              \(comment)")
+                newLines.append("#       → \(opcode.padTo36())#   (  ---  ) \(comment)")
 
                 let address = opcode.split(separator: " ")[1]
                 guard let copyList = lookUpList(String(address)) else {
-                    print("# copylist: \(address) missing")
+                    newLines.append("# copylist: \(address) missing")
                     continue
                 }
 
@@ -85,10 +75,10 @@ func joinFile(_ fileName: String) {
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
                     let opcode = String(tripleArray.first!.1.drop(while: { $0 == "-" }))
                     if opcode.contains("DNTMBUFF") {
-                        print("#*      → \(opcode.padTo36())              \(comment)")
+                        newLines.append("#*      → \(opcode.padTo36())              \(comment)")
                         continue
                     }
-                    print("""
+                    newLines.append("""
                             \(" ".padTo10())\
                             \(tripleArray.last!.1.dropFirst().padTo36())\
                             # s \(mem_mem(opcode)) \
@@ -97,7 +87,7 @@ func joinFile(_ fileName: String) {
 
                     tripleArray[0..<copyList.count-1].forEach {
                         let opcode = String($0.1.drop(while: { $0 == "-" }))
-                        print("""
+                        newLines.append("""
                                 \(" ".padTo10())\
                                 \(opcode.padTo36())\
                                 # s \(mem_mem(opcode)) \
@@ -108,9 +98,9 @@ func joinFile(_ fileName: String) {
                     tripleArray.forEach {
                         let opcode = String($0.1.drop(while: { $0 == "-" }))
                         if opcode.contains("DNTMBUFF") {
-                            print("#*      → \(opcode.padTo36())              \(comment)")
+                            newLines.append("#*      → \(opcode.padTo36())              \(comment)")
                         } else {
-                            print("""
+                            newLines.append("""
                                 \(" ".padTo10())\
                                 \(opcode.padTo36())\
                                 # c \(mem_mem(opcode)) \
@@ -124,13 +114,13 @@ func joinFile(_ fileName: String) {
   │ an address referring to "DNTMBUFF" can be marked as a comment ..             NO DATA IN DOWNLIST │
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
             } else if opcode.contains("DNTMBUFF") {
-                print("#*      → \(opcode.padTo36())              \(comment)")
+                newLines.append("#*      → \(opcode.padTo36())              \(comment)")
 
 /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
   │ a line from the main DOWNLIST ..                                                                 │
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
             } else {
-                print("""
+                newLines.append("""
                     \(label.padTo10())\
                     \(opcode.drop(while: { $0 == "-" }).padTo36())\
                     #   \(mem_mem(opcode)) \
@@ -139,14 +129,10 @@ func joinFile(_ fileName: String) {
             }
         }
 
-        print("")
+        newLines.append("")
     }
 
-    dup2(originalStdout, STDOUT_FILENO)
-    close(originalStdout)
-
-    print("\(#function): Processed \(fileName).")
-
+    return newLines
 }
 
 func lookUpList(_ address: String) -> [String]? {

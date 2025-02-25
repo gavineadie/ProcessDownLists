@@ -7,8 +7,6 @@
 
 import Foundation
 
-/*════════════════════════════════════════════════════════════════════════════════════════════════════*/
-
 /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
   │   LABEL           OPCODE                                  COMMENT                                │
   │   <--------------><--------------------------------------><--------------------------------      │
@@ -21,26 +19,20 @@ import Foundation
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
 
 func tidyFile(_ fileName: String, _ fileText: String) -> [String] {
-    let homeDirURL = fileManager.homeDirectoryForCurrentUser
-    let printURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(fileName)-tidy.txt")
-    fileManager.createFile(atPath: printURL.path, contents: nil, attributes: nil)
 
-    let originalStdout = dup(STDOUT_FILENO)
-
-    if let fileHandle = try? FileHandle(forWritingTo: printURL) {
-        defer { fileHandle.closeFile() }
-        dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
-    }
-
-    print("\n===  \((fileName.uppercased() + "  ").padding(toLength: 72, withPad: "=", startingAt: 0))")
+    print("###  \((fileName.uppercased() + "  ").padding(toLength: 72, withPad: "=", startingAt: 0))")
+    print("###     blank lines and page number lines removed   ")
+    print("###  \(("").padding(toLength: 72, withPad: "=", startingAt: 0))\n")
 
     let oldLines = fileText.components(separatedBy: .newlines)
     var newLines: [String] = []
-    
+    var skipNextLine = false
+
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ drop blank lines (including blank comments) and page number lines ..                             ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
     for line in oldLines {
+        if skipNextLine { skipNextLine = false; continue }
         if line.isEmpty || line == "#" { continue }
         if line.contains("## Page ") { continue }
 
@@ -54,19 +46,17 @@ func tidyFile(_ fileName: String, _ fileText: String) -> [String] {
         
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ match assembler code                                                                             ┆
+  ┆ ### SPECIAL CASE: one comment overflows to the next line so we fix it here ..                    ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-        let (label, opcode, comment) = doMatch(line)
+        var (label, opcode, comment) = doMatch(line)
 
+        if comment.contains("COMPNUMB,UPOLDMOD,UPVERB,UPCOUNT,") {
+            comment.append("UPBUFF+0...+7")
+            skipNextLine = true
+        }
         let reconstructedLine = "\(label.padTo10())\(opcode.padTo36())\(comment)"
         newLines.append(reconstructedLine)                  // "LABEL OPCODE ARGS   # ..."
     }
-
-    newLines.forEach { print("\($0)") }
-
-    dup2(originalStdout, STDOUT_FILENO)
-    close(originalStdout)
-
-    print("\(#function): Processed \(fileName).")
 
     return newLines
 }

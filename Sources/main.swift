@@ -6,8 +6,10 @@
 //
 
 import Foundation
+import OSLog
 
 let fileManager = FileManager.default
+let logger = Logger(subsystem: "com.ramsaycons.PDL", category: "main")
 
 let homeDirURL = fileManager.homeDirectoryForCurrentUser
 let workDirURL = homeDirURL.appendingPathComponent("Developer/virtualagc",
@@ -47,26 +49,135 @@ var downlists: [String : [String]] = [:]            // LABEL : LINES
 var copylists: [String : [String]] = [:]            // LABEL : LINES
 var equalites: [String : String] = [:]              // LABEL : LABEL
 
+let originalStdout = dup(STDOUT_FILENO)
+
 do {
     for fileURL in fileURLs {
+        var fileLinesT: [String] = []
 
         let fileName = fileURL.deletingLastPathComponent().lastPathComponent
         let fileText = try String(contentsOf: fileURL, encoding: .utf8)
+        let homeDirURL = fileManager.homeDirectoryForCurrentUser
 
-        let fileLines = tidyFile(fileName, fileText)        // tidy this file ..
-        mashFile(fileName, fileLines)                       // ..
+/*────────────────────────────────────────────────────────────────────────────────────────────────────*/
+        let tidyPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(fileName)-tidy.txt")
+        fileManager.createFile(atPath: tidyPrintURL.path, contents: nil, attributes: nil)
 
-        joinFile(fileName)                                  // ..
+        if let fileHandle = try? FileHandle(forWritingTo: tidyPrintURL) {
+            defer { fileHandle.closeFile() }
+            dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
+
+            fileLinesT = tidyFile(fileName, fileText)        // tidy this file ..
+            fileLinesT.forEach { print("\($0)") }
+        }
+
+        dup2(originalStdout, STDOUT_FILENO)
+
+        print("tidyFile: Processed \(fileName).")
+
+/*────────────────────────────────────────────────────────────────────────────────────────────────────*/
+        let mashPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(fileName)-mash.txt")
+        fileManager.createFile(atPath: mashPrintURL.path, contents: nil, attributes: nil)
+
+        if let fileHandle = try? FileHandle(forWritingTo: mashPrintURL) {
+            defer { fileHandle.closeFile() }
+            dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
+
+            mashFile(fileName, fileLinesT).forEach { print("\($0)") }
+        }
+
+        dup2(originalStdout, STDOUT_FILENO)
+
+        print("mashFile: Processed \(fileName).")
+
+/*────────────────────────────────────────────────────────────────────────────────────────────────────*/
+//        let listPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(fileName)-list.txt")
+//        fileManager.createFile(atPath: listPrintURL.path, contents: nil, attributes: nil)
+//
+//        if let fileHandle = try? FileHandle(forWritingTo: listPrintURL) {
+//            defer { fileHandle.closeFile() }
+//            dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
+//
+//            print(">>> DOWNLISTS")
+//            prettyPrint(downlists)
+//
+//            print(">>> COPYLISTS")
+//            prettyPrint(copylists)
+//
+//            print(">>> EQUALS")
+//            print(equalites)
+//        }
+//
+//        dup2(originalStdout, STDOUT_FILENO)
+//
+//        print("listFile: Processed \(fileName).")
+
+/*────────────────────────────────────────────────────────────────────────────────────────────────────*/
+        let joinPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(fileName)-join.txt")
+        fileManager.createFile(atPath: joinPrintURL.path, contents: nil, attributes: nil)
+
+        var fileLinesJ: [String] = []
+
+        if let fileHandle = try? FileHandle(forWritingTo: joinPrintURL) {
+            defer { fileHandle.closeFile() }
+            dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
+
+            fileLinesJ = joinFile(fileName)                                  // ..
+            fileLinesJ.forEach { print("\($0)") }
+        }
+
+        dup2(originalStdout, STDOUT_FILENO)
 
         downlists = [:]
         copylists = [:]
         equalites = [:]
 
-    }
+        print("joinFile: Processed \(fileName).")
 
-    print("\(#function): Processing complete.")
+/*────────────────────────────────────────────────────────────────────────────────────────────────────*/
+        let dataPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(fileName)-data.txt")
+        fileManager.createFile(atPath: dataPrintURL.path, contents: nil, attributes: nil)
+
+        var fileLinesD: [String] = []
+
+        if let fileHandle = try? FileHandle(forWritingTo: dataPrintURL) {
+            defer { fileHandle.closeFile() }
+            dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
+
+            fileLinesD = dataFile(fileName, fileLinesJ)                 // ..
+            fileLinesD.forEach { print("\($0)") }
+        }
+
+        dup2(originalStdout, STDOUT_FILENO)
+
+        print("dataFile: Processed \(fileName).")
+
+    }
 
 } catch {
     print("Error: \(error.localizedDescription)")
 }
 
+
+
+
+fileprivate func prettyPrint(_ downlists: [String: [String]]) {
+    for (label, lines) in downlists.sorted(by: { $0.key < $1.key }) {
+        print("")
+        if lines.isNotEmpty {
+            print("~".padTo36("~"))
+            if lines.first?.first == " " {
+                print("\(label.padTo10()) [DOWNLIST]")
+            } else {
+                print("\(label.padTo10()) \(lines.first!.contains("  -") ? "[SNAPSHOT]" : "[COPYLIST]")")
+            }
+            print("~".padTo36("~"))
+            for line in lines {
+                print("\(line)")
+            }
+            print("")
+        } else {
+            print("\(label.padTo10()) [MISSING]")
+        }
+    }
+}
