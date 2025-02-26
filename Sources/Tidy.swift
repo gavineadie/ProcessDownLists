@@ -15,14 +15,9 @@ import Foundation
   │                   DNPTR           LMREND02                # SEND SNAPSHOT                        │
   │                   2DNADR          DNLRVELX                # DNLRVELX,DNLRVELY,DNLRVELZ,DNLRALT   │
   │                   1DNADR          VN +2                   # VN +2,+3                             │
-  │                                                                                                  │
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
 
 func tidyFile(_ fileName: String, _ fileText: String) -> [String] {
-
-    print("###  \((fileName.uppercased() + "  ").padding(toLength: 72, withPad: "=", startingAt: 0))")
-    print("###     blank lines and page number lines removed   ")
-    print("###  \(("").padding(toLength: 72, withPad: "=", startingAt: 0))\n")
 
     let oldLines = fileText.components(separatedBy: .newlines)
     var newLines: [String] = []
@@ -31,10 +26,14 @@ func tidyFile(_ fileName: String, _ fileText: String) -> [String] {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ drop blank lines (including blank comments) and page number lines ..                             ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-    for line in oldLines {
+    for var line in oldLines {
         if skipNextLine { skipNextLine = false; continue }
         if line.isEmpty || line == "#" { continue }
         if line.contains("## Page ") { continue }
+
+        line = line.replacingOccurrences(of: "0-..+", with: "0...+")            // typo fix
+        line = line.replacingOccurrences(of: "+0..+", with: "+0...+")           // typo fix
+        line = line.replacingOccurrences(of: "FALG", with: "FLAG")              // typo fix
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ keep comments                                                                                    ┆
