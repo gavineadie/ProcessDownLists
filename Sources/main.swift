@@ -53,13 +53,14 @@ let originalStdout = dup(STDOUT_FILENO)
 
 do {
     for fileURL in fileURLs {
-        var fileLinesT: [String] = []
 
         let fileName = fileURL.deletingLastPathComponent().lastPathComponent
         let fileText = try String(contentsOf: fileURL, encoding: .utf8)
         let homeDirURL = fileManager.homeDirectoryForCurrentUser
 
 /*────────────────────────────────────────────────────────────────────────────────────────────────────*/
+        var fileLinesT: [String] = []
+
         let tidyPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(fileName)-tidy.txt")
         fileManager.createFile(atPath: tidyPrintURL.path, contents: nil, attributes: nil)
 
@@ -76,6 +77,8 @@ do {
         print("tidyFile: Processed \(fileName).")
 
 /*────────────────────────────────────────────────────────────────────────────────────────────────────*/
+        var fileLinesM: [String] = []
+
         let mashPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(fileName)-mash.txt")
         fileManager.createFile(atPath: mashPrintURL.path, contents: nil, attributes: nil)
 
@@ -83,7 +86,8 @@ do {
             defer { fileHandle.closeFile() }
             dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
 
-            mashFile(fileName, fileLinesT).forEach { print("\($0)") }
+            fileLinesM = mashFile(fileName, fileLinesT)
+//          fileLinesM.forEach { print("\($0)") }
         }
 
         dup2(originalStdout, STDOUT_FILENO)
@@ -113,17 +117,17 @@ do {
 //        print("listFile: Processed \(fileName).")
 
 /*────────────────────────────────────────────────────────────────────────────────────────────────────*/
+        var fileLinesJ: [String] = []
+
         let joinPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(fileName)-join.txt")
         fileManager.createFile(atPath: joinPrintURL.path, contents: nil, attributes: nil)
-
-        var fileLinesJ: [String] = []
 
         if let fileHandle = try? FileHandle(forWritingTo: joinPrintURL) {
             defer { fileHandle.closeFile() }
             dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
 
             fileLinesJ = joinFile(fileName)                                  // ..
-            fileLinesJ.forEach { print("\($0)") }
+//          fileLinesJ.forEach { print("\($0)") }
         }
 
         dup2(originalStdout, STDOUT_FILENO)
@@ -135,10 +139,10 @@ do {
         print("joinFile: Processed \(fileName).")
 
 /*────────────────────────────────────────────────────────────────────────────────────────────────────*/
+        var fileLinesD: [String] = []
+
         let dataPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(fileName)-data.txt")
         fileManager.createFile(atPath: dataPrintURL.path, contents: nil, attributes: nil)
-
-        var fileLinesD: [String] = []
 
         if let fileHandle = try? FileHandle(forWritingTo: dataPrintURL) {
             defer { fileHandle.closeFile() }

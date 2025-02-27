@@ -9,10 +9,6 @@ import Foundation
 
 func mashFile(_ fileName: String, _ fileLines: [String]) -> [String] {
 
-    print("###  \((fileName.uppercased() + "  ").padding(toLength: 72, withPad: "=", startingAt: 0))")
-    print("###     extract downlists, snapshots, common data and equals   ")
-    print("###  \(("").padding(toLength: 72, withPad: "=", startingAt: 0))\n")
-
 /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
   │ process the lines of the file to isolate downlists ..                                            │
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/

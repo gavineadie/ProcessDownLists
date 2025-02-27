@@ -53,7 +53,7 @@ func joinFile(_ fileName: String) -> [String] {
 /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
   │ "DNPTR" indicates a need to copy a list into the DOWNLIST ..                 NO DATA IN DOWNLIST │
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
-            if opcode.starts(with: "DNPTR") {
+            if opcode.contains("DNPTR") {                   //### SundanceXXX has a "-DNPTR"
                 newLines.append("#       → \(opcode.padTo36())#   (  ---  ) \(comment)")
 
                 let address = opcode.split(separator: " ")[1]
