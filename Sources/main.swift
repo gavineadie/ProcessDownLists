@@ -6,10 +6,10 @@
 //
 
 import Foundation
-import OSLog
+//import OSLog
 
 let fileManager = FileManager.default
-let logger = Logger(subsystem: "com.ramsaycons.PDL", category: "main")
+//let logger = Logger(subsystem: "com.ramsaycons.PDL", category: "main")
 
 let homeDirURL = fileManager.homeDirectoryForCurrentUser
 let workDirURL = homeDirURL.appendingPathComponent("Developer/virtualagc",
