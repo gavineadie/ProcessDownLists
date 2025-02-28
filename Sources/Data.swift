@@ -38,6 +38,8 @@ func dataFile(_ fileName: String, _ fileLines: [String]) -> [String] {
         line.replace("DISPLAY TABLES", with: "DSPTAB +0...+11")
         line.replace("DSPTAB TABLES", with: "DSPTAB +0...+11")
 
+        line.replace("LAT(SPL),LNG(SPL),+1", with: "LAT(SPL),+1,LNG(SPL),+1")
+
         if line.contains("SPARE") { line.append("# SPARE") }
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
@@ -202,6 +204,14 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
         if bits.count == 3 { if bits[1...2] == ["+13...+18", "+19D"] { bits = [bits[0], "+13...+19"] } }
         if bits.count == 3 { if bits[1...2] == ["13...+18", "19D"] { bits = [bits[0], "+13...+19"] } }
 
+        if bits.count == 3 && bits[1].contains("/") {
+            let twoBits = bits[1].split(separator: "/")
+            bits.append(bits[2])
+            bits[1] = String(twoBits[0])
+            bits[2] = String(twoBits[1])
+        }
+
+
         if bits.count == 4 { if bits[1...3] == ["+1", "...+4", "+5"] { bits = [bits[0], "+1...+5"] } }
         if bits.count == 4 { if bits[1...3] == ["+1", "+2", "...+5"] { bits = [bits[0], "+1...+5"] } }
         if bits.count == 4 { if bits[1...3] == ["+1", "...+10", "+11"] { bits = [bits[0], "+1...+11"] } }
@@ -257,77 +267,183 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
                     }
                     return result
 
-                } else {
-                    if bits[1].starts(with: "+") && bits[1].last != "D" {
+                } else if bits[1].starts(with: "+") && bits[1].last != "D" {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆     ["AGSK", "+1"] → ["AGSK+0", "AGSK+1"]                                                        ┆
   ┆     ["TTF/8", "+1"] → ["TTF/8+0", "TTF/8+1"]                                                     ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-                        let offset = Int(bits[1].dropFirst())!
-                        if offset == 1 {
-                            result.append("\(bits[0])+\(offset-1)")         // "AGSK+0"
+                    let offset = Int(bits[1].dropFirst())!
+                    if offset == 1 {
+                        result.append("\(bits[0])+\(offset-1)")         // "AGSK+0"
+                    } else {
+                        result.append("\(bits[0])+\(offset-1)")
+                        result.append("\(bits[0])+\(offset)")
+                    }
+                    return result
+
+                } else  {
+
+                    for bit in bits {
+                        if let match = bit.firstMatch(of: code) {           // "WORD␠+m...+n"
+                            let alpha = Int(String(match.2))!
+                            let omega = Int(String(match.3))!
+                            for i in alpha...omega { result.append("\(match.1)+\(i)") }
+                        } else if let match = bit.firstMatch(of: plus) {    // "WORD␠+m"
+                            result.append("\(match.1)+\(match.2)")
                         } else {
-                            result.append("\(bits[0])+\(offset-1)")
-                            result.append("\(bits[0])+\(offset)")
+                            result.append("\(bit)")
                         }
+                    }
+                    return result
+
+                }
+
+                logger.log("×2z \(bits)")
+
+            case 4:
+                if bits[1] == "+1" && bits[3] == "+1" {
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆     ["NAME1", "+1", "NAME2", "+1"] → ["NAME1", "NAME2"]                                  doubles ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+                    result.append("\(bits[0])")                     // "NAME1"
+                    result.append("\(bits[2])")                     // "NAME2"
+                    return result
+                } else if bits[2] == "+1" && bits[3] == "+2" {
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆     ["NAME1", "NAME2", "+1", "+2"] → ["NAME1", "NAME2+0", "NAME2+1", "NAME2+2"]          singles ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+                    result.append("\(bits[0])")                     // "NAME1"
+                    bits[1].replace("+0", with: "")
+                    result.append("\(bits[1])+0")                   // "NAME2+0"
+                    result.append("\(bits[1])+1")                   // "NAME2+1"
+                    result.append("\(bits[1])+2")                   // "NAME2+2"
+                    return result
+                } else if bits[1] == "+1" && bits[2] == "+2" {
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆     ["NAME1", "+1", "+2", "NAME2] → ["NAME1+0", "NAME1+1", "NAME1+2", "NAME2"]           singles ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+                    result.append("\(bits[0])+0")                   // "NAME1+0"
+                    result.append("\(bits[0])+1")                   // "NAME1+1"
+                    result.append("\(bits[0])+2")                   // "NAME1+2"
+                    result.append("\(bits[3])")                     // "NAME2"
+                    return result
+                } else {
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆     ["NAME1", "+1...+5", "+6", "NAME2] → ["NAME1+0", "NAME1+1", .., "NAME1+6", "NAME2"]  singles ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+                    if let match = bits[1].firstMatch(of: dots) {
+                        let alpha = Int(String(match.1))!
+                        let omega = Int(String(match.2))!
+                        for i in alpha...omega { result.append("\(bits[0])+\(i)") }
+                        result.append("\(bits[0])+\(omega+1)")
+                        result.append("\(bits[3])")                 // "NAME2"
                         return result
                     }
                 }
-/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ ×2z ["AGSBUFF+12", "GARBAGE"]                                                                    ┆
-  ┆ ×2z ["AGSBUFF+12D", "GARBAGE"]                                                                   ┆
-  ┆ ×2z ["AGSBUFF+13D", "GARBAGE"]                                                                   ┆
-  ┆ ×2z ["AGSBUFF+7...+13D", "GARBAGE"]                                                              ┆
-  ┆ ×2z ["MARKDOWN+6", "RM"]                                                                         ┆
-  ┆ ×2z ["RANGERDOT+1", "GARBAGE"]                                                                   ┆
-  ┆ ×2z ["SVMRKDAT+34", "GARBAGE"]                                                                   ┆
-  ┆ ×2z ["TANGNB+1", "GARBAGE"]                                                                      ┆
-  ┆ ×2z ["TSIGHT", "TSIGHT +1"]                                                                      ┆
-  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-                logger.log("×2z \(bits)")
 
-            case 3:
+                if let matchA = bits[0].firstMatch(of: plus),
+                   let matchB = bits[1].firstMatch(of: numb),
+                   let matchC = bits[2].firstMatch(of: plus),
+                   let matchD = bits[3].firstMatch(of: numb) {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ ×3  ["ADOT", "+1/OGARATE", "+1"]                                                                 ┆
-  ┆ ×3  ["ADOT+2", "+3/OMEGAB+2", "+3"]                                                              ┆
-  ┆ ×3  ["ADOT+4", "+5/OMEGAB+4", "+5"]                                                              ┆
-  ┆ ×3  ["LAT(SPL)", "LNG(SPL)", "+1"]                                                               ┆
-  ┆ ×3  ["WBODY", "...+5/OMEGAC", "...+5"]                                                           ┆
+  ┆     ["NAMEA+2", "+3", "NAMEB+2", "+3"] → ["NAMEA", "NAMEB"]                              doubles ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-                logger.log("×3  \(bits)")
+                    var label = String(matchA.1)
+                    var alpha = Int(String(matchA.2))!
+                    var omega = Int(String(matchB.1))!
 
-            case 4:
+                    if omega-alpha == 1 {
+                        result.append("\(label)+\(alpha)")
+                    } else {
+                        for i in alpha...omega { result.append("\(label)+\(i)") }
+                    }
+
+                    label = String(matchC.1)
+                    alpha = Int(String(matchC.2))!
+                    omega = Int(String(matchD.1))!
+
+                    if omega-alpha == 1 {
+                        result.append("\(label)+\(alpha)")
+                    } else {
+                        for i in alpha...omega { result.append("\(label)+\(i)") }
+                    }
+
+                    return result
+
+                }
+
+                if !bits[0].contains("+") && bits[1].contains("...") &&
+                    !bits[2].contains("+") && bits[3].contains("...") {
+                    if bits[1] == "...+5" { bits[1] = "+0...+5" }               // ← SPECIAL CASE
+                    if bits[3] == "...+5" { bits[3] = "+0...+5" }               // ← SPECIAL CASE
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ ×4  ["C31FLWRD", "FAILREG", "+1", "+2"]                                                          ┆
-  ┆ ×4  ["CADRFLSH+2", "FAILREG", "+1", "+2"]                                                        ┆
-  ┆ ×4  ["HAPO", "+1", "HPER", "+1"]                                                                 ┆
-  ┆ ×4  ["HAPOX", "+1", "HPERX", "+1"]                                                               ┆
-  ┆ ×4  ["LAT(SPL)", "+1", "LNG(SPL)", "+1"]                                                         ┆
-  ┆ ×4  ["MARKDOWN", "+1...+5", "+6", "GARBAGE"]                                                     ┆
-  ┆ ×4  ["MARKDOWN", "+1...+5", "+6", "RM"]                                                          ┆
-  ┆ ×4  ["MKTIME", "+1", "RM", "+1"]                                                                 ┆
-  ┆ ×4  ["NC1TIG", "+1", "NC2TIG", "+1"]                                                             ┆
-  ┆ ×4  ["RANGE", "+1", "RRATE", "+1"]                                                               ┆
-  ┆ ×4  ["REDOCTR", "THETAD", "+1", "+2"]                                                            ┆
-  ┆ ×4  ["REDOCTR", "THETAD+0", "+1", "+2"]                                                          ┆
-  ┆ ×4  ["TEPHEM", "+1", "+2", "GARBAGE"]                                                            ┆
-  ┆ ×4  ["UTPIT", "+1", "UTYAW", "+1"]                                                               ┆
-  ┆ ×4  ["VPRED", "+1", "GAMMAEI", "+1"]                                                             ┆
+  ┆     ["NA", "...+5", "NB", "...+5"] → ["NA+0", .., "NA+3", ""NB+0", .., "NB+3"]           singles ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+                    if let match = bits[1].firstMatch(of: dots) {
+                        let alpha = Int(String(match.1))!
+                        let omega = Int(String(match.2))!
+                        for i in alpha...omega { result.append("\(bits[0])+\(i)") }
+                    }
+
+                    if let match = bits[3].firstMatch(of: dots) {
+                        let alpha = Int(String(match.1))!
+                        let omega = Int(String(match.2))!
+                        for i in alpha...omega { result.append("\(bits[2])+\(i)") }
+                    }
+
+                    return result
+
+                }
+
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ ×4  ["ADOT+2", "+3", "OMEGAB+2", "+3"]                                                           ┆
+  ┆ ×4  ["ADOT+4", "+5", "OMEGAB+4", "+5"]                                                           ┆
+  ┆ ×4  ["WBODY", "...+5", "OMEGAC", "...+5"]                                                        ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
                 logger.log("×4  \(bits)")
 
             case 5:
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆     ×5 ["COMPNUMB", "UPOLDMOD", "UPVERB", "UPCOUNT", "UPBUFF+0...+7"]                            ┆
+  ┆     ["COMPNUMB", "UPOLDMOD", "UPVERB", "UPCOUNT", "UPBUFF+0...+7"]                               ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+                for i in 0...3 { result.append("\(bits[i])") }
+
+                if let match = bits[4].firstMatch(of: code) {
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆                                                   "UPBUFF+0...+7" → ["UPBUFF+0", .., "UPBUFF+7"] ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+                    let alpha = Int(String(match.2))!
+                    let omega = Int(String(match.3))!
+                    for i in alpha...omega { result.append("\(match.1)+\(i)") }
+                    return result
+                }
+
                 logger.log("×5  \(bits)")
 
             case 6:
+                if bits[1] == "+1" && bits[3] == "+1" && bits[5] == "+1" {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆     ×6 ["CADRFLSH", "+1", "+2", "FAILREG", "+1", "+2"]                                           ┆
-  ┆     ×6 ["LATANG", "+1", "RDOT", "+1", "THETAH", "+1"]                                            ┆
-  ┆     ×6 ["OGC", "+1", "IGC", "+1", "MGC", "+1"]                                                   ┆
+  ┆     ["NAME1", "+1", "NAME2", "+1", "NAME3", "+1"] → ["NAME1", "NAME2, "NAME3"]           doubles ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+                    result.append("\(bits[0])")                     // "NAME1"
+                    result.append("\(bits[2])")                     // "NAME2"
+                    result.append("\(bits[4])")                     // "NAME2"
+                    return result
+                } else if bits[1] == "+1" && bits[2] == "+2" &&
+                          bits[4] == "+1" && bits[5] == "+2" {
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆     ["N1", "+1", "+2", "N2", "+1", "+2"] → ["N1+0", .., "N1+2", "N2+0", .., "N2+2"]      singles ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+                    result.append("\(bits[0])+0")                   // "N1+0"
+                    result.append("\(bits[0])+1")                   // "N1+1"
+                    result.append("\(bits[0])+2")                   // "N1+2"
+                    result.append("\(bits[3])+0")                   // "N2+0"
+                    result.append("\(bits[3])+1")                   // "N2+1"
+                    result.append("\(bits[3])+2")                   // "N2+2"
+
+                    return result
+                }
+
                 logger.log("×6  \(bits)")
 
             default:
@@ -394,7 +510,7 @@ let long = Regex {
 }
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆     "WORD█+m...+n" (where "█" is an optional " ")                                                ┆
+  ┆     "WORD␠+m...+n" (where "␠" is an optional " ")                                                ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
 let code = Regex {
     Capture { OneOrMore(CharacterClass(.word, .anyOf("/"))) }
@@ -404,10 +520,11 @@ let code = Regex {
 }
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆     "WORD+m" (for example "AGSBUFF+0")                                                           ┆
+  ┆     "WORD␠+m" (for example "AGSBUFF+0" -- where "␠" is an optional " ")                          ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
 let plus = Regex {
     Capture { OneOrMore(CharacterClass(.word, .anyOf("/-"))) }
+    Optionally(" ")
     "+"
     Capture { OneOrMore(.digit) }
     Optionally("D")
