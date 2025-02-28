@@ -133,8 +133,8 @@ func dataFile(_ fileName: String, _ fileLines: [String]) -> [String] {
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
 
                 let shortLabel = upToPlus(label)
-                if ["REFSMMAT", "RLS", "VGTIG", "STATE", "DELVEET1",
-                    "DSPTAB", "STARSAV1", "STARSAV2", "RN", "VN", "qaz", "qaz"].contains(shortLabel) {
+                if ["REFSMMAT", "RLS", "VGTIG", "STATE", "DELVEET1", "DSPTAB", "STARSAV1", "STARSAV2",
+                    "RN", "VN", "UPBUF", "UPBUFF"].contains(shortLabel) {
                     let everyOtherBit = commentBits.enumerated().filter { $0.offset % 2 == 0 }.map { $0.element }
 
                     for bit in everyOtherBit {
