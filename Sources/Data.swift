@@ -8,13 +8,14 @@
 import Foundation
 import RegexBuilder
 
+var order = 0
+
 func dataFile(_ fileName: String, _ fileLines: [String]) -> [String] {
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ process the lines of the file to isolate downlists ..                                            ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
     var newLines: [String] = []
-    var index = 0
 
     for var line in fileLines {
 
@@ -23,7 +24,7 @@ func dataFile(_ fileName: String, _ fileLines: [String]) -> [String] {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ new downlink ..                                                                                  ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-        if line.starts(with: "##") { newLines.append(line); index = 0; continue }
+        if line.starts(with: "##") { newLines.append(line); order = 0; continue }
 
         line.replace("SNAPSHOT", with: "")
         line.replace("COMMON DATA", with: "")
@@ -60,21 +61,46 @@ func dataFile(_ fileName: String, _ fileLines: [String]) -> [String] {
             let range = String(match.3)
             let comment = match.4
                 .replacingOccurrences(of: "DATA", with: "")                     // ← SPECIAL CASE
+                .replacingOccurrences(of: "CHANNELS 76(GARBAGE),77", with: "GARBAGE,CHANNEL77")
                 .trimmingCharacters(in: .whitespaces)
 
-            let commentBits = splitComment(label, comment)
-
-            if opCode == "DNCHAN" {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ DNCHAN .. channel downlink ..                                                                    ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-                newLines.append(emitLine(index, opCode, "CHAN"+label, range, "single", comment))
-                index += 1
-                newLines.append(emitLine(index, "      ", "CHAN"+commentBits[1], range, "single", comment))
-                index += 1
+            if opCode == "DNCHAN" {
+                if let match = comment.firstMatch(of: chNumb) {
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆                                                              "CHANNELS 13,14"                    ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+                    newLines.append(emitLine(order, range, opCode, "CHAN"+match.1, .byte, comment))
+                    newLines.append(emitLine(order, range, "      ", "CHAN"+match.2, .byte, comment))
+
+                    continue
+                } else if let match = comment.firstMatch(of: chWord) {
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆                                                              "CHANNELS GARBAGE,CHANNEL77"        ┆
+  ┆                                                              "CHANNELS 76(GARBAGE),77"           ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+                    newLines.append(emitLine(order, range, opCode, "GARBAGE", .byte, comment))
+                    newLines.append(emitLine(order, range, "      ", "CHAN"+match.1, .byte, comment))
+
+                    continue
+                }
+
+                logger.log("×C  \(comment)")
+
+            }
+
+            if comment == "SPARE" {
+                newLines.append(emitLine(order, range, opCode, "SPARE", .byte, comment))
 
                 continue
             }
+
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ split the comment field into bits ..                                                             ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+            let commentBits = splitComment(label, comment)
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆     process nDNADR (n words in downlist)                                                         ┆
@@ -105,12 +131,27 @@ func dataFile(_ fileName: String, _ fileLines: [String]) -> [String] {
   ┆                 006  :  AGSBUFF+4  :  single                                                     ┆
   ┆                 007  :  AGSBUFF+5  :  single                                                     ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-                for bit in commentBits {
-                    newLines.append(emitLine(index, opCode,
-                                             String(bit), range,
-                                             "single", comment))
-                    opCode = "      "
-                    index += 1
+
+                let shortLabel = upToPlus(label)
+                if ["REFSMMAT", "RLS", "VGTIG", "STATE", "DELVEET1",
+                    "DSPTAB", "STARSAV1", "STARSAV2", "RN", "VN", "qaz", "qaz"].contains(shortLabel) {
+                    let everyOtherBit = commentBits.enumerated().filter { $0.offset % 2 == 0 }.map { $0.element }
+
+                    for bit in everyOtherBit {
+                        newLines.append(emitLine(order, range, opCode,
+                                                 String(bit),
+                                                 .word, comment))
+                        opCode = "      "
+                    }
+
+                } else {
+
+                    for bit in commentBits {
+                        newLines.append(emitLine(order, range, opCode,
+                                                 String(bit),
+                                                 .byte, comment))
+                        opCode = "      "
+                    }
                 }
 
                 continue
@@ -141,11 +182,10 @@ func dataFile(_ fileName: String, _ fileLines: [String]) -> [String] {
   ┆                 007  :  AGSBUFF+5  :  single                                                     ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
                 for bit in commentBits {
-                    newLines.append(emitLine(index, opCode,
-                                             String(bit), range,
-                                             "double", comment))
+                    newLines.append(emitLine(order, range, opCode,
+                                             String(bit),
+                                             .word, comment))
                     opCode = "      "
-                    index += 2
                 }
 
                 continue
@@ -158,10 +198,9 @@ func dataFile(_ fileName: String, _ fileLines: [String]) -> [String] {
   ┆ ["A","B","C","D","E","F"]                                                                        ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
             for i in 1...downCount {
-                newLines.append(emitLine(index, i == 1 ? opCode : "      ",
+                newLines.append(emitLine(order, range, i == 1 ? opCode : "      ",
                                          commentBits.count < downCount ? label : String(commentBits[i-1]),
-                                         range, "double", comment))
-                index += 2
+                                         .word, comment))
 
                 continue
             }
@@ -211,7 +250,6 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
             bits[2] = String(twoBits[1])
         }
 
-
         if bits.count == 4 { if bits[1...3] == ["+1", "...+4", "+5"] { bits = [bits[0], "+1...+5"] } }
         if bits.count == 4 { if bits[1...3] == ["+1", "+2", "...+5"] { bits = [bits[0], "+1...+5"] } }
         if bits.count == 4 { if bits[1...3] == ["+1", "...+10", "+11"] { bits = [bits[0], "+1...+11"] } }
@@ -228,9 +266,9 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
                     for i in alpha...omega { result.append("\(match.1)+\(i)") }
                     return result
 
-                } else {
-                    logger.log("×1 \(bits)")
                 }
+
+                logger.log("×1 \(bits)")
 
             case 2:
                 if !bits[0].contains("+") && bits[1].contains("...") {
@@ -458,7 +496,11 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
         if comment.contains(",") {
             return comment.split(separator: ",")
-        } else {
+        }
+
+        if let match = comment.wholeMatch(of: #/(\w+)/#) {
+            return [match.1]
+        }
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ comment text contains no "," and no "+"                                                          ┆
   ┆                                                                                                  ┆
@@ -473,21 +515,36 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
   ┆ -  LANDING SITE MARK                                                                             ┆
   ┆ -  SPARE                                                                                         ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-            logger.log("-  \(comment)")
-        }
+
+        logger.log("-  \(comment)")
+
     }
 
     return []
 }
 
-fileprivate func emitLine(_ i: Int = 999,
-                          _ o: String,
-                          _ a: String = "",
-                          _ r: String = "",
-                          _ p: String = "      ",
-                          _ c: String = "") -> String {
+enum Precision {
+    case byte
+    case word
+}
 
-    "\(String(format: "%03d", i)) : \(r.padTo16()) : \(a.padTo16()) : \(o) : \(p) : \(c)"
+fileprivate func emitLine(_ ord: Int = 999,
+                          _ ran: String = "",
+                          _ opc: String,
+                          _ adr: String = "",
+                          _ pre: Precision = .word,
+                          _ com: String = "") -> String {
+
+    order += (pre == .word ? 2 : 1)
+
+    return """
+        \(String(format: "%03d", ord)) : \
+        \(ran.padTo16()) : \
+        \(adr.padTo16()) : \
+        \(opc) : \
+        \(pre == .word ? "double" : "single") : \
+        \(com)
+        """
 }
 
 /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -551,4 +608,38 @@ let numb = Regex {
 fileprivate func getPair(_ s: Substring) -> (Int, Int)? {
     guard let match = s.firstMatch(of: dots) else { return nil }
     return (Int(String(match.1))!, Int(String(match.2))!)
+}
+
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆     "CHANNELS␠m,␠n"                                                                              ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+let chNumb = Regex {
+    "CHANNEL"
+    Optionally("S")
+    Optionally(.whitespace)
+    Capture { OneOrMore(.digit) }
+    Optionally(.whitespace)
+    ","
+    Optionally(.whitespace)
+    Capture { OneOrMore(.digit) }
+}
+
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆     "CHANNELS GARBAGE,CHANNEL77"                                                                 ┆
+  ┆     "CHANNELS 76(GARBAGE),77"                                                                    ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+let chWord = Regex {
+    "GARBAGE"
+    ","
+    Optionally("CHANNEL")
+    Capture { OneOrMore(.digit) }
+}
+
+func upToPlus(_ s: String) -> String {
+    let upToPlus = Regex {
+        Capture { OneOrMore(.word) }
+        Optionally { .anyGraphemeCluster }
+    }
+
+    if let match = s.firstMatch(of: upToPlus) { return String(match.1) } else { return s }
 }

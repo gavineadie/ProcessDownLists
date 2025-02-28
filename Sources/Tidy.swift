@@ -31,15 +31,15 @@ func tidyFile(_ fileName: String, _ fileText: String) -> [String] {
         if line.isEmpty || line == "#" { continue }
         if line.contains("## Page ") { continue }
 
-        line = line.replacingOccurrences(of: "0-..+", with: "0...+")            // typo fix
-        line = line.replacingOccurrences(of: "+0..+", with: "+0...+")           // typo fix
-        line = line.replacingOccurrences(of: "FALG", with: "FLAG")              // typo fix
+        line.replace("0-..+", with: "0...+")                        // typo fix
+        line.replace("+0..+", with: "+0...+")                       // typo fix
+        line.replace("FALG", with: "FLAG")                          // typo fix
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ keep comments                                                                                    ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
         if line.starts(with: "#") {
-            newLines.append(line)                           // "# ..."
+            newLines.append(line)                                   // "# ..."
             continue
         }
         

@@ -57,7 +57,7 @@ func mashFile(_ fileName: String, _ fileLines: [String]) -> [String] {
                 if let match = opcode.firstMatch(of: #/EQUALS\s+(\w+)/#) {
                     newLines.append("E> \(label.padTo10()) EQUALS \(match.1)")
 
-                    equalites[label] = String(match.1).trimmingCharacters(in: .whitespaces)
+                    equalities[label] = String(match.1).trimmingCharacters(in: .whitespaces)
 
                     continue                                // no list actions required
                 }

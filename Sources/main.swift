@@ -47,7 +47,7 @@ if let enumerator = fileManager.enumerator(at: workDirURL,
 
 var downlists: [String : [String]] = [:]            // LABEL : LINES
 var copylists: [String : [String]] = [:]            // LABEL : LINES
-var equalites: [String : String] = [:]              // LABEL : LABEL
+var equalities: [String : String] = [:]              // LABEL : LABEL
 
 let originalStdout = dup(STDOUT_FILENO)
 
@@ -134,7 +134,7 @@ do {
 
         downlists = [:]
         copylists = [:]
-        equalites = [:]
+        equalities = [:]
 
         print("joinFile: Processed \(fileName).")
 

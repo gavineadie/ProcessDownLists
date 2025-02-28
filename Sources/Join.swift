@@ -138,7 +138,7 @@ func joinFile(_ fileName: String) -> [String] {
 func lookUpList(_ address: String) -> [String]? {
 
     if let copyList = copylists[String(address)] { return copyList }
-    if let copyList = copylists[String(equalites[address]!)] { return copyList }
+    if let copyList = copylists[String(equalities[address]!)] { return copyList }
 
     return nil
 }
