@@ -7,6 +7,9 @@
 
 import Foundation
 import RegexBuilder
+import OSLog
+        
+let logger = Logger(subsystem: "com.ramsaycons.PDL", category: "main")
 
 var order = 0
 
@@ -19,8 +22,8 @@ func dataFile(_ fileName: String, _ fileLines: [String]) -> [String] {
 
     for var line in fileLines {
 
-        guard line.isNotEmpty else { continue }
-        if line.starts(with: "# ") || line.starts(with: "#*") { continue }
+        let ignoredPrefixes: Set<String> = ["# ", "#*"]
+        if line.isEmpty || ignoredPrefixes.contains(where: line.hasPrefix) { continue }
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ new downlink ..                                                                                  ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
