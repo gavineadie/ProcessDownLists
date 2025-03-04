@@ -5,6 +5,14 @@
 //  Created by Gavin Eadie on 2/24/25.
 //
 
+/*╔══════════════════════════════════════════════════════════════════════════════════════════════════╗
+  ║ TO BE FIXED:                                                                                     ║
+  ║                                                                                                  ║
+  ║ .. the following line in Colossus237 implies two single precision words (wrong?)                 ║
+  ║         1DNADR LANDMARK                     #  LANDMARK,GARBAGE                                  ║
+  ║                                                                                                  ║
+  ╚══════════════════════════════════════════════════════════════════════════════════════════════════╝*/
+
 import Foundation
 import RegexBuilder
 import OSLog
@@ -44,7 +52,11 @@ func dataFile(_ fileName: String, _ fileLines: [String]) -> [String] {
 
         line.replace("LAT(SPL),LNG(SPL),+1", with: "LAT(SPL),+1,LNG(SPL),+1")
 
-        if line.contains("SPARE") { line.append("# SPARE") }
+        if line.contains("SPARE") { line.append("# ") }
+        if line.contains("2DNADR CHANBKUP") { line.append("# CHANBKUP, +0...+3") }  // Luminary210
+
+        line.replace("FLAGWRD0 THRU FLAGWRD9", with: "STATE +0...+9")               // Colossus237
+        line.replace("FLAGWRDS 10 AND 11", with: "STATE +10...+11")                 // Colossus237
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ match an assembler line and split it into pieces:                                                ┆
@@ -59,8 +71,7 @@ func dataFile(_ fileName: String, _ fileLines: [String]) -> [String] {
         if let match = line.firstMatch(of: long) {
 
             var opCode = String(match.1)
-            var label = match.2.trimmingCharacters(in: .whitespaces)
-            if label == "SPARE" { label = " " }
+            let label = match.2.trimmingCharacters(in: .whitespaces)
             let range = String(match.3)
             let comment = match.4
                 .replacingOccurrences(of: "DATA", with: "")                     // ← SPECIAL CASE
@@ -75,27 +86,18 @@ func dataFile(_ fileName: String, _ fileLines: [String]) -> [String] {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆                                                              "CHANNELS 13,14"                    ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-                    newLines.append(emitLine(order, range, opCode, "CHAN"+match.1, .byte, comment))
-                    newLines.append(emitLine(order, range, "      ", "CHAN"+match.2, .byte, comment))
+                    newLines.append(emitLine(order, range, opCode, "CHAN"+match.1, .single, comment))
+                    newLines.append(emitLine(order, range, "      ", "CHAN"+match.2, .single, comment))
 
-                    continue
                 } else if let match = comment.firstMatch(of: chWord) {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆                                                              "CHANNELS GARBAGE,CHANNEL77"        ┆
   ┆                                                              "CHANNELS 76(GARBAGE),77"           ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-                    newLines.append(emitLine(order, range, opCode, "GARBAGE", .byte, comment))
-                    newLines.append(emitLine(order, range, "      ", "CHAN"+match.1, .byte, comment))
+                    newLines.append(emitLine(order, range, opCode, "GARBAGE", .single, comment))
+                    newLines.append(emitLine(order, range, "      ", "CHAN"+match.1, .single, comment))
 
-                    continue
                 }
-
-                logger.log("×C  \(comment)")
-
-            }
-
-            if comment == "SPARE" {
-                newLines.append(emitLine(order, range, opCode, "SPARE", .byte, comment))
 
                 continue
             }
@@ -137,13 +139,13 @@ func dataFile(_ fileName: String, _ fileLines: [String]) -> [String] {
 
                 let shortLabel = upToPlus(label)
                 if ["REFSMMAT", "RLS", "VGTIG", "STATE", "DELVEET1", "DSPTAB", "STARSAV1", "STARSAV2",
-                    "RN", "VN", "UPBUF", "UPBUFF"].contains(shortLabel) {
+                    "RN", "VN", "UPBUF", "UPBUFF", "SVMRKDAT", "CHANBKUP"].contains(shortLabel) {
                     let everyOtherBit = commentBits.enumerated().filter { $0.offset % 2 == 0 }.map { $0.element }
 
                     for bit in everyOtherBit {
                         newLines.append(emitLine(order, range, opCode,
                                                  String(bit),
-                                                 .word, comment))
+                                                 .double, comment))
                         opCode = "      "
                     }
 
@@ -152,7 +154,7 @@ func dataFile(_ fileName: String, _ fileLines: [String]) -> [String] {
                     for bit in commentBits {
                         newLines.append(emitLine(order, range, opCode,
                                                  String(bit),
-                                                 .byte, comment))
+                                                 .single, comment))
                         opCode = "      "
                     }
                 }
@@ -187,7 +189,7 @@ func dataFile(_ fileName: String, _ fileLines: [String]) -> [String] {
                 for bit in commentBits {
                     newLines.append(emitLine(order, range, opCode,
                                              String(bit),
-                                             .word, comment))
+                                             .double, comment))
                     opCode = "      "
                 }
 
@@ -203,15 +205,17 @@ func dataFile(_ fileName: String, _ fileLines: [String]) -> [String] {
             for i in 1...downCount {
                 newLines.append(emitLine(order, range, i == 1 ? opCode : "      ",
                                          commentBits.count < downCount ? label : String(commentBits[i-1]),
-                                         .word, comment))
+                                         .double, comment))
 
                 continue
             }
 
+        } else {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ failed to match the assembler line .. emit it anyway                                             ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-            newLines.append(line)
+            logger.log("×X  \(line)")
+//          newLines.append(line)
         }
 
     }
@@ -507,19 +511,15 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ comment text contains no "," and no "+"                                                          ┆
   ┆                                                                                                  ┆
-  ┆ -  APOGEE AND PERIGEE FROM R30   (28-29)                                                         ┆
-  ┆ -  CDH AND CSI TIME                      (32-33)                                                 ┆
-  ┆ -  CDH DELTA ALTITUDE			(74)                                                                     ┆
-  ┆ -  CDH DELTA ALTITUDE                    (74)                                                    ┆
-  ┆ -  CDH DELTA VELOCITY COMPONENTS   (98-100)                                                      ┆
-  ┆ -  CSI DELTA VELOCITY COMPONENTS   (31-33)                                                       ┆
-  ┆ -  FLAGWRD0 THRU FLAGWRD9                                                                        ┆
-  ┆ -  FLAGWRDS 10 AND 11                                                                            ┆
-  ┆ -  LANDING SITE MARK                                                                             ┆
-  ┆ -  SPARE                                                                                         ┆
+  ┆ -  'APOGEE AND PERIGEE FROM R30   (28-29)'                                                       ┆
+  ┆ -  'CDH AND CSI TIME                      (32-33)'                                               ┆
+  ┆ -  'CDH DELTA ALTITUDE			(74)'                                                                   ┆
+  ┆ -  'CDH DELTA ALTITUDE                    (74)'                                                  ┆
+  ┆ -  'CDH DELTA VELOCITY COMPONENTS   (98-100)'                                                    ┆
+  ┆ -  'CSI DELTA VELOCITY COMPONENTS   (31-33)'                                                     ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
 
-        logger.log("-  \(comment)")
+        logger.log("-  \(#function): '\(comment)'")
 
     }
 
@@ -527,25 +527,25 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
 }
 
 enum Precision {
-    case byte
-    case word
+    case single
+    case double
 }
 
 fileprivate func emitLine(_ ord: Int = 999,
                           _ ran: String = "",
                           _ opc: String,
                           _ adr: String = "",
-                          _ pre: Precision = .word,
+                          _ pre: Precision = .double,
                           _ com: String = "") -> String {
 
-    order += (pre == .word ? 2 : 1)
+    order += (pre == .double ? 2 : 1)
 
     return """
         \(String(format: "%03d", ord)) : \
         \(ran.padTo16()) : \
         \(adr.padTo16()) : \
         \(opc) : \
-        \(pre == .word ? "double" : "single") : \
+        \(pre == .double ? "double" : "single") : \
         \(com)
         """
 }
