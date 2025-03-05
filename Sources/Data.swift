@@ -9,7 +9,7 @@
   ║ TO BE FIXED:                                                                                     ║
   ║                                                                                                  ║
   ║ .. the following line in Colossus237 implies two single precision words (wrong?)                 ║
-  ║         1DNADR LANDMARK                     #  LANDMARK,GARBAGE                                  ║
+  ║                 1DNADR LANDMARK                 #  LANDMARK,GARBAGE                              ║
   ║                                                                                                  ║
   ╚══════════════════════════════════════════════════════════════════════════════════════════════════╝*/
 
@@ -52,6 +52,17 @@ func dataFile(_ fileName: String, _ fileLines: [String]) -> [String] {
 
         line.replace("LAT(SPL),LNG(SPL),+1", with: "LAT(SPL),+1,LNG(SPL),+1")
 
+        line.replace("UPBUFF+0,+1...+10,+11D", with: "UPBUFF +0...+11")
+        line.replace("UPBUFF+12,+13...+18,+19D", with: "UPBUFF +12...+19")
+
+        line.replace("OPTION1,2", with: "OPTION,+1")
+
+        line.replace("/OGARATE", with: " (OGARATE")
+        line.replace("/OMEGAB", with: " (OMEGAB")
+
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ ### SPECIAL CASE: these (uncommon) usages can be eliminated early ..                             ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
         if line.contains("SPARE") { line.append("# ") }
         if line.contains("2DNADR CHANBKUP") { line.append("# CHANBKUP, +0...+3") }  // Luminary210
 
@@ -76,6 +87,11 @@ func dataFile(_ fileName: String, _ fileLines: [String]) -> [String] {
             let comment = match.4
                 .replacingOccurrences(of: "DATA", with: "")                     // ← SPECIAL CASE
                 .replacingOccurrences(of: "CHANNELS 76(GARBAGE),77", with: "GARBAGE,CHANNEL77")
+                .replacingOccurrences(of: "APOGEE AND PERIGEE FROM R30", with: "HAPOX,HPERX")
+                .replacingOccurrences(of: "CSI DELTA VELOCITY COMPONENTS", with: "DELVEET1 +0...+5")
+                .replacingOccurrences(of: "CDH DELTA VELOCITY COMPONENTS", with: "DELVEET2 +0...+5")
+                .replacingOccurrences(of: "CDH AND CSI TIME", with: "TCDH +0...+3")
+                .replacingOccurrences(of: "CDH DELTA ALTITUDE", with: "DIFFALT")
                 .trimmingCharacters(in: .whitespaces)
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
@@ -139,7 +155,7 @@ func dataFile(_ fileName: String, _ fileLines: [String]) -> [String] {
 
                 let shortLabel = upToPlus(label)
                 if ["REFSMMAT", "RLS", "VGTIG", "STATE", "DELVEET1", "DSPTAB", "STARSAV1", "STARSAV2",
-                    "RN", "VN", "UPBUF", "UPBUFF", "SVMRKDAT", "CHANBKUP"].contains(shortLabel) {
+                    "RN", "VN", "UPBUF", "UPBUFF", "SVMRKDAT", "CHANBKUP", "TCDH"].contains(shortLabel) {
                     let everyOtherBit = commentBits.enumerated().filter { $0.offset % 2 == 0 }.map { $0.element }
 
                     for bit in everyOtherBit {
@@ -509,14 +525,7 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
             return [match.1]
         }
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ comment text contains no "," and no "+"                                                          ┆
-  ┆                                                                                                  ┆
-  ┆ -  'APOGEE AND PERIGEE FROM R30   (28-29)'                                                       ┆
-  ┆ -  'CDH AND CSI TIME                      (32-33)'                                               ┆
-  ┆ -  'CDH DELTA ALTITUDE			(74)'                                                                   ┆
-  ┆ -  'CDH DELTA ALTITUDE                    (74)'                                                  ┆
-  ┆ -  'CDH DELTA VELOCITY COMPONENTS   (98-100)'                                                    ┆
-  ┆ -  'CSI DELTA VELOCITY COMPONENTS   (31-33)'                                                     ┆
+  ┆ comment text contains no "," and no "+" (ERROR)                                                  ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
 
         logger.log("-  \(#function): '\(comment)'")
@@ -529,6 +538,7 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
 enum Precision {
     case single
     case double
+    case ignore
 }
 
 fileprivate func emitLine(_ ord: Int = 999,
@@ -548,6 +558,12 @@ fileprivate func emitLine(_ ord: Int = 999,
         \(pre == .double ? "double" : "single") : \
         \(com)
         """
+
+//    return """
+//        \(String(format: "%03d", ord)) : \
+//        \((["GARBAGE", "SPARE"].contains(adr) ? "[ unused ]" : adr).padTo16()) : \
+//        \(pre == .double ? "double" : "single") 
+//        """
 }
 
 /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -566,7 +582,12 @@ let long = Regex {
     "#"
     Capture { OneOrMore(.anyGraphemeCluster) }                      // "   (034,036) "
     "#"
-    Capture { OneOrMore(.anyGraphemeCluster) }                      // "CMDAPMOD,PREL,QREL,RREL"
+    Capture { OneOrMore(CharacterClass(.word, .anyOf("/.,+- "))) }  // "CMDAPMOD,PREL,QREL,RREL"
+    Optionally {
+        "("
+        OneOrMore(.anyGraphemeCluster)
+        ")"
+    }
 }
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮

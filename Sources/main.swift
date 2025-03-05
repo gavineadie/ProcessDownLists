@@ -84,7 +84,7 @@ do {
             dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
 
             fileLinesM = mashFile(fileName, fileLinesT)
-//          fileLinesM.forEach { print("\($0)") }
+            fileLinesM.forEach { print("\($0)") }
         }
 
         dup2(originalStdout, STDOUT_FILENO)
@@ -158,8 +158,6 @@ do {
 } catch {
     print("Error: \(error.localizedDescription)")
 }
-
-
 
 
 fileprivate func prettyPrint(_ downlists: [String: [String]]) {

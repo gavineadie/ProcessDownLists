@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import RegexBuilder
 
 func mashFile(_ fileName: String, _ fileLines: [String]) -> [String] {
 
@@ -29,7 +30,13 @@ func mashFile(_ fileName: String, _ fileLines: [String]) -> [String] {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ we are starting a new downlist ..                                                                ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-        if line.contains(#/--\s*CONTROL LIST\s*--/#) {
+        if line.contains(Regex {
+            "--"
+            ZeroOrMore(.whitespace)
+            "CONTROL LIST"
+            ZeroOrMore(.whitespace)
+            "--"
+        }) {
             inDownlist = true
 
             let line2 = "\((fileLines[lineIndex-1].uppercased() + "  ").padTo72("-"))"
@@ -46,7 +53,7 @@ func mashFile(_ fileName: String, _ fileLines: [String]) -> [String] {
   ┆ "# ...................                          transfer a comment as is ..                      ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
                 if line.starts(with: "#") {
-                    newLines.append("#> \(line)")
+//                    newLines.append("#> \(line)")
 
                     continue
                 }
@@ -54,7 +61,7 @@ func mashFile(_ fileName: String, _ fileLines: [String]) -> [String] {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ "LABEL  EQUALS  ADDRESS         «COMMENT»"      make a symbol connection (ADDRESS ← LABEL)       ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-                if let match = opcode.firstMatch(of: #/EQUALS\s+(\w+)/#) {
+                if let match = opcode.firstMatch(of: equals) {
                     newLines.append("E> \(label.padTo10()) EQUALS \(match.1)")
 
                     equalities[label] = String(match.1).trimmingCharacters(in: .whitespaces)
@@ -65,7 +72,7 @@ func mashFile(_ fileName: String, _ fileLines: [String]) -> [String] {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ "LABEL  GENADR  ADDRESS         «COMMENT»"      make a symbol connection (ADDRESS ← LABEL)       ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-                if let match = opcode.firstMatch(of: #/GENADR\s+(\w+)/#) {
+                if let match = opcode.firstMatch(of: genadr) {
                     newLines.append("G> \(label.padTo10()) GENADR \(match.1)")
 
                     continue                                // no list actions required
@@ -74,7 +81,7 @@ func mashFile(_ fileName: String, _ fileLines: [String]) -> [String] {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ "LABEL  =       ADDRESS         «COMMENT»"      make a symbol connection (ADDRESS ← LABEL)       ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-                if let match = opcode.firstMatch(of: #/=\s+(\w+)/#) {
+                if let match = opcode.firstMatch(of: sameAs) {
                     newLines.append("=> \(label.padTo10()) = \(match.1)")
 
                     continue                                // no list actions required
@@ -146,7 +153,7 @@ func mashFile(_ fileName: String, _ fileLines: [String]) -> [String] {
                     if label.isNotEmpty {
                         inSnapshot = true
                     } else {
-                        newLines.append(">> \("-".padTo36("-")) \(inSnapshot ? "SNAPSHOT" : "DOWNLIST")")
+                        newLines.append(">> \("-".padTo36("-")) \(inSnapshot ? "SNAPSHOT" : "DOWNLIST")\n")
                         inCopylist = false
                         inSnapshot = false
                     }
@@ -156,3 +163,23 @@ func mashFile(_ fileName: String, _ fileLines: [String]) -> [String] {
     
     return newLines
 }
+
+let equals = Regex {
+    "EQUALS"
+    spWord}
+
+let genadr = Regex {
+    "GENADR"
+    spWord}
+
+let sameAs = Regex {
+    "="
+    spWord}
+
+let spWord = Regex {
+    OneOrMore(.whitespace)
+    Capture {
+        OneOrMore(.word)
+    }
+}
+

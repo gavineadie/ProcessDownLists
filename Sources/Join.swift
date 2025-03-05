@@ -29,9 +29,9 @@ func joinFile(_ fileName: String) -> [String] {
         let downListName = downListIDs[label] ?? "Unknown Downlist Label (XX-00000)"
         let downListCode = downListName.dropLast().suffix(5)
 
-        newLines.append("## ".padding(toLength: 78, withPad: "=", startingAt: 0))
-        newLines.append("## \(fileName) -- \(downListName)")
-        newLines.append("## ".padding(toLength: 78, withPad: "=", startingAt: 0))
+        newLines.append("## ".padding(toLength: 89, withPad: "=", startingAt: 0))
+        newLines.append("## \(missionLookUp[fileName] ?? "?") [\(fileName)] -- \(downListName)")
+        newLines.append("## ".padding(toLength: 89, withPad: "=", startingAt: 0))
         newLines.append("")
 
         offset = 2
@@ -171,3 +171,39 @@ func mem_mem(_ opcode: String) -> String {
 
     return result
 }
+
+let missionLookUp = [
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆  Command Modules ..                                                                              ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+    "Colossus237" : "Apollo 8 CM - Colossus 1",
+    "Colossus249" : "Apollo 9 CM - Colossus 1A",
+    "Comanche044" : "Apollo 10 CM - Colossus 2 (not flown)",
+    "Comanche045" : "Apollo 10 CM - Colossus 2 (not flown)",
+    "Manche45R2"  : "Apollo 10 CM - Colossus 2",
+    "Comanche051" : "Apollo 11 CM - Colossus 2A (not flown)",
+    "Comanche055" : "Apollo 11 CM - Colossus 2A",
+    "Comanche067" : "Apollo 12 CM - Colossus 2C",
+    "Comanche072" : "Apollo 13 CM - Colossus 2D (not flown)",
+    "Manche72R3"  : "Apollo 13 CM - Colossus 2D",
+    "Artemis072"  : "Apollo 15/16/17 CM - Colossus 3",
+    "Skylark084"  : "Skylab 2/3/4 CM",
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆  Command Modules ..                                                                              ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+    "Sundance306" : "Apollo 9 (not flown)",
+    "SundanceXXX" : "Apollo 9",
+    "Luminary069" : "Apollo 10 LM - Luminary 1",
+    "Luminary096" : "Apollo 11 LM - Luminary 1A (not flown)",
+    "Luminary097" : "Apollo 11 LM - Luminary 1A (not flown)",
+    "Luminary098" : "Apollo 11 LM - Luminary 1A (not flown)",
+    "Luminary099" : "Apollo 11 LM - Luminary 1A",
+    "Luminary116" : "Apollo 12 LM - Luminary 1B",
+    "Luminary130" : "Apollo 13 LM - Luminary 1C (not flown)",
+    "Luminary131" : "Apollo 13 LM - Luminary 1C",
+    "Zerlina56"   : "Experimental LM (not flown)",
+    "Luminary163" : "Apollo 14 LM - Luminary 1D (not flown)",
+    "Luminary173" : "Apollo 14 LM - Luminary 1D (not flown)",
+    "Luminary178" : "Apollo 14 LM - Luminary 1D",
+    "Luminary210" : "Apollo 15/16/16 LM - Luminary 1E"
+]
