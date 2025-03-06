@@ -153,6 +153,24 @@ do {
 
         print("dataFile: Processed \(fileName).")
 
+/*────────────────────────────────────────────────────────────────────────────────────────────────────*/
+        var fileLinesX: [String] = []
+
+        let xtraPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(fileName)-xtra.txt")
+        fileManager.createFile(atPath: xtraPrintURL.path, contents: nil, attributes: nil)
+
+        if let fileHandle = try? FileHandle(forWritingTo: xtraPrintURL) {
+            defer { fileHandle.closeFile() }
+            dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
+
+            fileLinesX = xtraFile(fileName, fileLinesD)                 // ..
+            fileLinesX.forEach { print("\($0)") }
+        }
+
+        dup2(originalStdout, STDOUT_FILENO)
+
+        print("xtraFile: Processed \(fileName).")
+
     }
 
 } catch {

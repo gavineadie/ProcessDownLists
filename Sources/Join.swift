@@ -176,8 +176,8 @@ let missionLookUp = [
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆  Command Modules ..                                                                              ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-    "Colossus237" : "Apollo 8 CM - Colossus 1",
-    "Colossus249" : "Apollo 9 CM - Colossus 1A",
+    "Colossus237" : "Apollo 8 CM - Colossus 1",                     // R-577-sec2-rev2.pdf (p2-20)
+    "Colossus249" : "Apollo 9 CM - Colossus 1A",                    // R-577-sec2-rev2.pdf
     "Comanche044" : "Apollo 10 CM - Colossus 2 (not flown)",
     "Comanche045" : "Apollo 10 CM - Colossus 2 (not flown)",
     "Manche45R2"  : "Apollo 10 CM - Colossus 2",
@@ -200,10 +200,10 @@ let missionLookUp = [
     "Luminary099" : "Apollo 11 LM - Luminary 1A",
     "Luminary116" : "Apollo 12 LM - Luminary 1B",
     "Luminary130" : "Apollo 13 LM - Luminary 1C (not flown)",
-    "Luminary131" : "Apollo 13 LM - Luminary 1C",
+    "Luminary131" : "Apollo 13 LM - Luminary 1C",                   // R-567-sec2-rev8.pdf
     "Zerlina56"   : "Experimental LM (not flown)",
     "Luminary163" : "Apollo 14 LM - Luminary 1D (not flown)",
     "Luminary173" : "Apollo 14 LM - Luminary 1D (not flown)",
     "Luminary178" : "Apollo 14 LM - Luminary 1D",
-    "Luminary210" : "Apollo 15/16/16 LM - Luminary 1E"
+    "Luminary210" : "Apollo 15/16/16 LM - Luminary 1E"              // R-567-sec2-rev12.pdf
 ]

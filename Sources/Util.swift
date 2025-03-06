@@ -13,6 +13,7 @@ extension Collection {
 
 extension StringProtocol {
     func padTo10(_ pad: String = " ") -> String { self.padding(toLength: 10, withPad: pad, startingAt: 0) }
+    func padTo12(_ pad: String = " ") -> String { self.padding(toLength: 12, withPad: pad, startingAt: 0) }
     func padTo16(_ pad: String = " ") -> String { self.padding(toLength: 16, withPad: pad, startingAt: 0) }
     func padTo36(_ pad: String = " ") -> String { self.padding(toLength: 36, withPad: pad, startingAt: 0) }
     func padTo72(_ pad: String = " ") -> String { self.padding(toLength: 72, withPad: pad, startingAt: 0) }

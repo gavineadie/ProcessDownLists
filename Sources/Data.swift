@@ -11,13 +11,16 @@
   ║ .. the following line in Colossus237 implies two single precision words (wrong?)                 ║
   ║                 1DNADR LANDMARK                 #  LANDMARK,GARBAGE                              ║
   ║                                                                                                  ║
+  ║ .. the following line in Colossus237 should be two single precision words                        ║
+  ║ 134 :  c (  134  )     : RSBBQ+0          : 1DNADR : double : RSBBQ,+1                           ║
+  ║                                                                                                  ║
   ╚══════════════════════════════════════════════════════════════════════════════════════════════════╝*/
 
 import Foundation
 import RegexBuilder
 import OSLog
         
-let logger = Logger(subsystem: "com.ramsaycons.PDL", category: "main")
+let logger = Logger(subsystem: "com.ramsaycons.PDL", category: "data")
 
 var order = 0
 
@@ -129,34 +132,11 @@ func dataFile(_ fileName: String, _ fileLines: [String]) -> [String] {
             let downCount = Int(String(opCode.first!))!
 
             if downCount == commentBits.count/2 {
-/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ SINGLE                                                                                           ┆
-  ┆                        1DNADR DNLRVELZ                     # DNLRVELZ,DNLRALT                    ┆
-  ┆                                                                                                  ┆
-  ┆                 054  :  DNLRVELZ   :  single                                                     ┆
-  ┆                 055  :  DNLRALT    :  single                                                     ┆
-  ┆╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┆
-  ┆                        2DNADR DNLRVELX                     # DNLRVELX,DNLRVELY,DNLRVELZ,DNLRALT  ┆
-  ┆                                                                                                  ┆
-  ┆                 048  :  DNLRVELX   :  single                                                     ┆
-  ┆                 049  :  DNLRVELY   :  single                                                     ┆
-  ┆                 050  :  DNLRVELZ   :  single                                                     ┆
-  ┆                 051  :  DNLRALT    :  single                                                     ┆
-  ┆╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┆
-  ┆                        3DNADR AGSBUFF +0                   # AGSBUFF +0...+5                     ┆
-  ┆                                                                                                  ┆
-  ┆                 002  :  AGSBUFF+0  :  single                                                     ┆
-  ┆                 003  :  AGSBUFF+1  :  single                                                     ┆
-  ┆                 004  :  AGSBUFF+2  :  single                                                     ┆
-  ┆                 005  :  AGSBUFF+3  :  single                                                     ┆
-  ┆                 006  :  AGSBUFF+4  :  single                                                     ┆
-  ┆                 007  :  AGSBUFF+5  :  single                                                     ┆
-  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
 
                 let shortLabel = upToPlus(label)
-                if ["REFSMMAT", "RLS", "VGTIG", "STATE", "DELVEET1", "DSPTAB", "STARSAV1", "STARSAV2",
-                    "RN", "VN", "UPBUF", "UPBUFF", "SVMRKDAT", "CHANBKUP", "TCDH"].contains(shortLabel) {
-                    let everyOtherBit = commentBits.enumerated().filter { $0.offset % 2 == 0 }.map { $0.element }
+                if forceDouble.contains(shortLabel) {
+                    let everyOtherBit = commentBits.enumerated()
+                        .filter { $0.offset % 2 == 0 }.map { $0.element }
 
                     for bit in everyOtherBit {
                         newLines.append(emitLine(order, range, opCode,
@@ -550,20 +530,26 @@ fileprivate func emitLine(_ ord: Int = 999,
 
     order += (pre == .double ? 2 : 1)
 
-    return """
-        \(String(format: "%03d", ord)) : \
-        \(ran.padTo16()) : \
-        \(adr.padTo16()) : \
-        \(opc) : \
-        \(pre == .double ? "double" : "single") : \
-        \(com)
-        """
+//    return """
+//        \(String(format: "%03d", ord)) : \
+//        \(ran.padTo16()) : \
+//        \(adr.padTo16()) : \
+//        \(opc) : \
+//        \(pre == .double ? "double" : "single") : \
+//        \(com)
+//        """
 
 //    return """
 //        \(String(format: "%03d", ord)) : \
 //        \((["GARBAGE", "SPARE"].contains(adr) ? "[ unused ]" : adr).padTo16()) : \
-//        \(pre == .double ? "double" : "single") 
+//        \(pre == .double ? "double" : "single")
 //        """
+
+    return """
+        \(String(format: "%d", ord))\t\
+        \((["GARBAGE", "SPARE"].contains(adr) ? "[ unused ]" : adr))\t\
+        \(pre == .double ? "double" : "single") 
+        """
 }
 
 /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -667,3 +653,21 @@ func upToPlus(_ s: String) -> String {
 
     if let match = s.firstMatch(of: upToPlus) { return String(match.1) } else { return s }
 }
+
+let forceDouble = [
+    "REFSMMAT",
+    "RLS",
+    "VGTIG",
+    "STATE",
+    "DELVEET1",
+    "DSPTAB",
+    "STARSAV1",
+    "STARSAV2",
+    "RN",
+    "VN",
+    "UPBUF",
+    "UPBUFF",
+    "SVMRKDAT",
+    "CHANBKUP",
+    "TCDH"
+]
