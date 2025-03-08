@@ -6,34 +6,85 @@
 //
 
 import Foundation
-
-/*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
-  │   LABEL           OPCODE                                  COMMENT                                │
-  │   <--------------><--------------------------------------><--------------------------------      │
-  │   LMRENDDL        EQUALS                                  # SEND ID BY SPECIAL CODING            │
-  │                   DNPTR           LMREND01                # COLLECT SNAPSHOT                     │
-  │                   DNPTR           LMREND02                # SEND SNAPSHOT                        │
-  │                   2DNADR          DNLRVELX                # DNLRVELX,DNLRVELY,DNLRVELZ,DNLRALT   │
-  │                   1DNADR          VN +2                   # VN +2,+3                             │
-  └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
+import RegexBuilder
 
 func tidyFile(_ fileName: String, _ fileText: String) -> [String] {
 
-    let oldLines = fileText.components(separatedBy: .newlines)
-    var subLines: [String] = []
+    var oldLines = fileText.components(separatedBy: .newlines)
     var newLines: [String] = []
+
     var skipNextLine = false
-    var skipSubLines = 0
+
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆  scan the whole file for bulk replacements                                                       ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+    for lineNum in 0..<oldLines.count {
+        let line = oldLines[lineNum]
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ ### SPECIAL SPECIAL CASE: three lines need clarifying ..                                         ┆
+  ┆                                                                                                  ┆
+  ┆     6DNADR SVMRKDAT                     # LANDING SITE MARK DATA                                 ┆
+  ┆     6DNADR SVMRKDAT +12D                # SVMRKDAT+0...+34                                       ┆
+  ┆     6DNADR SVMRKDAT +24D                # LANDING SITE MARK DATA                                 ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+        if line.contains("LANDING SITE MARK") {
+            oldLines[lineNum+0] = "\t\t6DNADR\tSVMRKDAT\t\t\t# SVMRKDAT+0...+11"
+            oldLines[lineNum+1] = "\t\t6DNADR\tSVMRKDAT +12D\t\t\t# SVMRKDAT+12...+23"
+            oldLines[lineNum+2] = "\t\t6DNADR\tSVMRKDAT +24D\t\t\t# SVMRKDAT+24...+35"
+        }
+
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ ### SPECIAL CASE: substitute lines for AGS Initialization/Update (LM-77776)                      ┆
+  ┆                                                                                                  ┆
+  ┆ .. replaces:                                                                                     ┆
+  ┆                                                                                                  ┆
+  ┆         3DNADR AGSBUFF +0                   #   (002-006) # AGSBUFF +0...+5                      ┆
+  ┆         1DNADR AGSBUFF +12D                 #   (  008  ) # AGSBUFF +12D,GARBAGE                 ┆
+  ┆         3DNADR AGSBUFF +1                   #   (010-014) # AGSBUFF +1...+6                      ┆
+  ┆         1DNADR AGSBUFF +13D                 #   (  016  ) # AGSBUFF +13D, GARBAGE                ┆
+  ┆         3DNADR AGSBUFF +6                   #   (018-022) # AGSBUFF +6...+11                     ┆
+  ┆         1DNADR AGSBUFF +12D                 #   (  024  ) # AGSBUFF +12,GARBAGE                  ┆
+  ┆         3DNADR AGSBUFF +7                   #   (026-030) # AGSBUFF +7...+12D                    ┆
+  ┆         1DNADR AGSBUFF +13D                 #   (  032  ) # AGSBUFF +13D,GARBAGE                 ┆
+  ┆                                                                                                  ┆
+  ┆         { 2,  "AGSBUFF=", B25, FMT_SP, &FormatEarthOrMoonSP },                                   ┆
+  ┆         { 4,  "AGSBUF+2=", B25, FMT_SP, &FormatEarthOrMoonSP },                                  ┆
+  ┆         { 6,  "AGSBUF+4=", B25, FMT_SP, &FormatEarthOrMoonSP },                                  ┆
+  ┆         { 8,  "LM EPOCH=", B18, FMT_DP, &FormatEpoch },                                          ┆
+  ┆         { 10, "AGSBUF+1=", B15, FMT_SP, &FormatEarthOrMoonSP },                                  ┆
+  ┆         { 12, "AGSBUF+3=", B15, FMT_SP, &FormatEarthOrMoonSP },                                  ┆
+  ┆         { 14, "AGSBUF+5=", B15, FMT_SP, &FormatEarthOrMoonSP },                                  ┆
+  ┆         { 18, "AGSBUF+6=", B25, FMT_SP, &FormatEarthOrMoonSP },                                  ┆
+  ┆         { 20, "AGSBUF+8=", B25, FMT_SP, &FormatEarthOrMoonSP },                                  ┆
+  ┆         { 22, "AGSBUF+10=", B25, FMT_SP, &FormatEarthOrMoonSP },                                 ┆
+  ┆         { 24, "CM EPOCH=", B18, FMT_DP, &FormatEpoch },                                          ┆
+  ┆         { -1 },                                                                                  ┆
+  ┆         { 26, "AGSBUF+7=", B15, FMT_SP, &FormatEarthOrMoonSP },                                  ┆
+  ┆         { 28, "AGSBUF+9=", B15, FMT_SP, &FormatEarthOrMoonSP },                                  ┆
+  ┆         { 30, "AGSBUF+11=", B15, FMT_SP, &FormatEarthOrMoonSP },                                 ┆
+  ┆                                                                                                  ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+        if line.contains(Regex {
+            "AGSBUFF"
+            ZeroOrMore(.whitespace)
+            "+0..."
+        }) {
+            oldLines[lineNum+0] = "\t\t3DNADR\tLMEMBER\t\t\t# LM X POS,GARBAGE,LM Y POS,GARBAGE,LM Z POS,GARBAGE"
+            oldLines[lineNum+1] = "\t\t1DNADR\tLM EPOCH\t\t\t# LM EPOCH"
+            oldLines[lineNum+2] = "\t\t3DNADR\tLMEMBER\t\t\t# LM X VEL,GARBAGE,LM Y VEL,GARBAGE,LM Z VEL,GARBAGE"
+            oldLines[lineNum+3] = "\t\t1DNADR\tLMEMBER\t\t\t# GARBAGE,GARBAGE"
+            oldLines[lineNum+4] = "\t\t3DNADR\tCMEMBER\t\t\t# CM X POS,GARBAGE,CM Y POS,GARBAGE,CM Z POS,GARBAGE"
+            oldLines[lineNum+5] = "\t\t1DNADR\tCM EPOCH\t\t\t# CM EPOCH"
+            oldLines[lineNum+6] = "\t\t3DNADR\tCMEMBER\t\t\t# CM X VEL,GARBAGE,CM Y VEL,GARBAGE,CM Z VEL,GARBAGE"
+            oldLines[lineNum+7] = "\t\t1DNADR\tCMEMBER\t\t\t# GARBAGE,GARBAGE"
+        }
+    }
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ drop blank lines (including blank comments) and page number lines ..                             ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
     for var line in oldLines {
         if skipNextLine { skipNextLine = false; continue }
-        if skipSubLines > 0 {
-            line = subLines[3 - skipSubLines]
-            skipSubLines -= 1
-        }
 
         if line.isEmpty || line == "#" { continue }
         if line.contains("## Page ") { continue }
@@ -66,23 +117,6 @@ func tidyFile(_ fileName: String, _ fileText: String) -> [String] {
         if comment.contains("DAPDATR3,CH5FAIL,CH6FAIL,") {
             comment.append("DKRATE,DKDB,WHICHDAP")
             skipNextLine = true
-        }
-
-/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ ### SPECIAL SPECIAL CASE: three lines need clarifying ..                                         ┆
-  ┆                                                                                                  ┆
-  ┆     6DNADR SVMRKDAT                     # LANDING SITE MARK DATA                                 ┆
-  ┆     6DNADR SVMRKDAT +12D                # SVMRKDAT+0...+34                                       ┆
-  ┆     6DNADR SVMRKDAT +24D                # LANDING SITE MARK DATA                                 ┆
-  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-        if comment.contains("LANDING SITE MARK") && skipSubLines == 0 {
-            subLines = [
-                "\t\t6DNADR\tSVMRKDAT\t\t\t# SVMRKDAT+0...+11",
-                "\t\t6DNADR\tSVMRKDAT +12D\t\t\t# SVMRKDAT+12...+23",
-                "\t\t6DNADR\tSVMRKDAT +24D\t\t\t# SVMRKDAT+24...+35"
-            ]
-            skipSubLines = subLines.count
-            continue
         }
 
         let reconstructedLine = "\(label.padTo10())\(opcode.padTo36())\(comment)"

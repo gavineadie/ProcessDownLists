@@ -47,6 +47,9 @@ func dataFile(_ fileName: String, _ fileLines: [String]) -> [String] {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ ### SPECIAL CASE: these usages can be eliminated early ..                                        ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+        line.replace("VGTIGX,Y,Z", with: "VGTIGX,VGTIGY,VGTIGZ")
+        line.replace("VGVECT +0...+5", with: "VG VEC X,VG VEC Y,VG VEC Z")
+
         line.replace("TIME/1", with: "TIME2,+1")
         line.replace("TIME2/1", with: "TIME2,+1")
 
@@ -66,7 +69,6 @@ func dataFile(_ fileName: String, _ fileLines: [String]) -> [String] {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ ### SPECIAL CASE: these (uncommon) usages can be eliminated early ..                             ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-        if line.contains("SPARE") { line.append("# ") }
         if line.contains("2DNADR CHANBKUP") { line.append("# CHANBKUP, +0...+3") }  // Luminary210
 
         line.replace("FLAGWRD0 THRU FLAGWRD9", with: "STATE +0...+9")               // Colossus237
@@ -121,6 +123,10 @@ func dataFile(_ fileName: String, _ fileLines: [String]) -> [String] {
                 continue
             }
 
+            if label == "SPARE" {
+                newLines.append(emitLine(order, range, opCode,
+                                         label, .double, comment))
+            }
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ split the comment field into bits ..                                                             ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
@@ -131,7 +137,29 @@ func dataFile(_ fileName: String, _ fileLines: [String]) -> [String] {
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
             let downCount = Int(String(opCode.first!))!
 
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ ### SPECIAL                                                                                      ┆
+  ┆ .. a 6DNADR with eight variables -- only happens once (four singles and four doubles)            ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+            if downCount == 6 && commentBits.count == 8 {
+
+                for i in 0...3 {
+                    newLines.append(emitLine(order, range, opCode,
+                                             String(commentBits[i]),
+                                             .single, comment))
+                }
+                for i in 4...7 {
+                    newLines.append(emitLine(order, range, opCode,
+                                             String(commentBits[i]),
+                                             .double, comment))
+                }
+                continue
+            }
+
             if downCount == commentBits.count/2 {
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ SINGLE                                                                                           ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
 
                 let shortLabel = upToPlus(label)
                 if forceDouble.contains(shortLabel) {
@@ -161,26 +189,6 @@ func dataFile(_ fileName: String, _ fileLines: [String]) -> [String] {
             if downCount == commentBits.count {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ DOUBLE                                                                                           ┆
-  ┆                        1DNADR DNLRVELZ                     # DNLRVELZ,DNLRALT                    ┆
-  ┆                                                                                                  ┆
-  ┆                 054  :  DNLRVELZ   :  single                                                     ┆
-  ┆                 055  :  DNLRALT    :  single                                                     ┆
-  ┆╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┆
-  ┆                        2DNADR DNLRVELX                     # DNLRVELX,DNLRVELY,DNLRVELZ,DNLRALT  ┆
-  ┆                                                                                                  ┆
-  ┆                 048  :  DNLRVELX   :  single                                                     ┆
-  ┆                 049  :  DNLRVELY   :  single                                                     ┆
-  ┆                 050  :  DNLRVELZ   :  single                                                     ┆
-  ┆                 051  :  DNLRALT    :  single                                                     ┆
-  ┆╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┆
-  ┆                        3DNADR AGSBUFF +0                   # AGSBUFF +0...+5                     ┆
-  ┆                                                                                                  ┆
-  ┆                 002  :  AGSBUFF+0  :  single                                                     ┆
-  ┆                 003  :  AGSBUFF+1  :  single                                                     ┆
-  ┆                 004  :  AGSBUFF+2  :  single                                                     ┆
-  ┆                 005  :  AGSBUFF+3  :  single                                                     ┆
-  ┆                 006  :  AGSBUFF+4  :  single                                                     ┆
-  ┆                 007  :  AGSBUFF+5  :  single                                                     ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
                 for bit in commentBits {
                     newLines.append(emitLine(order, range, opCode,
@@ -208,10 +216,9 @@ func dataFile(_ fileName: String, _ fileLines: [String]) -> [String] {
 
         } else {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ failed to match the assembler line .. emit it anyway                                             ┆
+  ┆ failed to match the assembler line .. emit it anyway (we don't care about "SPARE" lines ..       ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-            logger.log("×X  \(line)")
-//          newLines.append(line)
+            if !line.contains("SPARE") { logger.log("×X  \(line)") }
         }
 
     }
@@ -451,11 +458,13 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
 
                 if let match = bits[4].firstMatch(of: code) {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆                                                   "UPBUFF+0...+7" → ["UPBUFF+0", .., "UPBUFF+7"] ┆
+  ┆ ### this is tricky .. the first four variables are single precision occupying two words, so the  ┆
+  ┆     remaining eight ("UPBUFF+0...+7") have to be double precision, hence:                        ┆
+  ┆                              "UPBUFF+0...+7" → ["UPBUFF+0", "UPBUFF+2", "UPBUFF+4", "UPBUFF+6"]  ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
                     let alpha = Int(String(match.2))!
                     let omega = Int(String(match.3))!
-                    for i in alpha...omega { result.append("\(match.1)+\(i)") }
+                    for i in stride(from: alpha, through: omega, by: 2) { result.append("\(match.1)+\(i)") }
                     return result
                 }
 
@@ -497,13 +506,13 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
   ┆ comment text contains a "," and no "+"                                                           ┆
   ┆                                                                just split them (nothing special) ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-        if comment.contains(",") {
-            return comment.split(separator: ",")
-        }
+        if comment.contains(",") { return comment.split(separator: ",") }
 
-        if let match = comment.wholeMatch(of: #/(\w+)/#) {
+        if let match = comment.wholeMatch(of: Regex { Capture { OneOrMore(.word) } }) {
             return [match.1]
         }
+
+        if comment.contains(" ") { return [Substring(comment)] }
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ comment text contains no "," and no "+" (ERROR)                                                  ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
@@ -539,15 +548,9 @@ fileprivate func emitLine(_ ord: Int = 999,
 //        \(com)
 //        """
 
-//    return """
-//        \(String(format: "%03d", ord)) : \
-//        \((["GARBAGE", "SPARE"].contains(adr) ? "[ unused ]" : adr).padTo16()) : \
-//        \(pre == .double ? "double" : "single")
-//        """
-
     return """
         \(String(format: "%d", ord))\t\
-        \((["GARBAGE", "SPARE"].contains(adr) ? "[ unused ]" : adr))\t\
+        \(adr)\t\
         \(pre == .double ? "double" : "single") 
         """
 }
@@ -659,6 +662,7 @@ let forceDouble = [
     "RLS",
     "VGTIG",
     "STATE",
+    "DELV",
     "DELVEET1",
     "DSPTAB",
     "STARSAV1",
@@ -669,5 +673,6 @@ let forceDouble = [
     "UPBUFF",
     "SVMRKDAT",
     "CHANBKUP",
-    "TCDH"
+    "TCDH",
+    "GSAV"
 ]

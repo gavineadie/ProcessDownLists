@@ -124,7 +124,7 @@ do {
             dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
 
             fileLinesJ = joinFile(fileName)                                  // ..
-//          fileLinesJ.forEach { print("\($0)") }
+            fileLinesJ.forEach { print("\($0)") }
         }
 
         dup2(originalStdout, STDOUT_FILENO)
@@ -156,7 +156,7 @@ do {
 /*────────────────────────────────────────────────────────────────────────────────────────────────────*/
         var fileLinesX: [String] = []
 
-        let xtraPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(fileName)-xtra.txt")
+        let xtraPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(fileName)-xtra.tsv")
         fileManager.createFile(atPath: xtraPrintURL.path, contents: nil, attributes: nil)
 
         if let fileHandle = try? FileHandle(forWritingTo: xtraPrintURL) {
@@ -168,6 +168,12 @@ do {
         }
 
         dup2(originalStdout, STDOUT_FILENO)
+
+        print("xtraFile: Processed \(fileName).")
+
+/*────────────────────────────────────────────────────────────────────────────────────────────────────*/
+
+        sortFile(fileName, fileLinesX)                                  // ..
 
         print("xtraFile: Processed \(fileName).")
 
