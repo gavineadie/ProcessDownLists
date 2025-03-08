@@ -24,7 +24,7 @@ let logger = Logger(subsystem: "com.ramsaycons.PDL", category: "data")
 
 var order = 0
 
-func dataFile(_ fileName: String, _ fileLines: [String]) -> [String] {
+func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ process the lines of the file to isolate downlists ..                                            ┆
@@ -506,13 +506,18 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
   ┆ comment text contains a "," and no "+"                                                           ┆
   ┆                                                                just split them (nothing special) ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-        if comment.contains(",") { return comment.split(separator: ",") }
+        if comment.contains(",") {
+            return comment.split(separator: ",")
+                .map { Substring($0.trimmingCharacters(in: .whitespaces)) }
+        }
 
         if let match = comment.wholeMatch(of: Regex { Capture { OneOrMore(.word) } }) {
             return [match.1]
         }
 
-        if comment.contains(" ") { return [Substring(comment)] }
+        if comment.contains(" ") {
+            return [Substring(comment)]
+        }
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ comment text contains no "," and no "+" (ERROR)                                                  ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/

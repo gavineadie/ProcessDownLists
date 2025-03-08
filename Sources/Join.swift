@@ -20,7 +20,7 @@ import Foundation
 
 var offset = 2                  // offset into memory
 
-func joinFile(_ fileName: String) -> [String] {
+func joinFile(_ missionName: String) -> [String] {
 
     var newLines: [String] = []
 
@@ -30,7 +30,7 @@ func joinFile(_ fileName: String) -> [String] {
         let downListCode = downListName.dropLast().suffix(5)
 
         newLines.append("## ".padding(toLength: 89, withPad: "=", startingAt: 0))
-        newLines.append("## \(missionLookUp[fileName] ?? "?") [\(fileName)] -- \(downListName)")
+        newLines.append("## \(missionLookUp[missionName] ?? "?") [\(missionName)] -- \(downListName)")
         newLines.append("## ".padding(toLength: 89, withPad: "=", startingAt: 0))
         newLines.append("")
 

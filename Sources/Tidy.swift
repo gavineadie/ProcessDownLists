@@ -8,7 +8,7 @@
 import Foundation
 import RegexBuilder
 
-func tidyFile(_ fileName: String, _ fileText: String) -> [String] {
+func tidyFile(_ missionName: String, _ fileText: String) -> [String] {
 
     var oldLines = fileText.components(separatedBy: .newlines)
     var newLines: [String] = []

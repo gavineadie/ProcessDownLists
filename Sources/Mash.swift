@@ -8,7 +8,7 @@
 import Foundation
 import RegexBuilder
 
-func mashFile(_ fileName: String, _ fileLines: [String]) -> [String] {
+func mashFile(_ missionName: String, _ fileLines: [String]) -> [String] {
 
 /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
   │ process the lines of the file to isolate downlists ..                                            │

@@ -7,7 +7,7 @@
 
 import Foundation
 
-func sortFile(_ fileName: String, _ fileLines: [String]) {
+func sortFile(_ missionName: String, _ fileLines: [String]) {
 
     let fileManager = FileManager.default
 
@@ -59,10 +59,7 @@ func sortFile(_ fileName: String, _ fileLines: [String]) {
         lineRanges.append(firstLines[i]...firstLines[i+1]-1)
     }
 
-
-
     var downListID: Substring
-
     for lineRange in lineRanges {
 
         downListID = fileLines[lineRange.lowerBound+1].suffix(6).dropLast()
@@ -78,8 +75,8 @@ func sortFile(_ fileName: String, _ fileLines: [String]) {
             let fileURL = tsvDirectory
                 .appendingPathComponent("downlist")
                 .appendingPathComponent("tsv")
-                .appendingPathComponent("\(fileName)")
-                .appendingPathComponent("ddd-\(downListID)-\(fileName).tsv")
+                .appendingPathComponent("\(missionName)")
+                .appendingPathComponent("ddd-\(downListID)-\(missionName).tsv")
 
             do {
                 try FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(),

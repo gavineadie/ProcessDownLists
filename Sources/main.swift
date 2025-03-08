@@ -51,45 +51,45 @@ let originalStdout = dup(STDOUT_FILENO)
 do {
     for fileURL in fileURLs {
 
-        let fileName = fileURL.deletingLastPathComponent().lastPathComponent
+        let missionName = fileURL.deletingLastPathComponent().lastPathComponent
         let fileText = try String(contentsOf: fileURL, encoding: .utf8)
         let homeDirURL = fileManager.homeDirectoryForCurrentUser
 
 /*────────────────────────────────────────────────────────────────────────────────────────────────────*/
         var fileLinesT: [String] = []
 
-        let tidyPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(fileName)-tidy.txt")
+        let tidyPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(missionName)-tidy.txt")
         fileManager.createFile(atPath: tidyPrintURL.path, contents: nil, attributes: nil)
 
         if let fileHandle = try? FileHandle(forWritingTo: tidyPrintURL) {
             defer { fileHandle.closeFile() }
             dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
 
-            fileLinesT = tidyFile(fileName, fileText)        // tidy this file ..
+            fileLinesT = tidyFile(missionName, fileText)        // tidy this file ..
             fileLinesT.forEach { print("\($0)") }
         }
 
         dup2(originalStdout, STDOUT_FILENO)
 
-        print("tidyFile: Processed \(fileName).")
+        print("tidyFile: Processed \(missionName).")
 
 /*────────────────────────────────────────────────────────────────────────────────────────────────────*/
         var fileLinesM: [String] = []
 
-        let mashPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(fileName)-mash.txt")
+        let mashPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(missionName)-mash.txt")
         fileManager.createFile(atPath: mashPrintURL.path, contents: nil, attributes: nil)
 
         if let fileHandle = try? FileHandle(forWritingTo: mashPrintURL) {
             defer { fileHandle.closeFile() }
             dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
 
-            fileLinesM = mashFile(fileName, fileLinesT)
+            fileLinesM = mashFile(missionName, fileLinesT)
             fileLinesM.forEach { print("\($0)") }
         }
 
         dup2(originalStdout, STDOUT_FILENO)
 
-        print("mashFile: Processed \(fileName).")
+        print("mashFile: Processed \(missionName).")
 
 /*────────────────────────────────────────────────────────────────────────────────────────────────────*/
 //        let listPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(fileName)-list.txt")
@@ -116,14 +116,14 @@ do {
 /*────────────────────────────────────────────────────────────────────────────────────────────────────*/
         var fileLinesJ: [String] = []
 
-        let joinPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(fileName)-join.txt")
+        let joinPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(missionName)-join.txt")
         fileManager.createFile(atPath: joinPrintURL.path, contents: nil, attributes: nil)
 
         if let fileHandle = try? FileHandle(forWritingTo: joinPrintURL) {
             defer { fileHandle.closeFile() }
             dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
 
-            fileLinesJ = joinFile(fileName)                                  // ..
+            fileLinesJ = joinFile(missionName)                                  // ..
             fileLinesJ.forEach { print("\($0)") }
         }
 
@@ -133,49 +133,57 @@ do {
         copylists = [:]
         equalities = [:]
 
-        print("joinFile: Processed \(fileName).")
+        print("joinFile: Processed \(missionName).")
 
 /*────────────────────────────────────────────────────────────────────────────────────────────────────*/
         var fileLinesD: [String] = []
 
-        let dataPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(fileName)-data.txt")
+        let dataPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(missionName)-data.txt")
         fileManager.createFile(atPath: dataPrintURL.path, contents: nil, attributes: nil)
 
         if let fileHandle = try? FileHandle(forWritingTo: dataPrintURL) {
             defer { fileHandle.closeFile() }
             dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
 
-            fileLinesD = dataFile(fileName, fileLinesJ)                 // ..
+            fileLinesD = dataFile(missionName, fileLinesJ)                 // ..
             fileLinesD.forEach { print("\($0)") }
         }
 
         dup2(originalStdout, STDOUT_FILENO)
 
-        print("dataFile: Processed \(fileName).")
+        print("dataFile: Processed \(missionName).")
 
 /*────────────────────────────────────────────────────────────────────────────────────────────────────*/
         var fileLinesX: [String] = []
 
-        let xtraPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(fileName)-xtra.tsv")
+        let xtraPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(missionName)-xtra.tsv")
         fileManager.createFile(atPath: xtraPrintURL.path, contents: nil, attributes: nil)
 
         if let fileHandle = try? FileHandle(forWritingTo: xtraPrintURL) {
             defer { fileHandle.closeFile() }
             dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
 
-            fileLinesX = xtraFile(fileName, fileLinesD)                 // ..
+            fileLinesX = xtraFile(missionName, fileLinesD)                 // ..
             fileLinesX.forEach { print("\($0)") }
         }
 
         dup2(originalStdout, STDOUT_FILENO)
 
-        print("xtraFile: Processed \(fileName).")
+        print("xtraFile: Processed \(missionName).")
 
 /*────────────────────────────────────────────────────────────────────────────────────────────────────*/
 
-        sortFile(fileName, fileLinesX)                                  // ..
+        sortFile(missionName, fileLinesX)                                  // ..
 
-        print("xtraFile: Processed \(fileName).")
+        print("xtraFile: Processed \(missionName).")
+
+/*────────────────────────────────────────────────────────────────────────────────────────────────────*/
+        var fileLinesY: [String] = []
+
+        fileLinesY = teleFile(missionName, fileLinesX)                      // ..
+        fileLinesY.forEach { print("\($0)") }
+
+        print("teleFile: Processed \(missionName).")
 
     }
 
