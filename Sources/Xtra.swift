@@ -113,7 +113,9 @@ let lookup = [
     "DELVTPF"       : "B7   : FMT_DP   :                     : TBD",
     "DIFFALT"       : "B29  : FMT_DP   :                     : TBD",
     "DNLRALT"       : "B27  : FMT_SP   : FormatLrRange       : TBD",
-    "DNLRVEL"       : "B27  : FMT_SP   : FormatLrVx          : TBD",          // X, Y, Z
+    "DNLRVELX"      : "B27  : FMT_SP   : FormatLrVx          : TBD", 
+    "DNLRVELY"      : "B27  : FMT_SP   : FormatLrVy          : TBD", 
+    "DNLRVELZ"      : "B27  : FMT_SP   : FormatLrVz          : TBD", 
     "DNRRANGE"      : "B0   : FMT_SP   : FormatRrRange       : TBD",
     "DNRRDOT"       : "B0   : FMT_SP   : FormatRrRangeRate   : TBD",
     "DSPTAB"        : "B0   : FMT_2OCT :                     : TBD",

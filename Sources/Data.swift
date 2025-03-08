@@ -11,9 +11,6 @@
   ║ .. the following line in Colossus237 implies two single precision words (wrong?)                 ║
   ║                 1DNADR LANDMARK                 #  LANDMARK,GARBAGE                              ║
   ║                                                                                                  ║
-  ║ .. the following line in Colossus237 should be two single precision words                        ║
-  ║ 134 :  c (  134  )     : RSBBQ+0          : 1DNADR : double : RSBBQ,+1                           ║
-  ║                                                                                                  ║
   ╚══════════════════════════════════════════════════════════════════════════════════════════════════╝*/
 
 import Foundation
@@ -74,16 +71,16 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
         line.replace("FLAGWRD0 THRU FLAGWRD9", with: "STATE +0...+9")               // Colossus237
         line.replace("FLAGWRDS 10 AND 11", with: "STATE +10...+11")                 // Colossus237
 
-/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ match an assembler line and split it into pieces:                                                ┆
-  ┆                                                                                                  ┆
-  ┆ "       2DNADR  CMDAPMOD                     #   (034,036) # CMDAPMOD,PREL,QREL,RREL"            ┆
-  ┆         -----+  -------+                      ------------+  +----------------------             ┆
-  ┆              |         |                                  |  |                                   ┆
-  ┆              |         label: "CMDAPMOD"                  |  comment: "CMDAPMOD,PREL,QREL,RREL"  ┆
-  ┆              |                                            |                                      ┆
-  ┆              opCode: "2DNADR"                             range: "   (034,036) "                 ┆
-  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+/*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ match an assembler line and split it into pieces:                                                │
+  │                                                                                                  │
+  │ "       2DNADR  CMDAPMOD                     #   (034,036) # CMDAPMOD,PREL,QREL,RREL"            │
+  │         -----+  -------+                      ------------+  +----------------------             │
+  │              |         |                                  |  |                                   │
+  │              |         label: "CMDAPMOD"                  |  comment: "CMDAPMOD,PREL,QREL,RREL"  │
+  │              |                                            |                                      │
+  │              opCode: "2DNADR"                             range: "   (034,036) "                 │
+  └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
         if let match = line.firstMatch(of: long) {
 
             var opCode = String(match.1)
@@ -210,17 +207,32 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
                 newLines.append(emitLine(order, range, i == 1 ? opCode : "      ",
                                          commentBits.count < downCount ? label : String(commentBits[i-1]),
                                          .double, comment))
-
                 continue
             }
 
-        } else {
-/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ failed to match the assembler line .. emit it anyway (we don't care about "SPARE" lines ..       ┆
-  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-            if !line.contains("SPARE") { logger.log("×X  \(line)") }
         }
 
+/*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ failed to match the assembler line WITH comment .. check for a line WITHOUT comment ..           │
+  │                                                                                                  │
+  │ "       2DNADR  CMDAPMOD                     #   (034,036)                                       │
+  │         -----+  -------+                      ------------+                                      │
+  │              |         |                                  |                                      │
+  │              |         label: "CMDAPMOD"                  |                                      │
+  │              |                                            |                                      │
+  │              opCode: "2DNADR"                             range: "   (034,036) "                 │
+  └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
+        if let match = line.firstMatch(of: noComment) {
+
+            let opCode = String(match.1)
+            let label = match.2.trimmingCharacters(in: .whitespaces)
+            let range = String(match.3)
+
+            newLines.append(emitLine(order, range, opCode, label, .double, ""))
+
+        } else {
+            logger.log("×X  \(line)")
+        }
     }
 
     return newLines
@@ -323,9 +335,9 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
                     let offset = Int(bits[1].dropFirst())!
                     if offset == 1 {
                         result.append("\(bits[0])+\(offset-1)")         // "AGSK+0"
-                    } else {
-                        result.append("\(bits[0])+\(offset-1)")
                         result.append("\(bits[0])+\(offset)")
+                    } else {
+                        logger.log("×2 (+\(offset)) \(bits)")           // doesn't happen
                     }
                     return result
 
@@ -516,7 +528,7 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
         }
 
         if comment.contains(" ") {
-            return [Substring(comment)]
+            return [Substring(label)]
         }
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ comment text contains no "," and no "+" (ERROR)                                                  ┆
@@ -582,6 +594,19 @@ let long = Regex {
         OneOrMore(.anyGraphemeCluster)
         ")"
     }
+}
+
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆     "^      2DNADR CMDAPMOD                     #   (034,036)                                    ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+let noComment = Regex {
+    Anchor.startOfLine
+    OneOrMore(.whitespace)
+    Capture { OneOrMore(.word) }                                    // "2DNADR"
+    OneOrMore(.whitespace)
+    Capture { OneOrMore(.anyGraphemeCluster) }                      // "CMDAPMOD"
+    "#"
+    Capture { OneOrMore(.anyGraphemeCluster) }                      // "   (034,036) "
 }
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
@@ -663,21 +688,22 @@ func upToPlus(_ s: String) -> String {
 }
 
 let forceDouble = [
-    "REFSMMAT",
-    "RLS",
-    "VGTIG",
-    "STATE",
+    "AGSK",                     //### "K FACTOR" (GSOP)
+    "CHANBKUP",
     "DELV",
     "DELVEET1",
     "DSPTAB",
+    "GSAV",
+    "REFSMMAT",
+    "RLS",
+    "RN",
     "STARSAV1",
     "STARSAV2",
-    "RN",
-    "VN",
+    "STATE",
+    "SVMRKDAT",
+    "TCDH",
     "UPBUF",
     "UPBUFF",
-    "SVMRKDAT",
-    "CHANBKUP",
-    "TCDH",
-    "GSAV"
+    "VGTIG",
+    "VN",
 ]
