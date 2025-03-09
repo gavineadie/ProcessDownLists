@@ -47,8 +47,8 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
         line.replace("VGTIGX,Y,Z", with: "VGTIGX,VGTIGY,VGTIGZ")
         line.replace("VGVECT +0...+5", with: "VG VEC X,VG VEC Y,VG VEC Z")
 
-        line.replace("TIME/1", with: "TIME2,+1")
-        line.replace("TIME2/1", with: "TIME2,+1")
+        line.replace("TIME/1", with: "TIME2,TIME1")
+        line.replace("TIME2/1", with: "TIME2,TIME1")
 
         line.replace("DISPLAY TABLES", with: "DSPTAB +0...+11")
         line.replace("DSPTAB TABLES", with: "DSPTAB +0...+11")
@@ -62,6 +62,8 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
 
         line.replace("/OGARATE", with: " (OGARATE")
         line.replace("/OMEGAB", with: " (OMEGAB")
+
+        line.replace("RTARG,+1...+5", with: "RTARG +0...+5")
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ ### SPECIAL CASE: these (uncommon) usages can be eliminated early ..                             ┆
@@ -96,9 +98,9 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
                 .replacingOccurrences(of: "CDH DELTA ALTITUDE", with: "DIFFALT")
                 .trimmingCharacters(in: .whitespaces)
 
-/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ DNCHAN .. channel downlink ..                                                                    ┆
-  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+/*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ DNCHAN .. channel downlink ..                                                                    │
+  └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
             if opCode == "DNCHAN" {
                 if let match = comment.firstMatch(of: chNumb) {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
@@ -121,8 +123,7 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
             }
 
             if label == "SPARE" {
-                newLines.append(emitLine(order, range, opCode,
-                                         label, .double, comment))
+                newLines.append(emitLine(order, range, opCode, label, .double, comment))
             }
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ split the comment field into bits ..                                                             ┆
@@ -251,13 +252,15 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
     if comment.contains("+") {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ comment text contains a "+"                                                                      ┆
-  ┆                                                         split on "," and examine each sub-string ┆
+  ┆                                                            split on "," and trim each sub-string ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
         var bits = comment.split(separator: ",")
-            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .map { $0.replacingOccurrences(of: " ", with: "") }
 
-        bits[0] = bits[0].replacingOccurrences(of: " ", with: "")
-
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ coagulate run-on uses "1...4,5" ← "1...5"                                                        ┆
+  ┆     ### could be more clever and deal with "D" and missing "+"                                   ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
         if bits.count == 3 { if bits[1...2] == ["+1...+4", "+5"] { bits = [bits[0], "+1...+5"] } }
         if bits.count == 3 { if bits[1...2] == ["+1...+5", "+6"] { bits = [bits[0], "+1...+6"] } }
         if bits.count == 3 { if bits[1...2] == ["+1...+10", "+11"] { bits = [bits[0], "+1...+11"] } }
@@ -265,6 +268,9 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
         if bits.count == 3 { if bits[1...2] == ["+13...+18", "+19D"] { bits = [bits[0], "+13...+19"] } }
         if bits.count == 3 { if bits[1...2] == ["13...+18", "19D"] { bits = [bits[0], "+13...+19"] } }
 
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ "A","B/C","D" → "A","B","C","D"                                                                  ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
         if bits.count == 3 && bits[1].contains("/") {
             let twoBits = bits[1].split(separator: "/")
             bits.append(bits[2])
@@ -272,6 +278,9 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
             bits[2] = String(twoBits[1])
         }
 
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ the parsing is tricky since characters are missing                                               ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
         if bits.count == 4 { if bits[1...3] == ["+1", "...+4", "+5"] { bits = [bits[0], "+1...+5"] } }
         if bits.count == 4 { if bits[1...3] == ["+1", "+2", "...+5"] { bits = [bits[0], "+1...+5"] } }
         if bits.count == 4 { if bits[1...3] == ["+1", "...+10", "+11"] { bits = [bits[0], "+1...+11"] } }
@@ -280,8 +289,9 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
             case 1:
                 if let match = bits[0].firstMatch(of: code) {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆     ["GSAV+0...+5"] → ["GSAV+0", "GSAV+1", "GSAV+2", "GSAV+3", "GSAV+4", "GSAV+5"]               ┆
-  ┆     ["STAR+0...+5"] → ["STAR+0", "STAR+1", "STAR+2", "STAR+3", "STAR+4", "STAR+5"]               ┆
+  ┆     ["A+m...+n"] → ["A", m, n] → ["A+m", "A+m", .. "A+n"]                                        ┆
+  ┆                                                                                                  ┆
+  ┆     ["GSAV+0...+5"] → ["GSAV", 0, 5] → ["GSAV+0", "GSAV+1", .., "GSAV+4", "GSAV+5"]              ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
                     let alpha = Int(String(match.2))!
                     let omega = Int(String(match.3))!
@@ -294,11 +304,14 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
 
             case 2:
                 if !bits[0].contains("+") && bits[1].contains("...") {
-                    if bits[1] == "...+5" { bits[1] = "+1...+5" }               // ← SPECIAL CASE
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ ### SPECIAL CASE (ONLY ONE): "VGTIG,...+5" → "VGTIG,+1...+5"                                     ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+                    if bits[1] == "...+5" { bits[1] = "+1...+5" }
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆     ["A", "+m...+n"] → ["A", m, n] → ["A+m", "A+m", .. "A+n"                                     ┆
+  ┆                                                                                                  ┆
   ┆     ["DELV", "+1...+5"] → ["DELV+1", "DELV+2", "DELV+3", "DELV+4", "DELV+5"]                     ┆
-  ┆     ["RLS", "+1...+5"] → ["RLS+1", "RLS+2", "RLS+3", "RLS+4", "RLS+5"]                           ┆
-  ┆     ["VGTIG", "...+5"] → ["VGTIG+1", "VGTIG+2", "VGTIG+3", "VGTIG+4", "VGTIG+5"]                 ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
                     if let match = bits[1].firstMatch(of: dots) {
                         let alpha = Int(String(match.1))!
@@ -313,7 +326,8 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
                 } else if let matchA = bits[0].firstMatch(of: plus),
                           let matchB = bits[1].firstMatch(of: numb) {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆     ["DELV+2", "+3"] → ["DELV+2", "DELV+3"]                                                      ┆
+  ┆     ["A+m", "+n"] → ["A", m, n] → ["A+m", "A+m", .. "A+n"]                                       ┆
+  ┆                                                                                                  ┆
   ┆     ["DELV+4", "+5"] → ["DELV+4", "DELV+5"]                                                      ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
                     let label = String(matchA.1)
@@ -329,6 +343,8 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
 
                 } else if bits[1].starts(with: "+") && bits[1].last != "D" {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆     ["A", "+m"] → ["A", m] → ["A+0", "A+1", .. "A+m"]                                            ┆
+  ┆                                                                                                  ┆
   ┆     ["AGSK", "+1"] → ["AGSK+0", "AGSK+1"]                                                        ┆
   ┆     ["TTF/8", "+1"] → ["TTF/8+0", "TTF/8+1"]                                                     ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
@@ -613,7 +629,7 @@ let noComment = Regex {
   ┆     "WORD␠+m...+n" (where "␠" is an optional " ")                                                ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
 let code = Regex {
-    Capture { OneOrMore(CharacterClass(.word, .anyOf("/"))) }
+    Capture { OneOrMore(CharacterClass(.word, .anyOf("/-_"))) }
     Optionally(" ")
     dots
     Optionally { OneOrMore(.word) }
@@ -623,7 +639,7 @@ let code = Regex {
   ┆     "WORD␠+m" (for example "AGSBUFF+0" -- where "␠" is an optional " ")                          ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
 let plus = Regex {
-    Capture { OneOrMore(CharacterClass(.word, .anyOf("/-"))) }
+    Capture { OneOrMore(CharacterClass(.word, .anyOf("/-_"))) }
     Optionally(" ")
     "+"
     Capture { OneOrMore(.digit) }
@@ -680,7 +696,7 @@ let chWord = Regex {
 
 func upToPlus(_ s: String) -> String {
     let upToPlus = Regex {
-        Capture { OneOrMore(.word) }
+        Capture { OneOrMore(CharacterClass(.word, .anyOf("/-_"))) }
         Optionally { .anyGraphemeCluster }
     }
 
@@ -706,4 +722,37 @@ let forceDouble = [
     "UPBUFF",
     "VGTIG",
     "VN",
+// 77774
+    "DELLT4",
+    "ELEV",
+    "TCSI",
+    "TPASS4",
+    "DELVEET2",
+    "DELVEET3",
+    "DIFFALT",
+    "TTPI",
+    "RTARG",
+    "TGO",
+// 77773
+    "LRVTIMDL",
+    "VMEAS",
+    "MKTIME",
+    "HMEAS",
+    "RM",
+    "UNFC/2",
+    "TTF/8",
+    "DELTAH",
+    "RGU",
+    "VGU",
+    "LAND",
+    "AT",
+    "TLAND",
+    "TTOGO",
+
+    "PIPTIME",                  //###
+    "T-OTHER",                  //###
+    "TALIGN",                   //###
+    "TEVENT",                   //###
+    "TIG",                      //###
+    "V-OTHER"                   //###
 ]

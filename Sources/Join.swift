@@ -41,8 +41,7 @@ func joinFile(_ missionName: String) -> [String] {
             continue
         }
 
-        let opCode = "1DNADR \(downListCode)"
-        newLines.append("\(" ".padTo10())\(opCode.padTo36())#   (  000  ) # ID,SYNC")
+        newLines.append("\(" ".padTo10())\("1DNADR \(downListCode)".padTo36())#   (  000  ) # ID,SYNC")
 
         for line in lines {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
