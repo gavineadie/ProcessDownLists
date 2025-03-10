@@ -24,6 +24,8 @@ func xtraFile(_ missionName: String, _ fileLines: [String]) -> [String] {
   ┆     14	T-OTHER+0   : B28    FMT_DP                                                              ┆
   ┆     16	DNRRANGE    : B28    FMT_DP                                                              ┆
   ┆     17	DNRRDOT     : B28    FMT_DP                                                              ┆
+
+    also change labels to GSOP names
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
     var newLines: [String] = []
 
@@ -48,8 +50,14 @@ func xtraFile(_ missionName: String, _ fileLines: [String]) -> [String] {
             continue
         }
 
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ GSOP substitutes ..                                                                              ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+        let gsopName = lookupGsopNames[columns[1]] ?? columns[1]
+
+
 //      let txtLine = "\(columns[0])\t\(columns[1].padTo12()): \(getLookup(columns[1]))"
-        let tabLine = "\(columns[0])\t\(columns[1]): \(getLookup(columns[1]))"
+        let tabLine = "\(columns[0])\t\(gsopName): \(getLookup(columns[1]))"
             .replacing(Regex {
                 ZeroOrMore(.whitespace)
                 ":"
@@ -65,12 +73,12 @@ func xtraFile(_ missionName: String, _ fileLines: [String]) -> [String] {
 
 fileprivate func getLookup(_ key: Substring) -> String {
 
-    for (k, v) in lookup { if key.starts(with: k) { return v } }
+    for (k, v) in lookupScaleFormatUnits { if key.starts(with: k) { return v } }
 
     return "B0   : FMT_OCT  : FormatUnknown       : TBD"
 }
 
-let lookup = [
+let lookupScaleFormatUnits = [
     "8NN"           : "B0   : FMT_DEC  :                     : TBD",
     "ADOT"          : "450  : FMT_DP   : FormatAdotsOrOga    : TBD",
     "AGSK"          : "B28  : FMT_DP   :                     : TBD",
@@ -141,8 +149,8 @@ let lookup = [
     "LANDMARK"      : "B0   : FMT_OCT  :                     : TBD",
     "LASTXCMD"      : "B0   : FMT_OCT  :                     : TBD",
     "LASTYCMD"      : "B0   : FMT_OCT  :                     : TBD",
-    "LAT"           : "360  : FMT_DP   :                     : TBD",
     "LAT(SPL)"      : "360  : FMT_DP   :                     : TBD",
+    "LNG(SPL)"      : "360  : FMT_DP   :                     : TBD",
     "LATANG"        : "4    : FMT_DP   :                     : TBD",
     "LAUNCHAZ"      : "360  : FMT_DP   :                     : TBD",
     "LEMMASS"       : "B16  : FMT_SP   :                     : Kg",
@@ -153,7 +161,7 @@ let lookup = [
     "LM Y VEL"      : "B15  : FMT_SP   : FormatEarthOrMoonSP : TBD",
     "LM Z POS"      : "B25  : FMT_SP   : FormatEarthOrMoonSP : TBD",
     "LM Z VEL"      : "B15  : FMT_SP   : FormatEarthOrMoonSP : TBD",
-    "LNG(SPL)"      : "360  : FMT_DP   :                     : TBD",
+    "LAT"           : "360  : FMT_DP   :                     : TBD",
     "LONG"          : "360  : FMT_DP   :                     : TBD",
     "LRVTIMDL"      : "B28  : FMT_DP   :                     : TBD",
     "LRXCDUDL"      : "360  : FMT_SP   :                     : TBD",
@@ -257,4 +265,75 @@ let lookup = [
 //  "SVMRKDAT"      : "B28  : FMT_DP   :                     : TBD",
 //  "SVMRKDAT+2"    : "360  : FMT_USP  :                     : TBD",
 //  "SVMRKDAT+5"    : "45   : FMT_SP   : FormatOTRUNNION     : TBD",
+]
+
+let lookupGsopNames: [Substring : Substring] = [
+//                     DNRRANGE+XX
+    "AGSK"          : "K-FACTOR",
+    "AIG"           : "CDU Y",
+    "AMG"           : "CDU Z",
+    "AOG"           : "CDU X",
+    "AOTCODE"       : "AOT CODE",
+    "BESTI"         : "STAR1 ID",
+    "BESTJ"         : "STAR2 ID",
+    "CDUS"          : "RR SHAFT",
+    "CDUT"          : "RR TRUN",
+    "CDUXD"         : "CDU XD",
+    "CDUYD"         : "CDU YD",
+    "CDUZD"         : "CDU ZD",
+    "DNRRANGE"      : "RR RANGE",
+    "DNRRDOT"       : "RR RRATE",
+    "DELLT4"        : "TF CONIC",
+    "REDOCTR"       : "REDO CTR",
+    "RLS"           : "L SITE X",
+    "RLS+2"         : "L SITE Y",
+    "RLS+4"         : "L SITE X",
+    "TRKMKCNT"      : "MARK CNT",
+
+    "TCSI"          : "CSI TIME",
+    "DELVEET1"      : "CSI ΔV X",
+    "DELVEET1+2"    : "CSI ΔV Y",
+    "DELVEET1+4"    : "CSI ΔV Z",
+
+    "DELVEET"       : "CSI ΔV X",
+    "DELVEET+2"     : "CSI ΔV Y",
+    "DELVEET+4"     : "CSI ΔV Z",
+
+    "TCDH"          : "CDH TIME",
+    "DELVEET2"      : "CDH ΔV X",
+    "DELVEET2+2"    : "CDH ΔV Y",
+    "DELVEET2+4"    : "CDH ΔV Z",
+
+    "TTPI"          : "TPI TIME",
+    "DELVEET3"      : "TPI ΔV X",
+    "DELVEET3+2"    : "TPI ΔV Y",
+    "DELVEET3+4"    : "TPI ΔV Z",
+
+    "TPASS4"        : "TPF TIME",
+
+    "X789"          : "Δ BETA",
+    "X789+2"        : "Δ THETA",
+
+    "LASTYCMD"      : "RR T ERR",
+    "LASTXCMD"      : "RR S ERR",
+
+    "RGU"           : "RX GUIDE",
+    "RGU+2"         : "RY GUIDE",
+    "RGU+4"         : "RZ GUIDE",
+    "VGU"           : "VX GUIDE",
+    "VGU+2"         : "VY GUIDE",
+    "VGU+4"         : "VZ GUIDE",
+
+    "UNFC/2"        : "THRUST X",
+    "UNFC/2+2"      : "THRUST Y",
+    "UNFC/2+4"      : "THRUST Z",
+
+    "RM"            : "VHF R ##",
+    "DELTAR"        : "OFFSET P",
+
+    "LAT"           : "LAND LAT",
+    "LONG"          : "LAND LON",
+    "ALT"           : "LAND ALT",
+
+    "8NN"           : "MARK CNT",
 ]

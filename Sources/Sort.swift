@@ -58,6 +58,7 @@ func sortFile(_ missionName: String, _ fileLines: [String]) {
     for i in 0..<firstLines.count-1 {
         lineRanges.append(firstLines[i]...firstLines[i+1]-1)
     }
+    lineRanges.append(firstLines[firstLines.count-1]...fileMemory.count-1)
 
     var downListID: Substring
     for lineRange in lineRanges {

@@ -41,38 +41,57 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
         line.replace("COMMON DATA", with: "")
         line.replace("SNAPSHOT DATA", with: "")
 
-/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ ### SPECIAL CASE: these usages can be eliminated early ..                                        ┆
-  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-        line.replace("VGTIGX,Y,Z", with: "VGTIGX,VGTIGY,VGTIGZ")
-        line.replace("VGVECT +0...+5", with: "VG VEC X,VG VEC Y,VG VEC Z")
-
-        line.replace("TIME/1", with: "TIME2,TIME1")
-        line.replace("TIME2/1", with: "TIME2,TIME1")
-
         line.replace("DISPLAY TABLES", with: "DSPTAB +0...+11")
         line.replace("DSPTAB TABLES", with: "DSPTAB +0...+11")
-
-        line.replace("LAT(SPL),LNG(SPL),+1", with: "LAT(SPL),+1,LNG(SPL),+1")
-
-        line.replace("UPBUFF+0,+1...+10,+11D", with: "UPBUFF +0...+11")
-        line.replace("UPBUFF+12,+13...+18,+19D", with: "UPBUFF +12...+19")
-
-        line.replace("OPTION1,2", with: "OPTION,+1")
-
-        line.replace("/OGARATE", with: " (OGARATE")
-        line.replace("/OMEGAB", with: " (OMEGAB")
-
-        line.replace("RTARG,+1...+5", with: "RTARG +0...+5")
-
-/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ ### SPECIAL CASE: these (uncommon) usages can be eliminated early ..                             ┆
-  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-        if line.contains("2DNADR CHANBKUP") { line.append("# CHANBKUP, +0...+3") }  // Luminary210
 
         line.replace("FLAGWRD0 THRU FLAGWRD9", with: "STATE +0...+9")               // Colossus237
         line.replace("FLAGWRDS 10 AND 11", with: "STATE +10...+11")                 // Colossus237
 
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ ### SPECIAL CASES: these usages can be eliminated early ..                                       ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+        line.replace("CSTEER,+1", with: "CSTEER,GARBAGE")                               // CM-77774
+        line.replace("ECSTEER,+1", with: "ECSTEER,GARBAGE")                             // CM-77775
+
+        line.replace("DELV,+1,...+4,+5", with: "DELV +0...+5")                          // CM-77774
+        line.replace("DELVEET3,+1,...+4,+5", with: "DELVEET3 +0...+5")                  // CM-77775
+        line.replace("DELVSLV,+1...+4,+5", with: "DELVSLV +0...+5")                     // CM-77775
+
+        line.replace("LAT(SPL),+1,LNG(SPL),+1", with: "LAT(SPL),+1,LNG(SPL),+1")        // CM-77776
+        line.replace("LAT(SPL),LNG(SPL),+1", with: "LAT(SPL),+1,LNG(SPL),+1")
+
+        line.replace("MARK2DWN,+1...+5,+6", with: "MARK2DWN,+0...+5,+6,GARBAGE")
+        line.replace("MARKDOWN,+1...+5,+6,GARBAGE", with: "MARKDOWN,+0...+5,+6,GARBAGE")
+
+        line.replace("OPTION1,2", with: "OPTION,+1")
+
+        line.replace("REFSMMAT,+1,...+10,+11", with: "REFSMMAT +0...+11")
+
+        line.replace("RLS,+1,...+4,+5", with: "RLS +0...+5")                            // CM-77773
+
+        line.replace("RTARG,+1,+2,...+5", with: "RTARG +0...+5")                        // CM-77774
+        line.replace("RTARG,+1...+4,+5", with: "RTARG +0...+5")                         // CM-77775
+        line.replace("RTARG,+1...+5", with: "RTARG +0...+5")
+
+        line.replace("TIME/1", with: "TIME2,TIME1")
+        line.replace("TIME2/1", with: "TIME2,TIME1")
+
+        line.replace("UPBUFF,+1...+10,+11", with: "UPBUFF +0...+11")                    // CM-77776
+        line.replace("UPBUFF+0,+1...+10,+11D", with: "UPBUFF +0...+11")
+        line.replace("UPBUFF+12,+13...+18,+19D", with: "UPBUFF +12...+19")
+        line.replace("UPBUFF+12,13...+18,19D", with: "UPBUFF +12...+19")                // CM-77776
+
+        line.replace("VGTIG,...+5", with: "VGTIGX,VGTIGY,VGTIGZ")
+        line.replace("VGTIG,+1,...+4,+5", with: "VGTIGX,VGTIGY,VGTIGZ")
+        line.replace("VGTIGX,Y,Z", with: "VGTIGX,VGTIGY,VGTIGZ")
+
+        line.replace("VGVECT +0...+5", with: "VG VEC X,VG VEC Y,VG VEC Z")
+
+        line.replace("VHFCNT,+1", with: "VHF MARK,OPT MARK")                            // CM-77775
+
+        if line.contains("2DNADR CHANBKUP") { line.append("# CHANBKUP, +0...+3") }      // Luminary210
+
+        if let match = line.firstMatch(of: long) {
 /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
   │ match an assembler line and split it into pieces:                                                │
   │                                                                                                  │
@@ -83,7 +102,6 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
   │              |                                            |                                      │
   │              opCode: "2DNADR"                             range: "   (034,036) "                 │
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
-        if let match = line.firstMatch(of: long) {
 
             var opCode = String(match.1)
             let label = match.2.trimmingCharacters(in: .whitespaces)
@@ -137,7 +155,25 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ ### SPECIAL                                                                                      ┆
+  ┆                                                                                                  ┆
+  ┆ .. a 4DNADR with six variables -- only happens once (three doubles and two singles)              ┆
+  ┆     S46  4DNADR AGSBUFF +7   #   (026-032) # AGSBUFF+7...+13D,GARBAGE                            ┆
+  ┆     S46  4DNADR MARK2DWN     #   (046-052) # MARK2DWN,+0...+5,+6,GARBAGE                         ┆
+  ┆     S46  4DNADR MARKDOWN     #   (038-044) # MARKDOWN,+0...+5,+6,GARBAGE                         ┆
+  ┆     S46  4DNADR UPBUFF +12D  #   (052-058) # UPBUFF +12...+19                                    ┆
+  ┆     S46  4DNADR UPBUFF +12D  #   (150-156) # UPBUFF +12D...+19D                                  ┆
+  ┆     S46  4DNADR UPBUFF +12D  #   (150-156) # UPBUFF+12D...+19D                                   ┆
+  ┆     S46  4DNADR UPBUFF +12D  #   (152-158) # UPBUFF +12...+19                                    ┆
+  ┆                                                                                                  ┆
+  ┆ .. a 4DNADR with seven variables -- only happens once (one doubles and six singles)              ┆
+  ┆     S47  4DNADR MARKDOWN     #   (046-052) # MARKDOWN,+1...+5,+6,RM                              ┆
+  ┆     S47  4DNADR MARKDOWN     #   (046-052) # MARKTIME(DP),YCDU,SCDU,ZCDU,TCDU,XCDU,RM            ┆
+  ┆                                                                                                  ┆
   ┆ .. a 6DNADR with eight variables -- only happens once (four singles and four doubles)            ┆
+  ┆     S68  6DNADR COMPNUMB     #   (034-044) # COMPNUMB,UPOLDMOD,UPVERB,UPCOUNT,UPBUFF+0...+7      ┆
+  ┆     S68  6DNADR COMPNUMB     # c (034-044) # COMPNUMB,UPOLDMOD,UPVERB,UPCOUNT,UPBUFF+0...+7      ┆
+  ┆     S68  6DNADR COMPNUMB     # c (134-144) # COMPNUMB,UPOLDMOD,UPVERB,UPCOUNT,UPBUFF+0...+7      ┆
+  ┆                                                                                                  ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
             if downCount == 6 && commentBits.count == 8 {
 
@@ -154,9 +190,40 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
                 continue
             }
 
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ ### SPECIAL                                                                                      ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+            if downCount == 4 && commentBits.count == 8 {
+
+                for i in stride(from: 0, to: 5, by: 2) {
+                    newLines.append(emitLine(order, range, opCode,
+                                             String(commentBits[i]),
+                                             .double, comment)) }
+                for i in 6...7 {
+                    newLines.append(emitLine(order, range, opCode,
+                                             String(commentBits[i]),
+                                             .single, comment)) }
+                continue
+            }
+
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ ### SPECIAL                                                                                      ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+            if downCount == 4 && commentBits.count == 7 {
+
+                newLines.append(emitLine(order, range, opCode,
+                                         String(commentBits[0].replacing("(DP)", with: "")),
+                                         .double, comment))
+                for i in 1...6 {
+                    newLines.append(emitLine(order, range, opCode,
+                                             String(commentBits[i]),
+                                             .single, comment)) }
+                continue
+            }
+
             if downCount == commentBits.count/2 {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ SINGLE                                                                                           ┆
+  ┆ May be SINGLE                                                                                    ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
 
                 let shortLabel = upToPlus(label)
@@ -210,9 +277,7 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
                                          .double, comment))
                 continue
             }
-
-        }
-
+        } else if let match = line.firstMatch(of: noComment) {
 /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
   │ failed to match the assembler line WITH comment .. check for a line WITHOUT comment ..           │
   │                                                                                                  │
@@ -223,14 +288,13 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
   │              |                                            |                                      │
   │              opCode: "2DNADR"                             range: "   (034,036) "                 │
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
-        if let match = line.firstMatch(of: noComment) {
 
             let opCode = String(match.1)
             let label = match.2.trimmingCharacters(in: .whitespaces)
             let range = String(match.3)
 
             newLines.append(emitLine(order, range, opCode, label, .double, ""))
-
+            continue
         } else {
             logger.log("×X  \(line)")
         }
@@ -241,7 +305,7 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
 
 /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
   │ takes "R-OTHER" (label) and "R-OTHER +0,+1" (comment) and returns and array of new labels based  │
-  │ on figuring out, as best as possible, offsets and single/douple precision ..                     │
+  │ on figuring out, as best as possible, offsets and single/double precision ..                     │
   │                                                                                                  │
   │ .. if (label) == first substring of (comment)                                                    │
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
@@ -258,6 +322,13 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
             .map { $0.replacingOccurrences(of: " ", with: "") }
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ the parsing is tricky since characters are missing                                               ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+        if bits.count == 4 { if bits[1...3] == ["+1", "...+4", "+5"] { bits = [bits[0], "+1...+5"] } }
+        if bits.count == 4 { if bits[1...3] == ["+1", "+2", "...+5"] { bits = [bits[0], "+1...+5"] } }
+        if bits.count == 4 { if bits[1...3] == ["+1", "...+10", "+11"] { bits = [bits[0], "+1...+11"] } }
+
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ coagulate run-on uses "1...4,5" ← "1...5"                                                        ┆
   ┆     ### could be more clever and deal with "D" and missing "+"                                   ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
@@ -269,21 +340,21 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
         if bits.count == 3 { if bits[1...2] == ["13...+18", "19D"] { bits = [bits[0], "+13...+19"] } }
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ "A","B/C","D" → "A","B","C","D"                                                                  ┆
+  ┆ "A","B/C","D" → "A","B" [ the "C","D" was an alternate]                                          ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
         if bits.count == 3 && bits[1].contains("/") {
-            let twoBits = bits[1].split(separator: "/")
-            bits.append(bits[2])
+            let twoBits = bits[1].split(separator: "/")     // ["B","C"]
             bits[1] = String(twoBits[0])
-            bits[2] = String(twoBits[1])
+            bits = bits.dropLast()
         }
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ the parsing is tricky since characters are missing                                               ┆
+  ┆ "A","...5" → "A","+0...+5"                                                                  ┆    ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-        if bits.count == 4 { if bits[1...3] == ["+1", "...+4", "+5"] { bits = [bits[0], "+1...+5"] } }
-        if bits.count == 4 { if bits[1...3] == ["+1", "+2", "...+5"] { bits = [bits[0], "+1...+5"] } }
-        if bits.count == 4 { if bits[1...3] == ["+1", "...+10", "+11"] { bits = [bits[0], "+1...+11"] } }
+        if bits.count == 2 { if bits[1] == "...+5" {
+            bits = [bits[0], "+0...+5"]
+        } }
+
 
         switch bits.count {
             case 1:
@@ -403,18 +474,32 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
                     result.append("\(bits[0])+2")                   // "NAME1+2"
                     result.append("\(bits[3])")                     // "NAME2"
                     return result
-                } else {
+                } else if let match1 = bits[1].firstMatch(of: dots),
+                          let match2 = bits[3].firstMatch(of: dots) {
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆     ["A", "+1...+5", "B", "+1...+5"] → ["A+0", .., "A+5", "B+1", .., "B+5", ..]                  ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+                    var alpha = Int(String(match1.1))!
+                    var omega = Int(String(match1.2))!
+                    for i in alpha...omega { result.append("\(bits[0])+\(i)") }
+
+                    alpha = Int(String(match2.1))!
+                    omega = Int(String(match2.2))!
+                    for i in alpha...omega { result.append("\(bits[2])+\(i)") }
+
+                    return result
+
+                } else if let match = bits[1].firstMatch(of: dots) {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆     ["NAME1", "+1...+5", "+6", "NAME2] → ["NAME1+0", "NAME1+1", .., "NAME1+6", "NAME2"]  singles ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-                    if let match = bits[1].firstMatch(of: dots) {
-                        let alpha = Int(String(match.1))!
-                        let omega = Int(String(match.2))!
-                        for i in alpha...omega { result.append("\(bits[0])+\(i)") }
-                        result.append("\(bits[0])+\(omega+1)")
-                        result.append("\(bits[3])")                 // "NAME2"
-                        return result
-                    }
+                    let alpha = Int(String(match.1))!
+                    let omega = Int(String(match.2))!
+                    for i in alpha...omega { result.append("\(bits[0])+\(i)") }
+                    result.append("\(bits[0])+\(omega+1)")
+                    result.append("\(bits[3])")                 // "NAME2"
+                    return result
+
                 }
 
                 if let matchA = bits[0].firstMatch(of: plus),
@@ -445,11 +530,10 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
                     }
 
                     return result
-
                 }
 
                 if !bits[0].contains("+") && bits[1].contains("...") &&
-                    !bits[2].contains("+") && bits[3].contains("...") {
+                   !bits[2].contains("+") && bits[3].contains("...") {
                     if bits[1] == "...+5" { bits[1] = "+0...+5" }               // ← SPECIAL CASE
                     if bits[3] == "...+5" { bits[3] = "+0...+5" }               // ← SPECIAL CASE
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
@@ -471,11 +555,6 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
 
                 }
 
-/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ ×4  ["ADOT+2", "+3", "OMEGAB+2", "+3"]                                                           ┆
-  ┆ ×4  ["ADOT+4", "+5", "OMEGAB+4", "+5"]                                                           ┆
-  ┆ ×4  ["WBODY", "...+5", "OMEGAC", "...+5"]                                                        ┆
-  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
                 logger.log("×4  \(bits)")
 
             case 5:
@@ -523,6 +602,15 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
                 }
 
                 logger.log("×6  \(bits)")
+
+            case 7:
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆     "MARKTIME(DP),YCDU,SCDU,ZCDU,TCDU,XCDU,RM"                                                   ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+                result.append(Substring(bits[0].replacing("(DP)", with: "")))
+                for i in 1..<bits.count {
+                    result.append(Substring(bits[i]))
+                }
 
             default:
                 logger.log("×\(bits.count)  \(bits)")
@@ -600,11 +688,11 @@ let long = Regex {
     OneOrMore(.whitespace)
     Capture { OneOrMore(.word) }                                    // "2DNADR"
     OneOrMore(.whitespace)
-    Capture { OneOrMore(.anyGraphemeCluster) }                      // "CMDAPMOD"
+    Capture { OneOrMore(CharacterClass(.word, .anyOf(" +-(/)"))) }   // "CMDAPMOD"
     "#"
     Capture { OneOrMore(.anyGraphemeCluster) }                      // "   (034,036) "
     "#"
-    Capture { OneOrMore(CharacterClass(.word, .anyOf("/.,+- "))) }  // "CMDAPMOD,PREL,QREL,RREL"
+    Capture { OneOrMore(CharacterClass(.word, .anyOf("()/.,+- "))) }  // "CMDAPMOD,PREL,QREL,RREL"
     Optionally {
         "("
         OneOrMore(.anyGraphemeCluster)
@@ -620,7 +708,7 @@ let noComment = Regex {
     OneOrMore(.whitespace)
     Capture { OneOrMore(.word) }                                    // "2DNADR"
     OneOrMore(.whitespace)
-    Capture { OneOrMore(.anyGraphemeCluster) }                      // "CMDAPMOD"
+    Capture { OneOrMore(CharacterClass(.word, .anyOf(" +-(/)"))) } // "CMDAPMOD"
     "#"
     Capture { OneOrMore(.anyGraphemeCluster) }                      // "   (034,036) "
 }
@@ -629,7 +717,7 @@ let noComment = Regex {
   ┆     "WORD␠+m...+n" (where "␠" is an optional " ")                                                ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
 let code = Regex {
-    Capture { OneOrMore(CharacterClass(.word, .anyOf("/-_"))) }
+    Capture { OneOrMore(CharacterClass(.word, .anyOf("/-_()"))) }
     Optionally(" ")
     dots
     Optionally { OneOrMore(.word) }
@@ -639,7 +727,7 @@ let code = Regex {
   ┆     "WORD␠+m" (for example "AGSBUFF+0" -- where "␠" is an optional " ")                          ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
 let plus = Regex {
-    Capture { OneOrMore(CharacterClass(.word, .anyOf("/-_"))) }
+    Capture { OneOrMore(CharacterClass(.word, .anyOf("/-_()"))) }
     Optionally(" ")
     "+"
     Capture { OneOrMore(.digit) }
@@ -710,6 +798,7 @@ let forceDouble = [
     "DELVEET1",
     "DSPTAB",
     "GSAV",
+    "R-OTHER",
     "REFSMMAT",
     "RLS",
     "RN",
@@ -722,6 +811,10 @@ let forceDouble = [
     "UPBUFF",
     "VGTIG",
     "VN",
+// 77775
+    "CENTANG",
+    "DELVSLV",
+    "DELVTPF",
 // 77774
     "DELLT4",
     "ELEV",
@@ -738,7 +831,7 @@ let forceDouble = [
     "VMEAS",
     "MKTIME",
     "HMEAS",
-    "RM",
+//    "RM",         // CM-77775 has single precision
     "UNFC/2",
     "TTF/8",
     "DELTAH",
@@ -748,11 +841,37 @@ let forceDouble = [
     "AT",
     "TLAND",
     "TTOGO",
+    "ZDOTD",
+    "X789",
 
     "PIPTIME",                  //###
     "T-OTHER",                  //###
     "TALIGN",                   //###
     "TEVENT",                   //###
     "TIG",                      //###
-    "V-OTHER"                   //###
+    "V-OTHER",                  //###
+
+    // CM77777
+
+    "RSP-RREC",
+    "WBODY",
+
+    // 77775
+
+    "ADOT",
+    "VHFTIME",
+    "DELVSLV",
+    "DELTAR",
+    "WBODY",
+
+    // 77774
+
+    "PIPTIME1",
+    "DELV",
+
+    // 77773
+
+    "LAT",
+    "LONG",
+    "ALT",
 ]

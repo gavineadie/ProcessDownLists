@@ -29,9 +29,7 @@ if let enumerator = fileManager.enumerator(at: workDirURL,
     for case let fileURL as URL in enumerator {
         if fileURL.absoluteString.contains("/VirtualAGC/") { continue }
             
-        if fileURL.lastPathComponent == "DOWNLINK_LISTS.agc" {
-            fileURLs.append(fileURL)
-        }
+        if fileURL.lastPathComponent == "DOWNLINK_LISTS.agc" { fileURLs.append(fileURL) }
     }
 } else {
     print("Failed to create enumerator.")
@@ -52,6 +50,10 @@ do {
     for fileURL in fileURLs {
 
         let missionName = fileURL.deletingLastPathComponent().lastPathComponent
+
+        if missionName != "LM131R1" { continue }
+//      if missionName != "Colossus237" { continue }
+
         let fileText = try String(contentsOf: fileURL, encoding: .utf8)
         let homeDirURL = fileManager.homeDirectoryForCurrentUser
 
@@ -172,7 +174,6 @@ do {
         print("xtraFile: Processed \(missionName).")
 
 /*────────────────────────────────────────────────────────────────────────────────────────────────────*/
-
         sortFile(missionName, fileLinesX)                                  // ..
 
         print("xtraFile: Processed \(missionName).")
