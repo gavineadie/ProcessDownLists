@@ -21,7 +21,7 @@ func tidyFile(_ missionName: String, _ fileText: String) -> [String] {
     for lineNum in 0..<oldLines.count {
         let line = oldLines[lineNum]
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ ### SPECIAL SPECIAL CASE: three lines need clarifying ..                                         ┆
+  ┆ ### SPECIAL SPECIAL CASE: three lines need clarifying .. processed in "Date" ..                  ┆
   ┆                                                                                                  ┆
   ┆     6DNADR SVMRKDAT                     # LANDING SITE MARK DATA                                 ┆
   ┆     6DNADR SVMRKDAT +12D                # SVMRKDAT+0...+34                                       ┆
@@ -37,7 +37,6 @@ func tidyFile(_ missionName: String, _ fileText: String) -> [String] {
   ┆ ### SPECIAL CASE: substitute lines for AGS Initialization/Update (LM-77776)                      ┆
   ┆                                                                                                  ┆
   ┆ .. replaces:                                                                                     ┆
-  ┆                                                                                                  ┆
   ┆         3DNADR AGSBUFF +0                   #   (002-006) # AGSBUFF +0...+5                      ┆
   ┆         1DNADR AGSBUFF +12D                 #   (  008  ) # AGSBUFF +12D,GARBAGE                 ┆
   ┆         3DNADR AGSBUFF +1                   #   (010-014) # AGSBUFF +1...+6                      ┆
@@ -46,23 +45,6 @@ func tidyFile(_ missionName: String, _ fileText: String) -> [String] {
   ┆         1DNADR AGSBUFF +12D                 #   (  024  ) # AGSBUFF +12,GARBAGE                  ┆
   ┆         3DNADR AGSBUFF +7                   #   (026-030) # AGSBUFF +7...+12D                    ┆
   ┆         1DNADR AGSBUFF +13D                 #   (  032  ) # AGSBUFF +13D,GARBAGE                 ┆
-  ┆                                                                                                  ┆
-  ┆         { 2,  "AGSBUFF=", B25, FMT_SP, &FormatEarthOrMoonSP },                                   ┆
-  ┆         { 4,  "AGSBUF+2=", B25, FMT_SP, &FormatEarthOrMoonSP },                                  ┆
-  ┆         { 6,  "AGSBUF+4=", B25, FMT_SP, &FormatEarthOrMoonSP },                                  ┆
-  ┆         { 8,  "LM EPOCH=", B18, FMT_DP, &FormatEpoch },                                          ┆
-  ┆         { 10, "AGSBUF+1=", B15, FMT_SP, &FormatEarthOrMoonSP },                                  ┆
-  ┆         { 12, "AGSBUF+3=", B15, FMT_SP, &FormatEarthOrMoonSP },                                  ┆
-  ┆         { 14, "AGSBUF+5=", B15, FMT_SP, &FormatEarthOrMoonSP },                                  ┆
-  ┆         { 18, "AGSBUF+6=", B25, FMT_SP, &FormatEarthOrMoonSP },                                  ┆
-  ┆         { 20, "AGSBUF+8=", B25, FMT_SP, &FormatEarthOrMoonSP },                                  ┆
-  ┆         { 22, "AGSBUF+10=", B25, FMT_SP, &FormatEarthOrMoonSP },                                 ┆
-  ┆         { 24, "CM EPOCH=", B18, FMT_DP, &FormatEpoch },                                          ┆
-  ┆         { -1 },                                                                                  ┆
-  ┆         { 26, "AGSBUF+7=", B15, FMT_SP, &FormatEarthOrMoonSP },                                  ┆
-  ┆         { 28, "AGSBUF+9=", B15, FMT_SP, &FormatEarthOrMoonSP },                                  ┆
-  ┆         { 30, "AGSBUF+11=", B15, FMT_SP, &FormatEarthOrMoonSP },                                 ┆
-  ┆                                                                                                  ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
         if line.contains(Regex {
             "AGSBUFF"

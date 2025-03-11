@@ -53,11 +53,12 @@ func xtraFile(_ missionName: String, _ fileLines: [String]) -> [String] {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ GSOP substitutes ..                                                                              ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-        let gsopName = lookupGsopNames[columns[1]] ?? columns[1]
+//        let gsopName = lookupGsopNames[columns[1]] ?? columns[1]
+//        let tabLine = "\(columns[0])\t\(gsopName): \(getLookup(columns[1]))"
 
 
 //      let txtLine = "\(columns[0])\t\(columns[1].padTo12()): \(getLookup(columns[1]))"
-        let tabLine = "\(columns[0])\t\(gsopName): \(getLookup(columns[1]))"
+        let tabLine = "\(columns[0])\t\(columns[1]): \(getLookup(columns[1]))"
             .replacing(Regex {
                 ZeroOrMore(.whitespace)
                 ":"
@@ -73,7 +74,13 @@ func xtraFile(_ missionName: String, _ fileLines: [String]) -> [String] {
 
 fileprivate func getLookup(_ key: Substring) -> String {
 
-    for (k, v) in lookupScaleFormatUnits { if key.starts(with: k) { return v } }
+    for (k, v) in lookupScaleFormatUnits {
+        if key == k { return v }
+    }
+
+    for (k, v) in lookupScaleFormatUnits {
+        if key.starts(with: k) { return v }
+    }
 
     return "B0   : FMT_OCT  : FormatUnknown       : TBD"
 }
@@ -118,6 +125,7 @@ let lookupScaleFormatUnits = [
     "DELLT4"        : "B28  : FMT_DP   :                     : TBD",
     "DELTAH"        : "B24  : FMT_DP   :                     : TBD",
     "DELTAR"        : "360  : FMT_DP   :                     : TBD",
+    "RSP-RREC"      : "360  : FMT_DP   :                     : TBD",        // == DELTAR
     "DELV"          : "B14  : FMT_DP   : FormatDELV          : TBD",
     "DELVEET"       : "B7   : FMT_DP   :                     : TBD",
     "DELVSLV"       : "B7   : FMT_DP   :                     : TBD",
@@ -132,15 +140,15 @@ let lookupScaleFormatUnits = [
     "DSPTAB"        : "B0   : FMT_2OCT :                     : TBD",
     "ECSTEER"       : "4    : FMT_SP   :                     : TBD",
     "ELEV"          : "360  : FMT_DP   :                     : TBD",
-    "ERROR"         : "180  : FMT_SP   :                     : TBD",          // X, Y, Z
+    "ERROR"         : "180  : FMT_SP   :                     : TBD",        // X, Y, Z
     "FAILREG"       : "B0   : FMT_OCT  :                     : TBD",
     "FC"            : "B14  : FMT_SP   : FormatGtc           : TBD",
     "GAMMAEI"       : "360  : FMT_DP   :                     : TBD",
     "GSAV"          : "2    : FMT_DP   :                     : TBD",
-    "HAPOX"         : "B29  : FMT_DP   :                     : TBD",
+    "HAPO"          : "B29  : FMT_DP   :                     : TBD",
     "HMEAS"         : "B28  : FMT_DP   : FormatHMEAS         : TBD",
     "HOLDFLAG"      : "B0   : FMT_DEC  :                     : TBD",
-    "HPERX"         : "B29  : FMT_DP   :                     : TBD",
+    "HPER"          : "B29  : FMT_DP   :                     : TBD",
     "ID"            : "B0   : FMT_OCT  :                     : TBD",
     "IGC"           : "360  : FMT_DP   :                     : TBD",
     "IMODES"        : "B0   : FMT_OCT  :                     : TBD",
@@ -262,9 +270,48 @@ let lookupScaleFormatUnits = [
     "YNBSAV"        : "B1   : FMT_DP   :                     : TBD",
     "ZDOTD"         : "B7   : FMT_DP   :                     : TBD",
     "ZNBSAV"        : "B1   : FMT_DP   :                     : TBD",
-//  "SVMRKDAT"      : "B28  : FMT_DP   :                     : TBD",
-//  "SVMRKDAT+2"    : "360  : FMT_USP  :                     : TBD",
-//  "SVMRKDAT+5"    : "45   : FMT_SP   : FormatOTRUNNION     : TBD",
+
+    "SVMRKDAT"      : "B28 :  FMT_DP   :                     : TBD",
+    "SVMRKDAT+2"    : "360 :  FMT_USP  :                     : TBD",
+    "SVMRKDAT+3"    : "360 :  FMT_USP  :                     : TBD",
+    "SVMRKDAT+4"    : "360 :  FMT_USP  :                     : TBD",
+    "SVMRKDAT+5"    : "45  :  FMT_SP   : FormatOTRUNNION     : TBD",
+    "SVMRKDAT+6"    : "360 :  FMT_USP  :                     : TBD",
+
+    "SVMRKDAT+7"    : "B28 :  FMT_DP   :                     : TBD",
+    "SVMRKDAT+9"    : "360 :  FMT_USP  :                     : TBD",
+    "SVMRKDAT+10"   : "360 :  FMT_USP  :                     : TBD",
+    "SVMRKDAT+11"   : "360 :  FMT_USP  :                     : TBD",
+    "SVMRKDAT+12"   : "45  :  FMT_SP   : FormatOTRUNNION     : TBD",
+    "SVMRKDAT+13"   : "360 :  FMT_USP  :                     : TBD",
+
+    "SVMRKDAT+14"   : "B28 :  FMT_DP   :                     : TBD",
+    "SVMRKDAT+16"   : "360 :  FMT_USP  :                     : TBD",
+    "SVMRKDAT+17"   : "360 :  FMT_USP  :                     : TBD",
+    "SVMRKDAT+18"   : "360 :  FMT_USP  :                     : TBD",
+    "SVMRKDAT+19"   : "45  :  FMT_SP   : FormatOTRUNNION     : TBD",
+    "SVMRKDAT+20"   : "360 :  FMT_USP  :                     : TBD",
+
+    "SVMRKDAT+21"   : "B28 :  FMT_DP   :                     : TBD",
+    "SVMRKDAT+23"   : "360 :  FMT_USP  :                     : TBD",
+    "SVMRKDAT+24"   : "360 :  FMT_USP  :                     : TBD",
+    "SVMRKDAT+25"   : "360 :  FMT_USP  :                     : TBD",
+    "SVMRKDAT+26"   : "45  :  FMT_SP   : FormatOTRUNNION     : TBD",
+    "SVMRKDAT+27"   : "360 :  FMT_USP  :                     : TBD",
+
+    "SVMRKDAT+28"   : "B28 :  FMT_DP   :                     : TBD",
+    "SVMRKDAT+30"   : "360 :  FMT_USP  :                     : TBD",
+    "SVMRKDAT+31"   : "360 :  FMT_USP  :                     : TBD",
+    "SVMRKDAT+32"   : "360 :  FMT_USP  :                     : TBD",
+    "SVMRKDAT+33"   : "45  :  FMT_SP   : FormatOTRUNNION     : TBD",
+    "SVMRKDAT+34"   : "360 :  FMT_USP  :                     : TBD",
+
+    "YCDU"          : "B0  :  FMT_OCT  :                     : TBD",     // CM-77775
+    "SCDU"          : "B0  :  FMT_OCT  :                     : TBD",
+    "ZCDU"          : "B0  :  FMT_OCT  :                     : TBD",
+    "TCDU"          : "B0  :  FMT_OCT  :                     : TBD",
+    "XCDU"          : "B0  :  FMT_OCT  :                     : TBD",
+
 ]
 
 let lookupGsopNames: [Substring : Substring] = [

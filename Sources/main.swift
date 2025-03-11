@@ -51,7 +51,7 @@ do {
 
         let missionName = fileURL.deletingLastPathComponent().lastPathComponent
 
-        if missionName != "LM131R1" { continue }
+//      if missionName != "LM131R1" { continue }
 //      if missionName != "Colossus237" { continue }
 
         let fileText = try String(contentsOf: fileURL, encoding: .utf8)

@@ -40,6 +40,7 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
         line.replace("SNAPSHOT", with: "")
         line.replace("COMMON DATA", with: "")
         line.replace("SNAPSHOT DATA", with: "")
+        line.replace("# FORMERLY PIF", with: "")
 
         line.replace("DISPLAY TABLES", with: "DSPTAB +0...+11")
         line.replace("DSPTAB TABLES", with: "DSPTAB +0...+11")
@@ -87,8 +88,6 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
 
         line.replace("VGVECT +0...+5", with: "VG VEC X,VG VEC Y,VG VEC Z")
 
-        line.replace("VHFCNT,+1", with: "VHF MARK,OPT MARK")                            // CM-77775
-
         if line.contains("2DNADR CHANBKUP") { line.append("# CHANBKUP, +0...+3") }      // Luminary210
 
         if let match = line.firstMatch(of: long) {
@@ -109,7 +108,7 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
             let comment = match.4
                 .replacingOccurrences(of: "DATA", with: "")                     // ← SPECIAL CASE
                 .replacingOccurrences(of: "CHANNELS 76(GARBAGE),77", with: "GARBAGE,CHANNEL77")
-                .replacingOccurrences(of: "APOGEE AND PERIGEE FROM R30", with: "HAPOX,HPERX")
+                .replacingOccurrences(of: "APOGEE AND PERIGEE FROM R30", with: "HAPO,HPER")
                 .replacingOccurrences(of: "CSI DELTA VELOCITY COMPONENTS", with: "DELVEET1 +0...+5")
                 .replacingOccurrences(of: "CDH DELTA VELOCITY COMPONENTS", with: "DELVEET2 +0...+5")
                 .replacingOccurrences(of: "CDH AND CSI TIME", with: "TCDH +0...+3")
@@ -147,6 +146,77 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
   ┆ split the comment field into bits ..                                                             ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
             let commentBits = splitComment(label, comment)
+
+            if (label.starts(with: "SVMRKDAT")) {
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ ### SPECIAL                                                                                      ┆
+  ┆     SVMRKDAT is three 6DNADR items in the downlist                                               ┆
+  ┆                                                                                                  ┆
+  ┆         6DNADR SVMRKDAT                     #   (034-044) # SVMRKDAT+0...+11                     ┆
+  ┆         6DNADR SVMRKDAT +12D                #   (046-056) # SVMRKDAT+12...+23                    ┆
+  ┆         6DNADR SVMRKDAT +24D                #   (058-068) # SVMRKDAT+24...+35                    ┆
+  ┆                                                                                                  ┆
+  ┆     but is actually five sets of one structure                                                   ┆
+  ┆                                                                                                  ┆
+  ┆         { 34, "SVMRKDAT=",    B28, FMT_DP  },   // 1st mark                                      ┆
+  ┆         { 36, "SVMRKDAT+2=",  360, FMT_USP },                                                    ┆
+  ┆         { 37, "SVMRKDAT+3=",  360, FMT_USP },                                                    ┆
+  ┆         { 38, "SVMRKDAT+4=",  360, FMT_USP },                                                    ┆
+  ┆         { 39, "SVMRKDAT+5=",   45, FMT_SP, &FormatOTRUNNION },                                   ┆
+  ┆         { 40, "SVMRKDAT+6=",  360, FMT_USP },                                                    ┆
+  ┆          . . . . . .                                                                             ┆
+  ┆         { 62, "SVMRKDAT+28=", B28, FMT_DP  },   // 5th mark                                      ┆
+  ┆         { 64, "SVMRKDAT+30=", 360, FMT_USP },                                                    ┆
+  ┆         { 65, "SVMRKDAT+31=", 360, FMT_USP },                                                    ┆
+  ┆         { 66, "SVMRKDAT+32=", 360, FMT_USP },                                                    ┆
+  ┆         { 67, "SVMRKDAT+33=",  45, FMT_SP, &FormatOTRUNNION },                                   ┆
+  ┆         { 68, "SVMRKDAT+34=", 360, FMT_USP },                                                    ┆
+  ┆                                                                                                  ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+                switch commentBits[0] {
+                    case "SVMRKDAT+0":
+                        newLines.append(emitLine(order, "", "", "SVMRKDAT+0", .double))
+                        newLines.append(emitLine(order, "", "", "SVMRKDAT+2", .single))
+                        newLines.append(emitLine(order, "", "", "SVMRKDAT+3", .single))
+                        newLines.append(emitLine(order, "", "", "SVMRKDAT+4", .single))
+                        newLines.append(emitLine(order, "", "", "SVMRKDAT+5", .single))
+                        newLines.append(emitLine(order, "", "", "SVMRKDAT+6", .single))
+
+                        newLines.append(emitLine(order, "", "", "SVMRKDAT+7", .double))
+                        newLines.append(emitLine(order, "", "", "SVMRKDAT+9", .single))
+                        newLines.append(emitLine(order, "", "", "SVMRKDAT+10", .single))
+                        newLines.append(emitLine(order, "", "", "SVMRKDAT+11", .single))
+                        newLines.append(emitLine(order, "", "", "SVMRKDAT+12", .single))
+                        newLines.append(emitLine(order, "", "", "SVMRKDAT+13", .single))
+
+                        newLines.append(emitLine(order, "", "", "SVMRKDAT+14", .double))
+                        newLines.append(emitLine(order, "", "", "SVMRKDAT+16", .single))
+                        newLines.append(emitLine(order, "", "", "SVMRKDAT+17", .single))
+                        newLines.append(emitLine(order, "", "", "SVMRKDAT+18", .single))
+                        newLines.append(emitLine(order, "", "", "SVMRKDAT+19", .single))
+                        newLines.append(emitLine(order, "", "", "SVMRKDAT+20", .single))
+
+                        newLines.append(emitLine(order, "", "", "SVMRKDAT+21", .double))
+                        newLines.append(emitLine(order, "", "", "SVMRKDAT+23", .single))
+                        newLines.append(emitLine(order, "", "", "SVMRKDAT+24", .single))
+                        newLines.append(emitLine(order, "", "", "SVMRKDAT+25", .single))
+                        newLines.append(emitLine(order, "", "", "SVMRKDAT+26", .single))
+                        newLines.append(emitLine(order, "", "", "SVMRKDAT+27", .single))
+
+                        newLines.append(emitLine(order, "", "", "SVMRKDAT+28", .double))
+                        newLines.append(emitLine(order, "", "", "SVMRKDAT+30", .single))
+                        newLines.append(emitLine(order, "", "", "SVMRKDAT+31", .single))
+                        newLines.append(emitLine(order, "", "", "SVMRKDAT+32", .single))
+                        newLines.append(emitLine(order, "", "", "SVMRKDAT+33", .single))
+                        newLines.append(emitLine(order, "", "", "SVMRKDAT+34", .single))
+
+                        newLines.append(emitLine(order, "", "", "GARBAGE", .single))
+
+                    default: break
+                }
+
+                continue
+            }
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆     process nDNADR (n words in downlist)                                                         ┆
@@ -655,7 +725,7 @@ fileprivate func emitLine(_ ord: Int = 999,
                           _ ran: String = "",
                           _ opc: String,
                           _ adr: String = "",
-                          _ pre: Precision = .double,
+                          _ pre: Precision = .ignore,
                           _ com: String = "") -> String {
 
     order += (pre == .double ? 2 : 1)
@@ -805,7 +875,6 @@ let forceDouble = [
     "STARSAV1",
     "STARSAV2",
     "STATE",
-    "SVMRKDAT",
     "TCDH",
     "UPBUF",
     "UPBUFF",
@@ -854,6 +923,7 @@ let forceDouble = [
     // CM77777
 
     "RSP-RREC",
+    "DELTAR",
     "WBODY",
 
     // 77775
@@ -863,6 +933,7 @@ let forceDouble = [
     "DELVSLV",
     "DELTAR",
     "WBODY",
+    "GAMMAEI",                  //### MAR10
 
     // 77774
 
