@@ -14,6 +14,11 @@ let workDirURL = homeDirURL.appendingPathComponent("Developer/virtualagc",
 
 let resourceKeys: [URLResourceKey] = [.nameKey, .isDirectoryKey]
 
+let missionList = [
+    "Artemis072", "Colossus249", "Manche45R2", "Skylark048",
+    "LM131R1", "Luminary099", "Luminary163", "Luminary210", "Sundance306ish", "Zerlina56"
+]
+
 var fileURLs: [URL] = []
 
 /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -42,7 +47,7 @@ if let enumerator = fileManager.enumerator(at: workDirURL,
 
 var downlists: [String : [String]] = [:]            // LABEL : LINES
 var copylists: [String : [String]] = [:]            // LABEL : LINES
-var equalities: [String : String] = [:]              // LABEL : LABEL
+var equalities: [String : String] = [:]             // LABEL : LABEL
 
 let originalStdout = dup(STDOUT_FILENO)
 
@@ -51,8 +56,10 @@ do {
 
         let missionName = fileURL.deletingLastPathComponent().lastPathComponent
 
+        if !missionList.contains(missionName) { continue }
+
 //      if missionName != "LM131R1" { continue }
-//      if missionName != "Colossus237" { continue }
+//      if missionName != "Artemis072" { continue }
 
         let fileText = try String(contentsOf: fileURL, encoding: .utf8)
         let homeDirURL = fileManager.homeDirectoryForCurrentUser
@@ -60,7 +67,7 @@ do {
 /*────────────────────────────────────────────────────────────────────────────────────────────────────*/
         var fileLinesT: [String] = []
 
-        let tidyPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(missionName)-tidy.txt")
+        let tidyPrintURL = homeDirURL.appendingPathComponent("Desktop/Downlist/\(missionName)-tidy.txt")
         fileManager.createFile(atPath: tidyPrintURL.path, contents: nil, attributes: nil)
 
         if let fileHandle = try? FileHandle(forWritingTo: tidyPrintURL) {
@@ -78,7 +85,7 @@ do {
 /*────────────────────────────────────────────────────────────────────────────────────────────────────*/
         var fileLinesM: [String] = []
 
-        let mashPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(missionName)-mash.txt")
+        let mashPrintURL = homeDirURL.appendingPathComponent("Desktop/Downlist/\(missionName)-mash.txt")
         fileManager.createFile(atPath: mashPrintURL.path, contents: nil, attributes: nil)
 
         if let fileHandle = try? FileHandle(forWritingTo: mashPrintURL) {
@@ -94,31 +101,31 @@ do {
         print("mashFile: Processed \(missionName).")
 
 /*────────────────────────────────────────────────────────────────────────────────────────────────────*/
-//        let listPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(fileName)-list.txt")
-//        fileManager.createFile(atPath: listPrintURL.path, contents: nil, attributes: nil)
-//
-//        if let fileHandle = try? FileHandle(forWritingTo: listPrintURL) {
-//            defer { fileHandle.closeFile() }
-//            dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
-//
-//            print(">>> DOWNLISTS")
-//            prettyPrint(downlists)
-//
-//            print(">>> COPYLISTS")
-//            prettyPrint(copylists)
-//
-//            print(">>> EQUALS")
-//            print(equalites)
-//        }
-//
-//        dup2(originalStdout, STDOUT_FILENO)
-//
-//        print("listFile: Processed \(fileName).")
+        let listPrintURL = homeDirURL.appendingPathComponent("Desktop/Downlist/\(missionName)-list.txt")
+        fileManager.createFile(atPath: listPrintURL.path, contents: nil, attributes: nil)
+
+        if let fileHandle = try? FileHandle(forWritingTo: listPrintURL) {
+            defer { fileHandle.closeFile() }
+            dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
+
+            print(">>> DOWNLISTS")
+            prettyPrint(downlists)
+
+            print(">>> COPYLISTS")
+            prettyPrint(copylists)
+
+            print(">>> EQUALS")
+            print(equalities)
+        }
+
+        dup2(originalStdout, STDOUT_FILENO)
+
+        print("listFile: Processed \(missionName).")
 
 /*────────────────────────────────────────────────────────────────────────────────────────────────────*/
         var fileLinesJ: [String] = []
 
-        let joinPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(missionName)-join.txt")
+        let joinPrintURL = homeDirURL.appendingPathComponent("Desktop/Downlist/\(missionName)-join.txt")
         fileManager.createFile(atPath: joinPrintURL.path, contents: nil, attributes: nil)
 
         if let fileHandle = try? FileHandle(forWritingTo: joinPrintURL) {
@@ -140,7 +147,7 @@ do {
 /*────────────────────────────────────────────────────────────────────────────────────────────────────*/
         var fileLinesD: [String] = []
 
-        let dataPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(missionName)-data.txt")
+        let dataPrintURL = homeDirURL.appendingPathComponent("Desktop/Downlist/\(missionName)-data.txt")
         fileManager.createFile(atPath: dataPrintURL.path, contents: nil, attributes: nil)
 
         if let fileHandle = try? FileHandle(forWritingTo: dataPrintURL) {
@@ -158,7 +165,7 @@ do {
 /*────────────────────────────────────────────────────────────────────────────────────────────────────*/
         var fileLinesX: [String] = []
 
-        let xtraPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(missionName)-xtra.tsv")
+        let xtraPrintURL = homeDirURL.appendingPathComponent("Desktop/Downlist/\(missionName)-xtra.tsv")
         fileManager.createFile(atPath: xtraPrintURL.path, contents: nil, attributes: nil)
 
         if let fileHandle = try? FileHandle(forWritingTo: xtraPrintURL) {
@@ -176,7 +183,7 @@ do {
 /*────────────────────────────────────────────────────────────────────────────────────────────────────*/
         sortFile(missionName, fileLinesX)                                  // ..
 
-        print("xtraFile: Processed \(missionName).")
+        print("sortFile: Processed \(missionName).")
 
 /*────────────────────────────────────────────────────────────────────────────────────────────────────*/
         var fileLinesY: [String] = []

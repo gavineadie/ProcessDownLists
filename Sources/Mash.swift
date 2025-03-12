@@ -15,11 +15,13 @@ func mashFile(_ missionName: String, _ fileLines: [String]) -> [String] {
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
 
     var inDownlist = false
-    var inCopylist = false
+    var inCopylist1 = false
+    var inCopylist2 = false
     var inSnapshot = false
 
     var downListLabel = ""
-    var copyListLabel = ""
+    var copyListLabel1 = ""
+    var copyListLabel2 = ""
 
     var newLines: [String] = []
 
@@ -27,16 +29,12 @@ func mashFile(_ missionName: String, _ fileLines: [String]) -> [String] {
 
         let line = fileLines[lineIndex]
 
+        if line.contains(dList) {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ we are starting a new downlist ..                                                                ┆
+  ┆ we are starting a new downlist .. emit:                                                          ┆
+  ┆                                                                                                  ┆
+  ┆     "# CSM POWERED FLIGHT DOWNLIST  -----------------------------------------"                   ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-        if line.contains(Regex {
-            "--"
-            ZeroOrMore(.whitespace)
-            "CONTROL LIST"
-            ZeroOrMore(.whitespace)
-            "--"
-        }) {
             inDownlist = true
 
             let line2 = "\((fileLines[lineIndex-1].uppercased() + "  ").padTo72("-"))"
@@ -49,19 +47,15 @@ func mashFile(_ missionName: String, _ fileLines: [String]) -> [String] {
         let (label, opcode, comment) = doMatch(line)
         
             if inDownlist {
+                if line.starts(with: "#") { continue }
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ "# ...................                          transfer a comment as is ..                      ┆
+  ┆ "# ...................                          ditch comments ..                                ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-                if line.starts(with: "#") {
-//                    newLines.append("#> \(line)")
 
-                    continue
-                }
-
+                if let match = opcode.firstMatch(of: equals) {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ "LABEL  EQUALS  ADDRESS         «COMMENT»"      make a symbol connection (ADDRESS ← LABEL)       ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-                if let match = opcode.firstMatch(of: equals) {
                     newLines.append("E> \(label.padTo10()) EQUALS \(match.1)")
 
                     equalities[label] = String(match.1).trimmingCharacters(in: .whitespaces)
@@ -106,10 +100,10 @@ func mashFile(_ missionName: String, _ fileLines: [String]) -> [String] {
                     let newLine = "\(label.padTo10()) \(opcode.padTo36()) \(comment)"
                     newLines.append("S> \(label.padTo10()) \(opcode.padTo36()) ← snapshot starts")
 
-                    inCopylist = true
+                    inCopylist1 = true
 
-                    copyListLabel = String(label)           // start a copylist dictionary
-                    copylists[copyListLabel] = [newLine]    // .. and add this line to it
+                    copyListLabel1 = String(label)           // start a copylist dictionary
+                    copylists[copyListLabel1] = [newLine]    // .. and add this line to it
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ "LABEL  OPCODE  ADDRESS         «COMMENT»"      every other label starts a 'copylist' ..         ┆
@@ -118,10 +112,24 @@ func mashFile(_ missionName: String, _ fileLines: [String]) -> [String] {
                     let newLine = "\(label.padTo10()) \(opcode.padTo36()) \(comment)"
                     newLines.append("L> \(label.padTo10()) \(opcode.padTo36()) ← copylist starts")
 
-                    inCopylist = true
+                    if inCopylist1 {
+                        inCopylist2 = true
+                        copyListLabel2 = String(label)           // start a second copylist dictionary
+//                        logger.log("2a got new copylist -- already in \(copyListLabel1), start \(copyListLabel2)")
 
-                    copyListLabel = String(label)           // start a copylist dictionary
-                    copylists[copyListLabel] = [newLine]    // .. and add this line to it
+                        copylists[copyListLabel1]!.append(newLine)
+//                        logger.log("   added new line to \(copyListLabel1)")
+
+                        copylists[copyListLabel2] = [newLine]    // .. and add this line to second
+//                        logger.log("2c got new copylist -- added first line to \(copyListLabel2)")
+                    } else {
+                        inCopylist1 = true
+                        copyListLabel1 = String(label)           // start the first copylist dictionary
+//                        logger.log("1a got new copylist -- start \(copyListLabel1)")
+
+                        copylists[copyListLabel1] = [newLine]    // .. and add this line to it
+//                        logger.log("1b got new copylist -- added first line to \(copyListLabel1)")
+                    }
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ "_____  OPCODE  ADDRESS         «COMMENT»"      .. everything else                               ┆
@@ -138,8 +146,14 @@ func mashFile(_ missionName: String, _ fileLines: [String]) -> [String] {
                         newLines.append("+> \(newLine)")
                     }
 
-                    if inCopylist {
-                        copylists[copyListLabel]!.append(newLine)
+                    if inCopylist1 {
+                        copylists[copyListLabel1]!.append(newLine)
+//                        logger.log("   added new line to \(copyListLabel1)")
+
+                        if inCopylist2 {
+                            copylists[copyListLabel2]!.append(newLine)
+//                            logger.log("   added new line to \(copyListLabel2)")
+                        }
                     } else if inDownlist {
                         downlists[downListLabel]!.append(newLine)
                     }
@@ -154,7 +168,9 @@ func mashFile(_ missionName: String, _ fileLines: [String]) -> [String] {
                         inSnapshot = true
                     } else {
                         newLines.append(">> \("-".padTo36("-")) \(inSnapshot ? "SNAPSHOT" : "DOWNLIST")\n")
-                        inCopylist = false
+                        inCopylist1 = false
+                        inCopylist2 = false
+//                        logger.log("   exiting copies")
                         inSnapshot = false
                     }
                 }
@@ -183,3 +199,10 @@ let spWord = Regex {
     }
 }
 
+let dList = Regex {
+    "--"
+    ZeroOrMore(.whitespace)
+    "CONTROL LIST"
+    ZeroOrMore(.whitespace)
+    "--"
+}

@@ -66,9 +66,8 @@ func sortFile(_ missionName: String, _ fileLines: [String]) {
         downListID = fileLines[lineRange.lowerBound+1].suffix(6).dropLast()
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+    put all the subfile lines back together and write them to "ddd-id-mission.tsv" ..
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-
-//      let content = fileLines[lineRange.lowerBound+3...lineRange.upperBound].joined(separator: "\n")
         let content = fileLines[lineRange].joined(separator: "\n")
 
         if let tsvDirectory = fileManager.urls(for: .desktopDirectory,

@@ -61,8 +61,8 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
         line.replace("LAT(SPL),+1,LNG(SPL),+1", with: "LAT(SPL),+1,LNG(SPL),+1")        // CM-77776
         line.replace("LAT(SPL),LNG(SPL),+1", with: "LAT(SPL),+1,LNG(SPL),+1")
 
-        line.replace("MARK2DWN,+1...+5,+6", with: "MARK2DWN,+0...+5,+6,GARBAGE")
-        line.replace("MARKDOWN,+1...+5,+6,GARBAGE", with: "MARKDOWN,+0...+5,+6,GARBAGE")
+        line.replace("MARKDOWN,+1...+5,+6,GARBAGE", with: "MARKDOWN,+0...+5,+6,GARBAGE") // MARKTIME STAR 1
+        line.replace("MARK2DWN,+1...+5,+6", with: "MARK2DWN,+0...+5,+6,GARBAGE")         // MARKTIME STAR 2
 
         line.replace("OPTION1,2", with: "OPTION,+1")
 
@@ -87,6 +87,9 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
         line.replace("VGTIGX,Y,Z", with: "VGTIGX,VGTIGY,VGTIGZ")
 
         line.replace("VGVECT +0...+5", with: "VG VEC X,VG VEC Y,VG VEC Z")
+        line.replace("VGVECT+0...+5", with: "VG VEC X,VG VEC Y,VG VEC Z")
+
+        line.replace("DVOTAL,+1", with: "DVTOTAL,+1")                                   // Skylark048 TYPO
 
         if line.contains("2DNADR CHANBKUP") { line.append("# CHANBKUP, +0...+3") }      // Luminary210
 
@@ -264,6 +267,15 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
   ┆ ### SPECIAL                                                                                      ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
             if downCount == 4 && commentBits.count == 8 {
+
+                if (label.starts(with: "MARKDOWN") || label.starts(with: "MARK2DWN")) {
+                    newLines.append(emitLine(order, range, opCode, String(commentBits[0]), .double))
+                    for i in 2...7 {
+                        newLines.append(emitLine(order, range, opCode,
+                                                 String(commentBits[i]),
+                                                 .single, comment)) }
+                    continue
+                }
 
                 for i in stride(from: 0, to: 5, by: 2) {
                     newLines.append(emitLine(order, range, opCode,
@@ -945,4 +957,9 @@ let forceDouble = [
     "LAT",
     "LONG",
     "ALT",
+
+    "ALMCADR",                  //###MAR11 Luminary210
+    "TRUDELH",
+    "GTCTIME",
+    "DVTOTAL",
 ]

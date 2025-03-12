@@ -13,19 +13,19 @@ func xtraFile(_ missionName: String, _ fileLines: [String]) -> [String] {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ process the lines of the file and append extra columns ..                                        ┆
   ┆                                                                                                  ┆
-  ┆     0	ID          : B0     FMT_OCT                                                             ┆
-  ┆     1	SYNC        : B0     FMT_OCT                                                             ┆
-  ┆     2	R-OTHER+0   : B29    FMT_DP                                                              ┆
-  ┆     4	R-OTHER+2   : B29    FMT_DP                                                              ┆
-  ┆     6	R-OTHER+4   : B29    FMT_DP                                                              ┆
-  ┆     8	V-OTHER+0   : B7     FMT_DP                                                              ┆
-  ┆     10	V-OTHER+2   : B7     FMT_DP                                                              ┆
-  ┆     12	V-OTHER+4   : B7     FMT_DP                                                              ┆
-  ┆     14	T-OTHER+0   : B28    FMT_DP                                                              ┆
-  ┆     16	DNRRANGE    : B28    FMT_DP                                                              ┆
-  ┆     17	DNRRDOT     : B28    FMT_DP                                                              ┆
-
-    also change labels to GSOP names
+  ┆     0   ID          : B0     FMT_OCT                                                             ┆
+  ┆     1   SYNC        : B0     FMT_OCT                                                             ┆
+  ┆     2   R-OTHER+0   : B29    FMT_DP                                                              ┆
+  ┆     4   R-OTHER+2   : B29    FMT_DP                                                              ┆
+  ┆     6   R-OTHER+4   : B29    FMT_DP                                                              ┆
+  ┆     8   V-OTHER+0   : B7     FMT_DP                                                              ┆
+  ┆     10  V-OTHER+2   : B7     FMT_DP                                                              ┆
+  ┆     12  V-OTHER+4   : B7     FMT_DP                                                              ┆
+  ┆     14  T-OTHER+0   : B28    FMT_DP                                                              ┆
+  ┆     16  DNRRANGE    : B28    FMT_DP                                                              ┆
+  ┆     17  DNRRDOT     : B28    FMT_DP                                                              ┆
+  ┆                                                                                                  ┆
+  ┆ also change labels to GSOP names                                                                 ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
     var newLines: [String] = []
 
@@ -53,8 +53,8 @@ func xtraFile(_ missionName: String, _ fileLines: [String]) -> [String] {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ GSOP substitutes ..                                                                              ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-//        let gsopName = lookupGsopNames[columns[1]] ?? columns[1]
-//        let tabLine = "\(columns[0])\t\(gsopName): \(getLookup(columns[1]))"
+//      let gsopName = lookupGsopNames[columns[1]] ?? columns[1]
+//      let tabLine = "\(columns[0])\t\(gsopName): \(getLookup(columns[1]))"
 
 
 //      let txtLine = "\(columns[0])\t\(columns[1].padTo12()): \(getLookup(columns[1]))"
@@ -64,8 +64,9 @@ func xtraFile(_ missionName: String, _ fileLines: [String]) -> [String] {
                 ":"
                 ZeroOrMore(.whitespace)
             }, with: "\t")
+//          .replacing("\tFormatRequired\t", with: "\t\t")
 
-//        newLines.append(newLine)
+        //        newLines.append(newLine)
         newLines.append(tabLine)
     }
 
@@ -104,9 +105,9 @@ let lookupScaleFormatUnits = [
     "CADRFLSH"      : "B0   : FMT_OCT  :                     : TBD",
     "CDUS"          : "360  : FMT_SP   :                     : TBD",
     "CDUT"          : "B0   : FMT_OCT  :                     : TBD",
-    "CDUX"          : "360  : FMT_SP   :                     : °",
-    "CDUY"          : "360  : FMT_SP   :                     : °",
-    "CDUZ"          : "360  : FMT_SP   :                     : °",
+    "CDUX"          : "360  : FMT_SP   :                     : deg",
+    "CDUY"          : "360  : FMT_SP   :                     : deg",
+    "CDUZ"          : "360  : FMT_SP   :                     : deg",
     "CENTANG"       : "360  : FMT_DP   :                     : TBD",
     "CHAN"          : "B0   : FMT_OCT  :                     : TBD",
     "CM EPOCH"      : "B18  : FMT_DP   : FormatEpoch         : TBD",
@@ -236,7 +237,11 @@ let lookupScaleFormatUnits = [
     "TET"           : "B28  : FMT_DP   :                     : TBD",
     "TEVENT"        : "B28  : FMT_DP   :                     : TBD",
     "TGO"           : "B28  : FMT_DP   :                     : TBD",
-    "THETA"         : "360  : FMT_SP   :                     : °",
+    "THETAD"        : "360  : FMT_SP   :                     : deg",        //### Luminary099
+    "THETADX"       : "360  : FMT_SP   :                     : deg",
+    "THETADY"       : "360  : FMT_SP   :                     : deg",
+    "THETADZ"       : "360  : FMT_SP   :                     : deg",
+    "THETEDZ"       : "360  : FMT_SP   :                     : deg",        //### Artemis072
     "TIG"           : "B28  : FMT_DP   :                     : TBD",
     "TIME"          : "B28  : FMT_DP   :                     : TBD",
     "TLAND"         : "B28  : FMT_DP   :                     : TBD",
@@ -312,10 +317,161 @@ let lookupScaleFormatUnits = [
     "TCDU"          : "B0  :  FMT_OCT  :                     : TBD",
     "XCDU"          : "B0  :  FMT_OCT  :                     : TBD",
 
+    // Skylark048                                                       (annotations from ERASABLE_ASSIGNMENTS.agc)
+
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆     THE SIZE AND UTILIZATION OF AN ERASABLE ARE OFTEN INCLUDED IN                                ┆
+  ┆     THE COMMENTS IN THE FOLLOWING FORM.  M(SIZE)N.                                               ┆
+  ┆                                                                                                  ┆
+  ┆         M: REFERS TO THE MOBILITY OF THE ASSIGNMENT.                                             ┆
+  ┆             B:   THE SYMBOL IS REFERENCED BY BASIC INSTRUCTIONS THUS IS E-BANK SENSITIVE.        ┆
+  ┆             I:   THE SYMBOL IS REFERENCED ONLY BY INTERPRETIVE INSTRUCTIONS, AND IS E-BANK       ┆
+  ┆                  INSENSITIVE AND MAY APPEAR IN ANY E-BANK.                                       ┆
+  ┆                                                                                                  ┆
+  ┆         SIZE: IS THE NUMBER OF REGISTERS INCLUDED BY THE SYMBOL.                                 ┆
+  ┆                                                                                                  ┆
+  ┆         N: INDICATES THE NATURE OR PERMANENCE OF THE CONTENTS.                                   ┆
+  ┆             PL:  MEANS THAT THE CONTENTS ARE PAD LOADED.                                         ┆
+  ┆             DSP: MEANS THAT THE REGISTER IS USED FOR A DISPLAY.                                  ┆
+  ┆             PRM: MEANS THAT THE REGISTER IS PERMANENT, IE. IT IS USED DURING THE ENTIRE          ┆
+  ┆                  MISSION FOR ONE PURPOSE AND CANNOT BE SHARED.                                   ┆
+  ┆             TMP: MEANS THAT THE REGISTER IS USED TEMPORARILY OR IS A SCRATCH REGISTER FOR        ┆
+  ┆                  THE ROUTINE TO WHICH IT IS ASSIGNED.  THAT IS, IT NEED NOT BE SET PRIOR TO      ┆
+  ┆                  INVOCATION OF THE ROUTINE NOR DOES IT CONTAIN USEFUL OUTPUT TO ANOTHER ROUTINE. ┆
+  ┆                  THUS IT MAY BE SHARED WITH ANY OTHER ROUTINE WHICH IS NOT ACTIVE IN PARALLEL.   ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+
+    "SLOPE"         : "B0  :  FMT_OCT  : FormatRequired      : TBD",    // EQUALS   CDUZD   +2      # B(1)TMP
+    "ADB"           : "B0  :  FMT_OCT  : FormatRequired      : TBD",    // EQUALS   SLOPE   +1      # B(1)TMP
+
+    "CH5FAIL"       : "B0  :  FMT_OCT  : FormatRequired      : TBD",    // ERASE                    # B(1)
+    "CH6FAIL"       : "B0  :  FMT_OCT  : FormatRequired      : TBD",    // ERASE                    # B(1)
+    "DKRATE"        : "B0  :  FMT_OCT  : FormatRequired      : TBD",    // ERASE                    # B(1)
+    "DKDB"          : "B0  :  FMT_OCT  : FormatRequired      : TBD",    // ERASE                    # B(1)
+    "WHICHDAP"      : "B0  :  FMT_OCT  : FormatRequired      : TBD",    // ERASE                    # B(1)
+
+    "SVEC"          : "B0  :  FMT_2OCT : FormatRequired      : TBD",    // EQUALS   VHF.W   +18D    # B(8)
+
+    "FIXTIME"       : "B0  :  FMT_2OCT : FormatRequired      : TBD",    // ERASE            +1      # B(2)
+    "DVTOTAL###"    : "B0  :  FMT_2OCT : FormatRequired      : TBD",    // EQUALS   SBDELT  +1      # B(2)DSP - NOUN 40,99 FOR P30,34,35,40
+    "NC1TIG"        : "B0  :  FMT_2OCT : FormatRequired      : TBD",    // EQUALS   VGDISP  +2      # I(2)
+    "NC2TIG"        : "B0  :  FMT_2OCT : FormatRequired      : TBD",    // EQUALS   NC1TIG  +2      # I(2)
+
+    "DHDSP"         : "B0  :  FMT_2OCT : FormatRequired      : TBD",    // EQUALS   PI      +2      # I(2)
+    "DVDSP1"        : "B0  :  FMT_2OCT : FormatRequired      : TBD",    // EQUALS   RAH2    +6      # I(2)
+    "DVDSP2"        : "B0  :  FMT_2OCT : FormatRequired      : TBD",    // EQUALS   DVDSP1  +2      # I(2)
+
+    "UTPIT"         : "B0  :  FMT_2OCT : FormatRequired      : TBD",    // EQUALS   PLANVCUT +6     # I(2)  N78 PITCH
+    "UTYAW"         : "B0  :  FMT_2OCT : FormatRequired      : TBD",    // EQUALS   UTPIT   +2      # I(2)  N78 YAW
+
+    "THETAH"        : "B0  :  FMT_2OCT : FormatRequired      : TBD",    // EQUALS    RDOT   +2      #   2P  DSP NOUN 64,67 FOR P63,64,67
+    "TEPHEM"        : "B0  :  FMT_2OCT : FormatRequired      : TBD",    // EQUALS    LIFTTEMP +2    #  (3)TMP
+
+    // Sundance306ish (unique)                                          (annotations from ERASABLE_ASSIGNMENTS.agc)
+
+    "MASS"          : "B24 :  FMT_DP   :                     : kg",     // EQUALS   GDT/2   +6      # B(2)
+
+    "SUMRATEQ"      : "90  :  FMT_DEC  : FormatRequired      : r/S",    //                          # SUM OF UN-WEIGHTED JETRATE TERMS
+    "SUMRATER"      : "90  :  FMT_DEC  : FormatRequired      : r/S",    //                          # SCALED AT PI/4 RADIANS/SECOND
+
+    "VRPREV"        : "B0  :  FMT_2OCT : FormatRequired      : TBD",    // EQUALS  VG      +6       # I(6)TMP
+    "PIF"           : "B0  :  FMT_2OCT : FormatRequired      : TBD",    // ERASE                    # B(2)      THROTTLE
+    "GDT/2"         : "B0  :  FMT_2OCT : FormatRequired      : TBD",    // ERASE           +22D     # B(6)TMP
+    "STARAD"        : "B0  :  FMT_2OCT : FormatRequired      : TBD",    // EQUALS  ZDC     +6       # I(18D)TMP
+    "STAR"          : "B0  :  FMT_2OCT : FormatRequired      : TBD",    // EQUALS  STARAD  +18D     # I(6)
+
+    "AGSBUFF"       : "B0  :  FMT_2OCT : FormatRequired      : TBD",    // EQUALS  RANGE            # B(14D)
+
+    // Zerlina56
+
+    "LRTIMEDL"      : "B0  :  FMT_2OCT : FormatRequired      : TBD",    //
+
+    // Luminary163
+
+    "FORVEL"        : "B0  :  FMT_2OCT : FormatRequired      : TBD",    //
+
+    // Luminary210                                                        (annotations from GSOP-Luminary1E)
+
+    "TRUDELH"       : "B24 :  FMT_DP   :                     : m",      // 3    Difference in LR measured altitude and calculated
+                                                                        //      altitude where calculated altitude is with respect to
+                                                                        //      landing site radius. Scaled meters/2^24. Calculated
+                                                                        //      every ~2 seconds during altitude updates.
+
+    "GTCTIME"       : "B28 :  FMT_DP   :                     : cS",     // 6    Double precision sampled PIPTIME of the Average-G
+                                                                        //      cycle for which the guidance thrust command is computed.
+                                                                        //      Scaled centiseconds/2^28, referenced to the computer clock.
+
+    "LATVMETR"      : "B0  :  FMT_DEC   :                    : f/S",    // 12a
+    "FORVMETR"      : "B0  :  FMT_DEC   :                    : f/S",    // 12b  Lateral and forward velocity. During descent the orthogonal
+                                                                        //      components of the horizontal velocity of the vehicle with
+                                                                        //      respect to the moon, which are essentially parallel and
+                                                                        //      perpendicular to the X-Z plane of the vehicle. During ascent
+                                                                        //      and aborts, lateral velocity is the inertial cross axis
+                                                                        //      velocity, and forward velocity is set equal to zero. It is
+                                                                        //      scaled, (ft/sec) / (0.5571 x 2^14) and is computed and
+                                                                        //      displayed four times per second.
+
+    "AGSCODE"       : "B0  :  FMT_OCT   :                    : TBD",    // 16a  AGSCODE (AGS Composite Code Word). An octal number used to
+                                                                        //      indicate to the AGS whether RR Data is acceptable. Set by R22 to
+                                                                        //      57776g for high range scale, and 17776g for low range scale RR Data
+                                                                        //      when a successful RR read is made and the time since the last setting
+                                                                        //      is greater than =^50 seconds. Reset to 20000g (indicating that
+                                                                        //      the AGS should not accept mark data) by R21, R65, R56, Fresh
+                                                                        //      Start, and hardware and software restarts.
+
+    "SERVDURN"      : "B14 :  FMT_SP   :                     : TBD",    // 67a  SERVDURN. The Average-G cycle duration which is computed
+                                                                        //      as the difference between TIMEl and the least significant
+                                                                        //      half of PIPTIME at exit from the Average-G in SERVICER.
+                                                                        //      It is a measure of TLOSS; the greater the TLOSS, the larger
+                                                                        //      that time will be. The quantity is scaled centiseconds/2^14
+                                                                        //      and is, corrected for overflow (always >0).
+
+    "DUMLOOPS"      : "B14 :  FMT_SP   :                     : TBD",    // 67b  DUMLOOPS. The number of passes through Dummy Job,
+                                                                        //      scaled counts/2^14. The register is incremented when there is
+                                                                        //      less than 100% duty cycle to indicate relative amounts of
+                                                                        //      DUMMYJOB activity at various times. The rate at which it is
+                                                                        //      incremented indicates the amount of available processing time.
+
+    "DVTOTAL"       : "B7  :  FMT_2DEC :                     : TBD",    // 78   DVTOTAL. The magnitude of the measured Delta V. It is
+                                                                        //      calculated in SERVICER, every 2 seconds. The absolute value
+                                                                        //      of the velocity gained in the preceding 2—second interval is
+                                                                        //      calculated and added to DVTOTAL. giving a running sum. Its
+                                                                        //      value will be zero until TIG-30 and should not change, except
+                                                                        //      for PIPA bias, until Ullage comes on. If SURFFLAG is set.
+                                                                        //      DVTOTAL is not incremented. During burns, the range of
+                                                                        //      DVTOTAL will vary from zero to the magnitude of the Delta V
+                                                                        //      to be burned. Variation in value increases as the burn is )
+                                                                        //      carried out. DVTOTAL is scaled (meters/centisecond)/2.
+
+    "CH5MASK"       : "B0  :  FMT_OCT  :                     : TBD",    // 89a
+    "CH6MASK"       : "B0  :  FMT_OCT  :                     : TBD",    // 89b
+
+    "ALMCADR"       : "B0  :  FMT_2OCT :                     : TBD",    // 99   ALMCADR. Complete address of memory location where the
+                                                                        //      most recent alarm was generated. Double precision quantity;
+                                                                        //      the high order contains ADRES^ the low order contains BBCON'.'
+
+    "TSIGHT"        : "B0  :  FMT_2OCT :                     : TBD",    // 99   TSIGHT. The time at which the mark button was depressed to
+                                                                        //      store IMU gimbal angles during lunar surface alignment (AOT
+                                                                        //      Mark Time). It is scaled, centiseconds/2^28
+
+    "AOT CURSOR"    : "360 :  FMT_USP :                      : deg",    // 100a Cursor Angle. The SP rotation angle of the AOT cursor about
+                                                                        //      the AOT optics axis used to locate a celestial body with re-
+                                                                        //      spect to the LM body axis during lunar surface alignments.
+                                                                        //      It is calculated in R59 for a specified celestial body, dis-
+                                                                        //      played in R1 'N79) and keyed in by astronaut during the mark-
+                                                                        //      ing sequence (N79). It is an unsigned 15-bit fraction, scaled
+                                                                        //      degrees/360.
+
+    "SPIRAL"        : "360 :  FMT_USP :                      : deg",    // 100b Spiral Angle. The SP rotation angle of the AOT spiral about
+                                                                        //      the AOT optics axis used to locate a celestial body with re-
+                                                                        //      spect to the LM body axis during lunar surface alignments.
+                                                                        //      It is calculated in R59 for a specified celestial body, dis-
+                                                                        //      played in R.2 (N79) and keyed in by astronaut during the mark-
+                                                                        //      ing sequence {N79). It is an unsigned 15-bit fraction, scaled
+                                                                        //      degrees/360.
 ]
 
 let lookupGsopNames: [Substring : Substring] = [
-//                     DNRRANGE+XX
     "AGSK"          : "K-FACTOR",
     "AIG"           : "CDU Y",
     "AMG"           : "CDU Z",
@@ -338,28 +494,28 @@ let lookupGsopNames: [Substring : Substring] = [
     "TRKMKCNT"      : "MARK CNT",
 
     "TCSI"          : "CSI TIME",
-    "DELVEET1"      : "CSI ΔV X",
-    "DELVEET1+2"    : "CSI ΔV Y",
-    "DELVEET1+4"    : "CSI ΔV Z",
+    "DELVEET1"      : "CSI dV X",
+    "DELVEET1+2"    : "CSI dV Y",
+    "DELVEET1+4"    : "CSI dV Z",
 
-    "DELVEET"       : "CSI ΔV X",
-    "DELVEET+2"     : "CSI ΔV Y",
-    "DELVEET+4"     : "CSI ΔV Z",
+    "DELVEET"       : "CSI dV X",
+    "DELVEET+2"     : "CSI dV Y",
+    "DELVEET+4"     : "CSI dV Z",
 
     "TCDH"          : "CDH TIME",
-    "DELVEET2"      : "CDH ΔV X",
-    "DELVEET2+2"    : "CDH ΔV Y",
-    "DELVEET2+4"    : "CDH ΔV Z",
+    "DELVEET2"      : "CDH dV X",
+    "DELVEET2+2"    : "CDH dV Y",
+    "DELVEET2+4"    : "CDH dV Z",
 
     "TTPI"          : "TPI TIME",
-    "DELVEET3"      : "TPI ΔV X",
-    "DELVEET3+2"    : "TPI ΔV Y",
-    "DELVEET3+4"    : "TPI ΔV Z",
+    "DELVEET3"      : "TPI dV X",
+    "DELVEET3+2"    : "TPI dV Y",
+    "DELVEET3+4"    : "TPI dV Z",
 
     "TPASS4"        : "TPF TIME",
 
-    "X789"          : "Δ BETA",
-    "X789+2"        : "Δ THETA",
+    "X789"          : "d BETA",
+    "X789+2"        : "d THETA",
 
     "LASTYCMD"      : "RR T ERR",
     "LASTXCMD"      : "RR S ERR",
@@ -383,4 +539,60 @@ let lookupGsopNames: [Substring : Substring] = [
     "ALT"           : "LAND ALT",
 
     "8NN"           : "MARK CNT",
+
+    "MARKDOWN"      : "S1 TIME",
+    "MARKDOWN+2"    : "S1 Y CDU",
+    "MARKDOWN+3"    : "S1 SHAFT",
+    "MARKDOWN+4"    : "S1 Z CDU",
+    "MARKDOWN+5"    : "S1 TRUNN",
+    "MARKDOWN+6"    : "S1 X CDU",
+
+    "MARK2DWN"      : "S2 TIME",
+    "MARK2DWN+2"    : "S2 Y CDU",
+    "MARK2DWN+3"    : "S2 SHAFT",
+    "MARK2DWN+4"    : "S2 Z CDU",
+    "MARK2DWN+5"    : "S2 TRUNN",
+    "MARK2DWN+6"    : "S2 X CDU",
 ]
+
+func addCommentary(missionName: String, downList: String, itemIndex: Int) -> String? {
+
+    switch missionName {
+        case "Colossus249":
+            switch downList {
+                case "77773": return [
+                    100: """
+                            # comment before TIME2,TIME1
+                            """,
+                    9: "",
+                ][itemIndex]
+                case "77774": return [
+                    100: """
+                            # comment before TIME2,TIME1
+                            """,
+                    9: "",
+                ][itemIndex]
+                case "77775": return [
+                    100: """
+                            # comment before TIME2,TIME1
+                            """,
+                    9: "",
+                ][itemIndex]
+                case "77776": return [
+                    100: """
+                            # comment before TIME2,TIME1
+                            """,
+                    9: "",
+                ][itemIndex]
+                case "77777": return [
+                    100: """
+                            # comment before TIME2,TIME1
+                            """,
+                    9: "",
+                ][itemIndex]
+                default: return nil
+            }
+        default : break
+    }
+    return nil
+}

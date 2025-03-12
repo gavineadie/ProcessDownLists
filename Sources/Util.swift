@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import RegexBuilder
 
 extension Collection {
     var isNotEmpty: Bool { !self.isEmpty }
@@ -33,6 +34,32 @@ func doMatch(_ line: String) -> (String, String, String) {
     return (label, opcode, comment)
 }
 
+let linePattern = Regex {
+    ChoiceOf {
+        Regex {
+            Anchor.startOfLine
+            Capture { ZeroOrMore(.whitespace.inverted) }
+            ZeroOrMore(.whitespace)
+            Capture { ZeroOrMore(.reluctant) { .anyGraphemeCluster } }
+            ZeroOrMore(.whitespace)
+            Capture {
+                Regex {
+                    "#"
+                    ZeroOrMore { .anyGraphemeCluster }
+                }
+            }
+        }
+        Regex {
+            Anchor.startOfLine
+            Capture {
+                ZeroOrMore(.whitespace.inverted)
+            }
+            ZeroOrMore(.whitespace)
+            Capture { ZeroOrMore { .anyGraphemeCluster } }
+        }
+    }
+}
+
 let downListIDs = [
 
     "CMPG22DL" : "Program 22 (CM-77773)",
@@ -56,5 +83,9 @@ let downListIDs = [
     "RENDEZVU" : "Rendezvous/Prethrust (LM-77775)",
     "AGSI/UPD" : "AGS Initialization and Update (LM-77776)",
     "COSTALIN" : "Coast and Align (LM-77777)",
+
+    // Sundance306ish
+
+    "LMPWRDDL" : "Powered (LM-77774)",
 
 ]

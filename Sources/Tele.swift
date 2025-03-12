@@ -10,34 +10,26 @@ import RegexBuilder
 
 func teleFile(_ missionName: String, _ fileLines: [String]) -> [String] {
 
-    guard missionName == "Luminary131" else { return [] }
+    guard missionName == "Colossus249" else { return [] }
 
     print("""
-            //
-            //  lm77776.swift
-            //  Telemetry
-            //
-            //  Created by Gavin Eadie on Nov16/24 (copyright 2024-25)
-            //
-
-            /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
-              │ Lunar Module AGS initialization and Update downlink list                                         │
-              │                                                                                                  │
-              │      P27 LGC Update                                                                 → (LM-77777) │
-              │      R47 AGS Initialization                          → Lunar Module Orbital Maneuvers (LM-77774) │
-              └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
-
-            let lm77776 = FormatTable(
-                listName: "Lunar Module AGS Initialization and Update (LM-77776)",
-                downList: [
-            """)
+        //
+        //  lm77776.swift
+        //  Telemetry
+        //
+        //  Created by Gavin Eadie on Nov16/24 (copyright 2024-25)
+        //
+        let lm77776 = FormatTable(
+            listName: "Lunar Module AGS Initialization and Update (LM-77776)",
+            downList: [
+        """)
 
     var newLines: [String] = []
 
     for line in fileLines {
 
         if line.hasPrefix("#") {
-            newLines.append(line)
+//          newLines.append(line)
             continue
         }
 
@@ -61,7 +53,6 @@ func teleFile(_ missionName: String, _ fileLines: [String]) -> [String] {
                 vType: \(formatLookup[String(format)] ?? ".unknow")\
                 \(special == "" ? ")," : ", " + special + "),")
                 """
-//            print("    line matching: \(newLine)")
             newLines.append(newLine)
 
 
@@ -77,10 +68,10 @@ func teleFile(_ missionName: String, _ fileLines: [String]) -> [String] {
 /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
   │ generate:                                                                                        │
   │     tmFormat( 24, "   DNRRANGE",              vType: .single, FormatRrRange),                    │
-        tmFormat( 14, "    T-OTHER",  x2²⁸, "cS", vType: .double),      //S│  CSM Time (cSec/2²⁸
-    from:
-        52|X789|B5|FMT_SP|FormatEarthOrMoonDP|TBD
-
+  │     tmFormat( 14, "    T-OTHER",  x2²⁸, "cS", vType: .double),      //S│  CSM Time (cSec/2²⁸     │
+  │ from:                                                                                            │
+  │     52|X789|B5|FMT_SP|FormatEarthOrMoonDP|TBD                                                    │
+  │                                                                                                  │
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
 let tabbedLine = Regex {
     Regex {
