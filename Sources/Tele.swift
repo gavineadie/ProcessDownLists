@@ -5,6 +5,11 @@
 //  Created by Gavin Eadie on 3/7/25.
 //
 
+/*╔══════════════════════════════════════════════════════════════════════════════════════════════════╗
+  ║ TO BE FIXED:                                                                                     ║
+  ║                                                                                                  ║
+  ╚══════════════════════════════════════════════════════════════════════════════════════════════════╝*/
+
 import Foundation
 import RegexBuilder
 
@@ -87,23 +92,3 @@ let tabbedLine = Regex {
         "\t"
         Capture { OneOrMore { .anyGraphemeCluster} }    // units
     }}
-
-let formatLookup = [
-    "FMT_SP" : ".single",
-    "FMT_DP" : ".double",
-    "FMT_OCT" : ".oneOct",
-    "FMT_DEC" : ".oneDec",
-    "FMT_2OCT" : ".twoOct",
-    "FMT_2DEC" : ".twoDec",
-]
-
-func leftPad(_ s: String, _ n: Int) -> String {
-    return (s.count <= 11) ? String(repeating: " ", count: n - s.count) + s : s
-}
-
-let scaleLookup = [
-    "B25" : "x2²⁵",
-    "B18" : "0x40000",
-    "B15" : "0x8000",
-    "B7" : "x2⁷",
-]

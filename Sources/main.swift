@@ -5,6 +5,11 @@
 //  Created by Gavin Eadie on 2/6/25.
 //
 
+/*╔══════════════════════════════════════════════════════════════════════════════════════════════════╗
+  ║ TO BE FIXED:                                                                                     ║
+  ║                                                                                                  ║
+  ╚══════════════════════════════════════════════════════════════════════════════════════════════════╝*/
+
 import Foundation
 
 let fileManager = FileManager.default
@@ -60,6 +65,7 @@ do {
 
 //      if missionName != "LM131R1" { continue }
 //      if missionName != "Artemis072" { continue }
+//      if missionName != "Skylark048" { continue }
 
         let fileText = try String(contentsOf: fileURL, encoding: .utf8)
         let homeDirURL = fileManager.homeDirectoryForCurrentUser
@@ -101,26 +107,26 @@ do {
         print("mashFile: Processed \(missionName).")
 
 /*────────────────────────────────────────────────────────────────────────────────────────────────────*/
-        let listPrintURL = homeDirURL.appendingPathComponent("Desktop/Downlist/\(missionName)-list.txt")
-        fileManager.createFile(atPath: listPrintURL.path, contents: nil, attributes: nil)
-
-        if let fileHandle = try? FileHandle(forWritingTo: listPrintURL) {
-            defer { fileHandle.closeFile() }
-            dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
-
-            print(">>> DOWNLISTS")
-            prettyPrint(downlists)
-
-            print(">>> COPYLISTS")
-            prettyPrint(copylists)
-
-            print(">>> EQUALS")
-            print(equalities)
-        }
-
-        dup2(originalStdout, STDOUT_FILENO)
-
-        print("listFile: Processed \(missionName).")
+//        let listPrintURL = homeDirURL.appendingPathComponent("Desktop/Downlist/\(missionName)-list.txt")
+//        fileManager.createFile(atPath: listPrintURL.path, contents: nil, attributes: nil)
+//
+//        if let fileHandle = try? FileHandle(forWritingTo: listPrintURL) {
+//            defer { fileHandle.closeFile() }
+//            dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
+//
+//            print(">>> DOWNLISTS")
+//            prettyPrint(downlists)
+//
+//            print(">>> COPYLISTS")
+//            prettyPrint(copylists)
+//
+//            print(">>> EQUALS")
+//            print(equalities)
+//        }
+//
+//        dup2(originalStdout, STDOUT_FILENO)
+//
+//        print("listFile: Processed \(missionName).")
 
 /*────────────────────────────────────────────────────────────────────────────────────────────────────*/
         var fileLinesJ: [String] = []

@@ -5,9 +5,16 @@
 //  Created by Gavin Eadie on 2/9/25.
 //
 
+/*╔══════════════════════════════════════════════════════════════════════════════════════════════════╗
+  ║ TO BE FIXED:                                                                                     ║
+  ║                                                                                                  ║
+  ╚══════════════════════════════════════════════════════════════════════════════════════════════════╝*/
+
 import Foundation
 
 /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ .. parse                                                                                         │
+  │                                                                                                  │
   │   LABEL           OPCODE                                  COMMENT                                │
   │   <--------------><--------------------------------------><--------------------------------      │
   │   LMRENDDL        EQUALS                                  # SEND ID BY SPECIAL CODING            │
@@ -16,13 +23,26 @@ import Foundation
   │                   2DNADR          DNLRVELX                # DNLRVELX,DNLRVELY,DNLRVELZ,DNLRALT   │
   │                   1DNADR          VN +2                   # VN +2,+3                             │
   │                                                                                                  │
+  │ .. add three line header, eg:                                                                    │
+  │                                                                                                  │
+  │     ## ======================================================================================    │
+  │     ## Apollo 13 LM [LM131R1] -- Coast and Align (LM-77777)                                      │
+  │     ## ======================================================================================    │
+  │                                                                                                  │
+  │ .. add ID,SYNC line which is not in the AGC code                                                 │
+  │                                                                                                  │
+  │                   1DNADR 77777                        #   (  000  )   1 # ID,SYNC                │
+  │                                                                                                  │
+  │ .. merge the "snapshot" and "common data" blocks into the "downlist"                             │
+  │                                                                                                  │
+  │ .. add index range and GSOP word number                                                 ###MAR12 │
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
 
-var offset = 2                  // offset into memory
+var offset = 2                                      // starting offset into memory (0,1) is ID,SYNC
 
 func joinFile(_ missionName: String) -> [String] {
 
-    var newLines: [String] = []
+    var newLines: [String] = []                     // the output lines from the function ..
 
     for (label, lines) in downlists.sorted(by: { $0.key < $1.key }) {
 
@@ -41,7 +61,7 @@ func joinFile(_ missionName: String) -> [String] {
             continue
         }
 
-        newLines.append("\(" ".padTo10())\("1DNADR \(downListCode)".padTo36())#   (  000  ) # ID,SYNC")
+        newLines.append("\(" ".padTo10())\("1DNADR \(downListCode)".padTo36())#   (  000  )   1 # ID,SYNC")
 
         for line in lines {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
@@ -53,7 +73,7 @@ func joinFile(_ missionName: String) -> [String] {
   │ "DNPTR" indicates a need to copy a list into the DOWNLIST ..                 NO DATA IN DOWNLIST │
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
             if opcode.contains("DNPTR") {                   //### SundanceXXX has a "-DNPTR"
-                newLines.append("#       → \(opcode.padTo36())#   (  ---  ) \(comment)")
+                newLines.append("#       → \(opcode.padTo36())#   (  ---  )     \(comment)")
 
                 let address = opcode.split(separator: " ")[1]
                 guard let copyList = lookUpList(String(address)) else {
@@ -74,7 +94,7 @@ func joinFile(_ missionName: String) -> [String] {
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
                     let opcode = String(tripleArray.first!.1.drop(while: { $0 == "-" }))
                     if opcode.contains("DNTMBUFF") {
-                        newLines.append("#*      → \(opcode.padTo36())              \(comment)")
+                        newLines.append("#*      → \(opcode.padTo36())                  \(comment)")
                         continue
                     }
                     newLines.append("""
@@ -97,7 +117,7 @@ func joinFile(_ missionName: String) -> [String] {
                     tripleArray.forEach {
                         let opcode = String($0.1.drop(while: { $0 == "-" }))
                         if opcode.contains("DNTMBUFF") {
-                            newLines.append("#*      → \(opcode.padTo36())              \(comment)")
+                            newLines.append("#*      → \(opcode.padTo36())                  \(comment)")
                         } else {
                             newLines.append("""
                                 \(" ".padTo10())\
@@ -113,7 +133,7 @@ func joinFile(_ missionName: String) -> [String] {
   │ an address referring to "DNTMBUFF" can be marked as a comment ..             NO DATA IN DOWNLIST │
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
             } else if opcode.contains("DNTMBUFF") {
-                newLines.append("#*      → \(opcode.padTo36())              \(comment)")
+                newLines.append("#*      → \(opcode.padTo36())                  \(comment)")
 
 /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
   │ a line from the main DOWNLIST ..                                                                 │
@@ -144,24 +164,31 @@ func lookUpList(_ address: String) -> [String]? {
 
 /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
   │ OPCODEs of the form "nDNADR" contribute "n" words to the data in the DOWNLIST                    │
+  │ .. generate a string of one of the forms "(  034  )", "(034,036)", "(034-044)"                   │
+  │ .. add the GSOP numbering                                                               ###MAR12 │
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
 func mem_mem(_ opcode: String) -> String {
 
     var result = "         "
 
+    let lowerIndex = String(format: "%03d", offset)
+    let gsopIndex = String(format: "%3d", offset/2+1)
+
     if opcode.starts(with: "DNCHAN") {
-        result = "(  \(String(format: "%03d", offset))  )"
+        result = "(  \(lowerIndex)  ) \(gsopIndex)"
         offset += 2
     }
 
     if let match = opcode.firstMatch(of: #/(\d)DNADR/#), let n = Int(String(match.1)) {
+        let upperIndex = String(format: "%03d", offset+(n-1)*2)
+
         switch n {
             case 1:
-                result = "(  \(String(format: "%03d", offset))  )"
+                result = "(  \(lowerIndex)  ) \(gsopIndex)"
             case 2:
-                result = "(\(String(format: "%03d", offset)),\(String(format: "%03d", offset+(n-1)*2)))"
+                result = "(\(lowerIndex),\(upperIndex)) \(gsopIndex)"
             case 3...6:
-                result = "(\(String(format: "%03d", offset))-\(String(format: "%03d", offset+(n-1)*2)))"
+                result = "(\(lowerIndex)-\(upperIndex)) \(gsopIndex)"
             default:
                 break
         }
@@ -170,40 +197,3 @@ func mem_mem(_ opcode: String) -> String {
 
     return result
 }
-
-let missionLookUp = [
-/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆  Command Modules ..                                                                              ┆
-  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-//  "Colossus237" : "Apollo 8 CM - Colossus 1",                     // R-577-sec2-rev2.pdf (p2-20)
-    "Colossus249" : "Apollo 9 CM - Colossus 1A",                    // R-577-sec2-rev2.pdf
-//  "Comanche044" : "Apollo 10 CM - Colossus 2 (not flown)",
-//  "Comanche045" : "Apollo 10 CM - Colossus 2 (not flown)",
-    "Manche45R2"  : "Apollo 10 CM - Colossus 2",
-//  "Comanche051" : "Apollo 11 CM - Colossus 2A (not flown)",
-//  "Comanche055" : "Apollo 11 CM - Colossus 2A",
-//  "Comanche067" : "Apollo 12 CM - Colossus 2C",
-//  "Comanche072" : "Apollo 13 CM - Colossus 2D (not flown)",
-//  "Manche72R3"  : "Apollo 13 CM - Colossus 2D",
-    "Artemis072"  : "Apollo 15/16/17 CM - Colossus 3",
-    "Skylark048"  : "Skylab 2/3/4 CM",
-/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆  Lunar Modules ..                                                                                ┆
-  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-    "Sundance306ish" : "Apollo 9 LM (not flown)",
-//  "SundanceXXX" : "Apollo 9 LM",
-//  "Luminary069" : "Apollo 10 LM - Luminary 1",
-//  "Luminary096" : "Apollo 11 LM - Luminary 1A (not flown)",
-//  "Luminary097" : "Apollo 11 LM - Luminary 1A (not flown)",
-//  "Luminary098" : "Apollo 11 LM - Luminary 1A (not flown)",
-    "Luminary099" : "Apollo 11 LM - Luminary 1A",
-//  "Luminary116" : "Apollo 12 LM - Luminary 1B",
-//  "Luminary130" : "Apollo 13 LM - Luminary 1C (not flown)",
-//  "Luminary131" : "Apollo 13 LM - Luminary 1C",                   // R-567-sec2-rev8.pdf
-    "LM131R1"     : "Apollo 13 LM",
-    "Zerlina56"   : "Experimental LM (not flown)",
-    "Luminary163" : "Apollo 14 LM - Luminary 1D (not flown)",
-//  "Luminary173" : "Apollo 14 LM - Luminary 1D (not flown)",
-//  "Luminary178" : "Apollo 14 LM - Luminary 1D",
-    "Luminary210" : "Apollo 15/16/16 LM - Luminary 1E"              // R-567-sec2-rev12.pdf
-]

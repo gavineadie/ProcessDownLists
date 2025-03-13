@@ -5,6 +5,11 @@
 //  Created by Gavin Eadie on 3/7/25.
 //
 
+/*╔══════════════════════════════════════════════════════════════════════════════════════════════════╗
+  ║ TO BE FIXED:                                                                                     ║
+  ║                                                                                                  ║
+  ╚══════════════════════════════════════════════════════════════════════════════════════════════════╝*/
+
 import Foundation
 
 func sortFile(_ missionName: String, _ fileLines: [String]) {
@@ -20,11 +25,13 @@ func sortFile(_ missionName: String, _ fileLines: [String]) {
     for line in fileLines { fileMemory.append(line) }
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ IMPORTANT .. We depend on the fist three lines being of the form show below (three comments)     ┆
+  ┆                                                                                                  ┆
   ┆  find the line ranges for each downlist ..                                                       ┆
   ┆     ## ======================================================================================    ┆
   ┆     ## Apollo 11 LM - Luminary 1A (not flown) [Luminary096] -- Descent and Ascent (LM-77773)     ┆
   ┆     ## ======================================================================================    ┆
-  ┆     0   ID          B0    FMT_OCT            TBD                                           ^^^^^ ┆
+  ┆     0   ID          B0    FMT_OCT            TBD                                      ^^^^^      ┆
   ┆     1   SYNC        B0    FMT_OCT            TBD                                                 ┆
   ┆     2   LRXCDUDL    360   FMT_SP             TBD                                                 ┆
   ┆     3   LRYCDUDL    360   FMT_SP             TBD                                                 ┆
@@ -60,22 +67,35 @@ func sortFile(_ missionName: String, _ fileLines: [String]) {
     }
     lineRanges.append(firstLines[firstLines.count-1]...fileMemory.count-1)
 
+
     var downListID: Substring
     for lineRange in lineRanges {
 
-        downListID = fileLines[lineRange.lowerBound+1].suffix(6).dropLast()
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ add top three comment lines ..                                                                   ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+        var content = fileLines[lineRange.lowerBound...lineRange.lowerBound+2].joined(separator: "\n")
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-    put all the subfile lines back together and write them to "ddd-id-mission.tsv" ..
+  ┆ add https line .. based on missionName & downListCode                                            ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-        let content = fileLines[lineRange].joined(separator: "\n")
+        downListID = fileLines[lineRange.lowerBound+1].suffix(6).dropLast()
+        if let missionListURL = getMissionListURL(missionName, String(downListID)) {
+            content += "\n" + missionListURL + "\n"
+        } else {
+            content += "\n"
+        }
+
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ put all the subfile lines back together and write them to "ddd-id-mission.tsv" ..                ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+        content += fileLines[lineRange.lowerBound+3...lineRange.upperBound].joined(separator: "\n")
 
         if let tsvDirectory = fileManager.urls(for: .desktopDirectory,
                                                in: .userDomainMask).first {
             let fileURL = tsvDirectory
                 .appendingPathComponent("downlist")
                 .appendingPathComponent("tsv")
-                .appendingPathComponent("\(missionName)")
                 .appendingPathComponent("ddd-\(downListID)-\(missionName).tsv")
 
             do {

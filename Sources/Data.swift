@@ -8,15 +8,37 @@
 /*╔══════════════════════════════════════════════════════════════════════════════════════════════════╗
   ║ TO BE FIXED:                                                                                     ║
   ║                                                                                                  ║
-  ║ .. the following line in Colossus237 implies two single precision words (wrong?)                 ║
-  ║                 1DNADR LANDMARK                 #  LANDMARK,GARBAGE                              ║
-  ║                                                                                                  ║
   ╚══════════════════════════════════════════════════════════════════════════════════════════════════╝*/
 
 import Foundation
 import RegexBuilder
 import OSLog
         
+/*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ .. reads from "*.join" file and writes to "*.data"                                               │
+  │                                                                                                  │
+  │               1DNADR VN +2           # s (  110  )  56 # VN +2,+3                                │
+  │               1DNADR VN +4           # s (  112  )  57 # VN +4,+5                                │
+  │               1DNADR PIPTIME         # s (  114  )  58 # PIPTIME,+1                              │
+  │     #*      → 6DNADR DNTMBUFF                          # SEND SNAPSHOT                           │
+  │     #       → DNPTR LMAGSI04         #   (  ---  )     # COMMON DATA                             │
+  │               2DNADR OMEGAPD         # c (116,118)  59 # OMEGAPD,OMEGAQD,OMEGARD,GARBAGE         │
+  │               3DNADR CADRFLSH        # c (120-124)  61 # CADRFLSH,+1,+2,FAILREG,+1,+2            │
+  │               1DNADR RADMODES        # c (  126  )  64 # RADMODES,DAPBOOLS       COMMON DATA     │
+  │╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌│
+  │                                                                                                  │
+  │ .. drops prefixes "# " and "#*" -- they don't contribute data to the output ..                   │
+  │                                                                                                  │
+  │ .. edits a whole pile of lines with typos and inconsistent usage ..                              │
+  │                                                                                                  │
+  │ .. parse lines to                                                                                │
+  │               1DNADR   PIPTIME         # s (  114  )  58 # PIPTIME,+1                            │
+  │               opCode   label             range             comment                               │
+  │                                                                                                  │
+  │ .. emitLine(order, range, opCode, label, .double, comment) to output                             │
+  │                                                                                                  │
+  └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
+
 let logger = Logger(subsystem: "com.ramsaycons.PDL", category: "data")
 
 var order = 0
@@ -89,7 +111,11 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
         line.replace("VGVECT +0...+5", with: "VG VEC X,VG VEC Y,VG VEC Z")
         line.replace("VGVECT+0...+5", with: "VG VEC X,VG VEC Y,VG VEC Z")
 
-        line.replace("DVOTAL,+1", with: "DVTOTAL,+1")                                   // Skylark048 TYPO
+        line.replace("DVOTAL,+1", with: "DVTOTAL,+1")                                   // Skylark048 ###TYPO
+
+        line.replace("PACTOFF, YACTOFF                 (30)", with: "PACTOFF,YACTOFF")  // Skylark048 ###MAR12
+
+        line.replace("CDUXD,CDUXD,CDUZD,GARBAGE", with: "CDUXD,CDUYD,CDUZD,GARBAGE")    // Luminary210 ###TYPO
 
         if line.contains("2DNADR CHANBKUP") { line.append("# CHANBKUP, +0...+3") }      // Luminary210
 
@@ -277,15 +303,17 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
                     continue
                 }
 
-                for i in stride(from: 0, to: 5, by: 2) {
-                    newLines.append(emitLine(order, range, opCode,
-                                             String(commentBits[i]),
-                                             .double, comment)) }
-                for i in 6...7 {
-                    newLines.append(emitLine(order, range, opCode,
-                                             String(commentBits[i]),
-                                             .single, comment)) }
-                continue
+                if (label.starts(with: "AGSBUFF")) {
+                    for i in stride(from: 0, to: 5, by: 2) {
+                        newLines.append(emitLine(order, range, opCode,
+                                                 String(commentBits[i]),
+                                                 .double, comment)) }
+                    for i in 6...7 {
+                        newLines.append(emitLine(order, range, opCode,
+                                                 String(commentBits[i]),
+                                                 .single, comment)) }
+                    continue
+                }
             }
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
@@ -406,20 +434,24 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ the parsing is tricky since characters are missing                                               ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-        if bits.count == 4 { if bits[1...3] == ["+1", "...+4", "+5"] { bits = [bits[0], "+1...+5"] } }
-        if bits.count == 4 { if bits[1...3] == ["+1", "+2", "...+5"] { bits = [bits[0], "+1...+5"] } }
-        if bits.count == 4 { if bits[1...3] == ["+1", "...+10", "+11"] { bits = [bits[0], "+1...+11"] } }
+        if bits.count == 4 {
+            if bits[1...3] == ["+1", "...+4", "+5"] { bits = [bits[0], "+1...+5"] }
+            if bits[1...3] == ["+1", "+2", "...+5"] { bits = [bits[0], "+1...+5"] }
+            if bits[1...3] == ["+1", "...+10", "+11"] { bits = [bits[0], "+1...+11"] }
+        }
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ coagulate run-on uses "1...4,5" ← "1...5"                                                        ┆
   ┆     ### could be more clever and deal with "D" and missing "+"                                   ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-        if bits.count == 3 { if bits[1...2] == ["+1...+4", "+5"] { bits = [bits[0], "+1...+5"] } }
-        if bits.count == 3 { if bits[1...2] == ["+1...+5", "+6"] { bits = [bits[0], "+1...+6"] } }
-        if bits.count == 3 { if bits[1...2] == ["+1...+10", "+11"] { bits = [bits[0], "+1...+11"] } }
-        if bits.count == 3 { if bits[1...2] == ["+1...+10", "+11D"] { bits = [bits[0], "+1...+11"] } }
-        if bits.count == 3 { if bits[1...2] == ["+13...+18", "+19D"] { bits = [bits[0], "+13...+19"] } }
-        if bits.count == 3 { if bits[1...2] == ["13...+18", "19D"] { bits = [bits[0], "+13...+19"] } }
+        if bits.count == 3 {
+            if bits[1...2] == ["+1...+4", "+5"] { bits = [bits[0], "+1...+5"] }
+            if bits[1...2] == ["+1...+5", "+6"] { bits = [bits[0], "+1...+6"] }
+            if bits[1...2] == ["+1...+10", "+11"] { bits = [bits[0], "+1...+11"] }
+            if bits[1...2] == ["+1...+10", "+11D"] { bits = [bits[0], "+1...+11"] }
+            if bits[1...2] == ["+13...+18", "+19D"] { bits = [bits[0], "+13...+19"] }
+            if bits[1...2] == ["13...+18", "19D"] { bits = [bits[0], "+13...+19"] }
+        }
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ "A","B/C","D" → "A","B" [ the "C","D" was an alternate]                                          ┆
@@ -431,11 +463,20 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
         }
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ "A","...5" → "A","+0...+5"                                                                  ┆    ┆
+  ┆ "A","...5" → "A","+0...+5"                                                                       ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-        if bits.count == 2 { if bits[1] == "...+5" {
-            bits = [bits[0], "+0...+5"]
-        } }
+        if bits.count == 2 {
+            if bits[1] == "...+5" { bits = [bits[0], "+0...+5"] }
+        }
+
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ "A+0...+5","B+0...+5" → "A","+0...+5","B","+0...+5"                                              ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+        if bits.count == 2 {
+            if bits[0] == "YNBSAV+0...+5" && bits[1] == "ZNBSAV+0...+5" {
+                bits = ["YNBSAV", "+0...+5", "ZNBSAV", "+0...+5"]
+            }
+        }
 
 
         switch bits.count {
@@ -752,10 +793,12 @@ fileprivate func emitLine(_ ord: Int = 999,
 //        """
 
     return """
-        \(String(format: "%d", ord))\t\
+        \(skipLine(ord) ? "\n" : "")\(String(format: "%d", ord))\t\
         \(adr)\t\
         \(pre == .double ? "double" : "single") 
         """
+
+    func skipLine(_ ord: Int) -> Bool { [2,16,58,66,78,34,100,102,116,128,164,180,188].contains(ord) }
 }
 
 /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -770,11 +813,11 @@ let long = Regex {
     OneOrMore(.whitespace)
     Capture { OneOrMore(.word) }                                    // "2DNADR"
     OneOrMore(.whitespace)
-    Capture { OneOrMore(CharacterClass(.word, .anyOf(" +-(/)"))) }   // "CMDAPMOD"
+    Capture { OneOrMore(CharacterClass(.word, .anyOf(" +-(/)"))) }  // "CMDAPMOD"
     "#"
     Capture { OneOrMore(.anyGraphemeCluster) }                      // "   (034,036) "
     "#"
-    Capture { OneOrMore(CharacterClass(.word, .anyOf("()/.,+- "))) }  // "CMDAPMOD,PREL,QREL,RREL"
+    Capture { OneOrMore(CharacterClass(.word, .anyOf("()/.,+- "))) } // "CMDAPMOD,PREL,QREL,RREL"
     Optionally {
         "("
         OneOrMore(.anyGraphemeCluster)
@@ -790,7 +833,7 @@ let noComment = Regex {
     OneOrMore(.whitespace)
     Capture { OneOrMore(.word) }                                    // "2DNADR"
     OneOrMore(.whitespace)
-    Capture { OneOrMore(CharacterClass(.word, .anyOf(" +-(/)"))) } // "CMDAPMOD"
+    Capture { OneOrMore(CharacterClass(.word, .anyOf(" +-(/)"))) }  // "CMDAPMOD"
     "#"
     Capture { OneOrMore(.anyGraphemeCluster) }                      // "   (034,036) "
 }
@@ -872,94 +915,3 @@ func upToPlus(_ s: String) -> String {
 
     if let match = s.firstMatch(of: upToPlus) { return String(match.1) } else { return s }
 }
-
-let forceDouble = [
-    "AGSK",                     //### "K FACTOR" (GSOP)
-    "CHANBKUP",
-    "DELV",
-    "DELVEET1",
-    "DSPTAB",
-    "GSAV",
-    "R-OTHER",
-    "REFSMMAT",
-    "RLS",
-    "RN",
-    "STARSAV1",
-    "STARSAV2",
-    "STATE",
-    "TCDH",
-    "UPBUF",
-    "UPBUFF",
-    "VGTIG",
-    "VN",
-// 77775
-    "CENTANG",
-    "DELVSLV",
-    "DELVTPF",
-// 77774
-    "DELLT4",
-    "ELEV",
-    "TCSI",
-    "TPASS4",
-    "DELVEET2",
-    "DELVEET3",
-    "DIFFALT",
-    "TTPI",
-    "RTARG",
-    "TGO",
-// 77773
-    "LRVTIMDL",
-    "VMEAS",
-    "MKTIME",
-    "HMEAS",
-//    "RM",         // CM-77775 has single precision
-    "UNFC/2",
-    "TTF/8",
-    "DELTAH",
-    "RGU",
-    "VGU",
-    "LAND",
-    "AT",
-    "TLAND",
-    "TTOGO",
-    "ZDOTD",
-    "X789",
-
-    "PIPTIME",                  //###
-    "T-OTHER",                  //###
-    "TALIGN",                   //###
-    "TEVENT",                   //###
-    "TIG",                      //###
-    "V-OTHER",                  //###
-
-    // CM77777
-
-    "RSP-RREC",
-    "DELTAR",
-    "WBODY",
-
-    // 77775
-
-    "ADOT",
-    "VHFTIME",
-    "DELVSLV",
-    "DELTAR",
-    "WBODY",
-    "GAMMAEI",                  //### MAR10
-
-    // 77774
-
-    "PIPTIME1",
-    "DELV",
-
-    // 77773
-
-    "LAT",
-    "LONG",
-    "ALT",
-
-    "ALMCADR",                  //###MAR11 Luminary210
-    "TRUDELH",
-    "GTCTIME",
-    "DVTOTAL",
-]

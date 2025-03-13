@@ -5,6 +5,11 @@
 //  Created by Gavin Eadie on 2/9/25.
 //
 
+/*╔══════════════════════════════════════════════════════════════════════════════════════════════════╗
+  ║ TO BE FIXED:                                                                                     ║
+  ║                                                                                                  ║
+  ╚══════════════════════════════════════════════════════════════════════════════════════════════════╝*/
+
 import Foundation
 import RegexBuilder
 
@@ -20,10 +25,19 @@ extension StringProtocol {
     func padTo72(_ pad: String = " ") -> String { self.padding(toLength: 72, withPad: pad, startingAt: 0) }
 }
 
+func leftPad(_ s: String, _ n: Int) -> String {
+    return (s.count <= 11) ? String(repeating: " ", count: n - s.count) + s : s
+}
+
+/*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ matches an AGC assembler line                                                                    │
+  │ "LMNCSTA07  3DNADR  OGC                          # OGC,+1,IGC,+1,MGC,+1    COMMON DATA"          │
+  │  < 1 ---->  < 2 ------>                            < 3 ------------------------------>           │
+  └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
 func doMatch(_ line: String) -> (String, String, String) {
     let pattern = #/^(\S*)\s*(.*?)\s*(#.*)|^(\S*)\s*(.*)/#
 
-    guard let match = line.wholeMatch(of: pattern) else { return ("", "", "") }
+    guard let match = line.wholeMatch(of: linePattern) else { return ("", "", "") }
 
     let label = String(match.1 ?? match.4 ?? "")
     let opcode = (match.2 ?? match.5 ?? "")
@@ -49,43 +63,12 @@ let linePattern = Regex {
                 }
             }
         }
+
         Regex {
             Anchor.startOfLine
-            Capture {
-                ZeroOrMore(.whitespace.inverted)
-            }
+            Capture { ZeroOrMore(.whitespace.inverted) }
             ZeroOrMore(.whitespace)
             Capture { ZeroOrMore { .anyGraphemeCluster } }
         }
     }
 }
-
-let downListIDs = [
-
-    "CMPG22DL" : "Program 22 (CM-77773)",
-    "CMPOWEDL" : "Powered (CM-77774)",
-    "CMRENDDL" : "Rendezvous and Prethrust (CM-77775)",
-    "CMENTRDL" : "Entry and Update (CM-77776)",
-    "CMCSTADL" : "Coast and Align (CM-77777)",
-
-    "LMLSALDL" : "Surface Align (LM-77772)",
-    "LMDSASDL" : "Descent and Ascent (LM-77773)",
-    "LMORBMDL" : "Orbital Maneuvers (LM-77774)",
-    "LMRENDDL" : "Rendezvous/Prethrust (LM-77775)",
-    "LMAGSIDL" : "AGS Initialization and Update (LM-77776)",
-    "LMCSTADL" : "Coast and Align (LM-77777)",
-
-    // Zerlina onwards
-
-    "SURFALIN" : "Surface Align (LM-77772)",
-    "DESC/ASC" : "Descent and Ascent (LM-77773)",
-    "ORBMANUV" : "Orbital Maneuvers (LM-77774)",
-    "RENDEZVU" : "Rendezvous/Prethrust (LM-77775)",
-    "AGSI/UPD" : "AGS Initialization and Update (LM-77776)",
-    "COSTALIN" : "Coast and Align (LM-77777)",
-
-    // Sundance306ish
-
-    "LMPWRDDL" : "Powered (LM-77774)",
-
-]
