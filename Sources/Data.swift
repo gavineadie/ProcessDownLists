@@ -16,7 +16,7 @@ import OSLog
         
 /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
   │ .. reads from "*.join" file and writes to "*.data"                                               │
-  │                                                                                                  │
+  │╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌│
   │               1DNADR VN +2           # s (  110  )  56 # VN +2,+3                                │
   │               1DNADR VN +4           # s (  112  )  57 # VN +4,+5                                │
   │               1DNADR PIPTIME         # s (  114  )  58 # PIPTIME,+1                              │
@@ -33,9 +33,9 @@ import OSLog
   │                                                                                                  │
   │ .. parse lines to                                                                                │
   │               1DNADR   PIPTIME         # s (  114  )  58 # PIPTIME,+1                            │
-  │               opCode   label             range             comment                               │
+  │               instr    oprnd             range             comment                               │
   │                                                                                                  │
-  │ .. emitLine(order, range, opCode, label, .double, comment) to output                             │
+  │ .. emitLine(order, range, instr, oprnd, format, comment) to output                               │
   │                                                                                                  │
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
 
@@ -123,16 +123,15 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
 /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
   │ match an assembler line and split it into pieces:                                                │
   │                                                                                                  │
-  │ "       2DNADR  CMDAPMOD                     #   (034,036) # CMDAPMOD,PREL,QREL,RREL"            │
-  │         -----+  -------+                      ------------+  +----------------------             │
-  │              |         |                                  |  |                                   │
-  │              |         label: "CMDAPMOD"                  |  comment: "CMDAPMOD,PREL,QREL,RREL"  │
-  │              |                                            |                                      │
-  │              opCode: "2DNADR"                             range: "   (034,036) "                 │
+  │         2DNADR  CMDAPMOD +2                  #   (034,036) # CMDAPMOD,PREL,QREL,RREL             │
+  │         -----+  ----------+                   ------------+  +----------------------             │
+  │              |            |                               |  |                                   │
+  │              |            oprnd: "CMDAPMOD"               |  comment: "CMDAPMOD,PREL,QREL,RREL"  │
+  │              instr: "2DNADR"                              range: "   (034,036) "                 │
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
 
-            var opCode = String(match.1)
-            let label = match.2.trimmingCharacters(in: .whitespaces)
+            var instr = String(match.1)
+            let oprnd = match.2.trimmingCharacters(in: .whitespaces)
             let range = String(match.3)
             let comment = match.4
                 .replacingOccurrences(of: "DATA", with: "")                     // ← SPECIAL CASE
@@ -147,12 +146,12 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
 /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
   │ DNCHAN .. channel downlink ..                                                                    │
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
-            if opCode == "DNCHAN" {
-                if let match = comment.firstMatch(of: chNumb) {
+            if instr == "DNCHAN" {
+                if let match = comment.firstMatch(of: chNumb) {         // "CHANNELS «m»,«n»"
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆                                                              "CHANNELS 13,14"                    ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-                    newLines.append(emitLine(order, range, opCode, "CHAN"+match.1, .single, comment))
+                    newLines.append(emitLine(order, range, instr,    "CHAN"+match.1, .single, comment))
                     newLines.append(emitLine(order, range, "      ", "CHAN"+match.2, .single, comment))
 
                 } else if let match = comment.firstMatch(of: chWord) {
@@ -160,7 +159,7 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
   ┆                                                              "CHANNELS GARBAGE,CHANNEL77"        ┆
   ┆                                                              "CHANNELS 76(GARBAGE),77"           ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-                    newLines.append(emitLine(order, range, opCode, "GARBAGE", .single, comment))
+                    newLines.append(emitLine(order, range, instr, "GARBAGE", .single, comment))
                     newLines.append(emitLine(order, range, "      ", "CHAN"+match.1, .single, comment))
 
                 }
@@ -168,15 +167,15 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
                 continue
             }
 
-            if label == "SPARE" {
-                newLines.append(emitLine(order, range, opCode, label, .double, comment))
+            if oprnd == "SPARE" {
+                newLines.append(emitLine(order, range, instr, oprnd, .double, comment))
             }
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ split the comment field into bits ..                                                             ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-            let commentBits = splitComment(label, comment)
+            let commentBits = splitComment(oprnd, comment)
 
-            if (label.starts(with: "SVMRKDAT")) {
+            if (oprnd.starts(with: "SVMRKDAT")) {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ ### SPECIAL                                                                                      ┆
   ┆     SVMRKDAT is three 6DNADR items in the downlist                                               ┆
@@ -200,6 +199,7 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
   ┆         { 66, "SVMRKDAT+32=", 360, FMT_USP },                                                    ┆
   ┆         { 67, "SVMRKDAT+33=",  45, FMT_SP, &FormatOTRUNNION },                                   ┆
   ┆         { 68, "SVMRKDAT+34=", 360, FMT_USP },                                                    ┆
+  ┆         { 69, "GARBAGE",        1, FMT_OCT },                                             MAR215 ┆
   ┆                                                                                                  ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
                 switch commentBits[0] {
@@ -250,23 +250,10 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆     process nDNADR (n words in downlist)                                                         ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-            let downCount = Int(String(opCode.first!))!
+            let downCount = Int(String(instr.first!))!
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ ### SPECIAL                                                                                      ┆
-  ┆                                                                                                  ┆
-  ┆ .. a 4DNADR with six variables -- only happens once (three doubles and two singles)              ┆
-  ┆     S46  4DNADR AGSBUFF +7   #   (026-032) # AGSBUFF+7...+13D,GARBAGE                            ┆
-  ┆     S46  4DNADR MARK2DWN     #   (046-052) # MARK2DWN,+0...+5,+6,GARBAGE                         ┆
-  ┆     S46  4DNADR MARKDOWN     #   (038-044) # MARKDOWN,+0...+5,+6,GARBAGE                         ┆
-  ┆     S46  4DNADR UPBUFF +12D  #   (052-058) # UPBUFF +12...+19                                    ┆
-  ┆     S46  4DNADR UPBUFF +12D  #   (150-156) # UPBUFF +12D...+19D                                  ┆
-  ┆     S46  4DNADR UPBUFF +12D  #   (150-156) # UPBUFF+12D...+19D                                   ┆
-  ┆     S46  4DNADR UPBUFF +12D  #   (152-158) # UPBUFF +12...+19                                    ┆
-  ┆                                                                                                  ┆
-  ┆ .. a 4DNADR with seven variables -- only happens once (one doubles and six singles)              ┆
-  ┆     S47  4DNADR MARKDOWN     #   (046-052) # MARKDOWN,+1...+5,+6,RM                              ┆
-  ┆     S47  4DNADR MARKDOWN     #   (046-052) # MARKTIME(DP),YCDU,SCDU,ZCDU,TCDU,XCDU,RM            ┆
   ┆                                                                                                  ┆
   ┆ .. a 6DNADR with eight variables -- only happens once (four singles and four doubles)            ┆
   ┆     S68  6DNADR COMPNUMB     #   (034-044) # COMPNUMB,UPOLDMOD,UPVERB,UPCOUNT,UPBUFF+0...+7      ┆
@@ -277,12 +264,12 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
             if downCount == 6 && commentBits.count == 8 {
 
                 for i in 0...3 {
-                    newLines.append(emitLine(order, range, opCode,
+                    newLines.append(emitLine(order, range, instr,
                                              String(commentBits[i]),
                                              .single, comment))
                 }
                 for i in 4...7 {
-                    newLines.append(emitLine(order, range, opCode,
+                    newLines.append(emitLine(order, range, instr,
                                              String(commentBits[i]),
                                              .double, comment))
                 }
@@ -291,41 +278,63 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ ### SPECIAL                                                                                      ┆
+  ┆                                                                                                  ┆
+  ┆ .. a 4DNADR with eight variables -- only happens once (one double and six singles)               ┆
+  ┆     S46  4DNADR AGSBUFF +7   #   (026-032) # AGSBUFF+7...+13D,GARBAGE                            ┆
+  ┆                                                                                                  ┆
+  ┆ .. a 4DNADR with eight variables -- only happens once (three doubles and two singles)            ┆
+  ┆     S46  4DNADR MARKDOWN     #   (038-044) # MARKDOWN,+0...+5,+6,GARBAGE                         ┆
+  ┆                                                                                                  ┆
+  ┆ .. a 4DNADR with eight variables -- only happens once (eight singles)                            ┆
+  ┆     S46  4DNADR UPBUFF +12D  #   (052-058) # UPBUFF +12...+19                                    ┆
+  ┆                                                                                                  ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
             if downCount == 4 && commentBits.count == 8 {
 
-                if (label.starts(with: "MARKDOWN") || label.starts(with: "MARK2DWN")) {
-                    newLines.append(emitLine(order, range, opCode, String(commentBits[0]), .double))
+                if (oprnd.starts(with: "MARKDOWN") || oprnd.starts(with: "MARK2DWN")) {
+                    newLines.append(emitLine(order, range, instr, String(commentBits[0]), .double))
                     for i in 2...7 {
-                        newLines.append(emitLine(order, range, opCode,
+                        newLines.append(emitLine(order, range, instr,
                                                  String(commentBits[i]),
                                                  .single, comment)) }
                     continue
                 }
 
-                if (label.starts(with: "AGSBUFF")) {
+                if (oprnd.starts(with: "AGSBUFF")) {
                     for i in stride(from: 0, to: 5, by: 2) {
-                        newLines.append(emitLine(order, range, opCode,
+                        newLines.append(emitLine(order, range, instr,
                                                  String(commentBits[i]),
                                                  .double, comment)) }
                     for i in 6...7 {
-                        newLines.append(emitLine(order, range, opCode,
+                        newLines.append(emitLine(order, range, instr,
                                                  String(commentBits[i]),
                                                  .single, comment)) }
                     continue
                 }
+
+//                if (oprnd.starts(with: "UPBUFF")) {
+//                    logger.log("\(line)")
+//                    for commentBit in commentBits {
+//                        newLines.append(emitLine(order, range, instr,
+//                                                 String(commentBit),
+//                                                 .single, comment)) }
+//                }
             }
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ ### SPECIAL                                                                                      ┆
+  ┆                                                                                                  ┆
+  ┆ .. a 4DNADR with seven variables -- only happens once (one doubles and six singles)              ┆
+  ┆     S47  4DNADR MARKDOWN     #   (046-052) # MARKDOWN,+1...+5,+6,RM                              ┆
+  ┆     S47  4DNADR MARKDOWN     #   (046-052) # MARKTIME(DP),YCDU,SCDU,ZCDU,TCDU,XCDU,RM            ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
             if downCount == 4 && commentBits.count == 7 {
 
-                newLines.append(emitLine(order, range, opCode,
+                newLines.append(emitLine(order, range, instr,
                                          String(commentBits[0].replacing("(DP)", with: "")),
                                          .double, comment))
                 for i in 1...6 {
-                    newLines.append(emitLine(order, range, opCode,
+                    newLines.append(emitLine(order, range, instr,
                                              String(commentBits[i]),
                                              .single, comment)) }
                 continue
@@ -336,25 +345,25 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
   ┆ May be SINGLE                                                                                    ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
 
-                let shortLabel = upToPlus(label)
+                let shortLabel = upToPlus(oprnd)
                 if forceDouble.contains(shortLabel) {
                     let everyOtherBit = commentBits.enumerated()
                         .filter { $0.offset % 2 == 0 }.map { $0.element }
 
                     for bit in everyOtherBit {
-                        newLines.append(emitLine(order, range, opCode,
+                        newLines.append(emitLine(order, range, instr,
                                                  String(bit),
                                                  .double, comment))
-                        opCode = "      "
+                        instr = "      "
                     }
 
                 } else {
 
                     for bit in commentBits {
-                        newLines.append(emitLine(order, range, opCode,
+                        newLines.append(emitLine(order, range, instr,
                                                  String(bit),
                                                  .single, comment))
-                        opCode = "      "
+                        instr = "      "
                     }
                 }
 
@@ -366,10 +375,10 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
   ┆ DOUBLE                                                                                           ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
                 for bit in commentBits {
-                    newLines.append(emitLine(order, range, opCode,
+                    newLines.append(emitLine(order, range, instr,
                                              String(bit),
                                              .double, comment))
-                    opCode = "      "
+                    instr = "      "
                 }
 
                 continue
@@ -382,8 +391,8 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
   ┆ ["A","B","C","D","E","F"]                                                                        ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
             for i in 1...downCount {
-                newLines.append(emitLine(order, range, i == 1 ? opCode : "      ",
-                                         commentBits.count < downCount ? label : String(commentBits[i-1]),
+                newLines.append(emitLine(order, range, i == 1 ? instr : "      ",
+                                         commentBits.count < downCount ? oprnd : String(commentBits[i-1]),
                                          .double, comment))
                 continue
             }

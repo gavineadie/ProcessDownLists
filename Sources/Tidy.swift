@@ -13,6 +13,37 @@
 import Foundation
 import RegexBuilder
 
+/*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ .. reads from "DOWNLINK_LISTS.agc" file and writes to "*.tidy"                                   │
+  │                                                                                                  │
+  │╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌│
+  │     ## Page 196                                                                                  │
+  │     # LM COAST AND ALIGNMENT DOWNLIST                                                            │
+  │     #                                                                                            │
+  │     # -----------------  CONTROL LIST  --------------------------                                │
+  │                                                                                                  │
+  │     LMCSTADL     EQUALS                                   # SEND ID BY SPECIAL CODING            │
+  │                  DNPTR      LMCSTA01                      # COLLECT SNAPSHOT                     │
+  │                  6DNADR     DNTMBUFF                      # SEND SNAPSHOT                        │
+  │                  1DNADR     AGSK                          # AGSK,+1                              │
+  │                  1DNADR     TALIGN                        # TALIGN,+1                            │
+  │                  2DNADR     POSTORKU                      # POSTORKU,NEGTORKU,POSTORKV,NEGTORKV  │
+  │                  1DNADR     DNRRANGE                      # DNRRANGE,DNRRDOT                     │
+  │     <LABEL>      <OPCODE>   <OPERAND>    <MOD>            <COMMENT     ..>                       │
+  │╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌│
+  │                                                                                                  │
+  │ .. edits lines which won't parse later with typos and inconsistent usage ..                      │
+  │                                                                                                  │
+  │ .. drops prefixes "# " and "#*" -- they don't contribute data to the output ..                   │
+  │                                                                                                  │
+  │ .. parse lines to                                                                                │
+  │               1DNADR   PIPTIME         # s (  114  )  58 # PIPTIME,+1                            │
+  │               opCode   label             range             comment                               │
+  │                                                                                                  │
+  │ .. emitLine(order, range, opCode, label, .double, comment) to output                             │
+  │                                                                                                  │
+  └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
+
 func tidyFile(_ missionName: String, _ fileText: String) -> [String] {
 
     var oldLines = fileText.components(separatedBy: .newlines)
@@ -20,17 +51,18 @@ func tidyFile(_ missionName: String, _ fileText: String) -> [String] {
 
     var skipNextLine = false
 
-/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆  scan the whole file for bulk replacements                                                       ┆
-  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+/*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │  scan the whole file for bulk replacements replacing the original lines (oldLines) in place. To  │
+  │  avoid complications related to adding or removing lines, the replacements are N-for-N.          │
+  └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
     for lineNum in 0..<oldLines.count {
         let line = oldLines[lineNum]
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ ### SPECIAL SPECIAL CASE: three lines need clarifying .. processed in "Date" ..                  ┆
+  ┆ ### SPECIAL SPECIAL CASE: three lines need clarifying .. processed in "Data" ..                  ┆
   ┆                                                                                                  ┆
-  ┆     6DNADR SVMRKDAT                     # LANDING SITE MARK DATA                                 ┆
-  ┆     6DNADR SVMRKDAT +12D                # SVMRKDAT+0...+34                                       ┆
-  ┆     6DNADR SVMRKDAT +24D                # LANDING SITE MARK DATA                                 ┆
+  ┆                  6DNADR     SVMRKDAT                      # LANDING SITE MARK DATA               ┆
+  ┆                  6DNADR     SVMRKDAT     +12D             # SVMRKDAT+0...+34                     ┆
+  ┆                  6DNADR     SVMRKDAT     +24D             # LANDING SITE MARK DATA               ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
         if line.contains("LANDING SITE MARK") {
             oldLines[lineNum+0] = "\t\t6DNADR\tSVMRKDAT\t\t\t# SVMRKDAT+0...+11"
@@ -40,16 +72,17 @@ func tidyFile(_ missionName: String, _ fileText: String) -> [String] {
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ ### SPECIAL CASE: substitute lines for AGS Initialization/Update (LM-77776)                      ┆
+  ┆ .. the "AGSBUFF      +0" line is unique across DOWNLINK_LISTS files so this is safe              ┆
   ┆                                                                                                  ┆
-  ┆ .. replaces:                                                                                     ┆
-  ┆         3DNADR AGSBUFF +0                   #   (002-006) # AGSBUFF +0...+5                      ┆
-  ┆         1DNADR AGSBUFF +12D                 #   (  008  ) # AGSBUFF +12D,GARBAGE                 ┆
-  ┆         3DNADR AGSBUFF +1                   #   (010-014) # AGSBUFF +1...+6                      ┆
-  ┆         1DNADR AGSBUFF +13D                 #   (  016  ) # AGSBUFF +13D, GARBAGE                ┆
-  ┆         3DNADR AGSBUFF +6                   #   (018-022) # AGSBUFF +6...+11                     ┆
-  ┆         1DNADR AGSBUFF +12D                 #   (  024  ) # AGSBUFF +12,GARBAGE                  ┆
-  ┆         3DNADR AGSBUFF +7                   #   (026-030) # AGSBUFF +7...+12D                    ┆
-  ┆         1DNADR AGSBUFF +13D                 #   (  032  ) # AGSBUFF +13D,GARBAGE                 ┆
+  ┆ .. replace:                                                                                      ┆
+  ┆                  3DNADR     AGSBUFF      +0               # AGSBUFF +0...+5                      ┆
+  ┆                  1DNADR     AGSBUFF      +12D             # AGSBUFF +12D,GARBAGE                 ┆
+  ┆                  3DNADR     AGSBUFF      +1               # AGSBUFF +1...+6                      ┆
+  ┆                  1DNADR     AGSBUFF      +13D             # AGSBUFF +13D, GARBAGE                ┆
+  ┆                  3DNADR     AGSBUFF      +6               # AGSBUFF +6...+11                     ┆
+  ┆                  1DNADR     AGSBUFF      +12D             # AGSBUFF +12,GARBAGE                  ┆
+  ┆                  3DNADR     AGSBUFF      +7               # AGSBUFF +7...+12D                    ┆
+  ┆                  1DNADR     AGSBUFF      +13D             # AGSBUFF +13D,GARBAGE                 ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
         if line.contains(Regex {
             "AGSBUFF"
@@ -67,47 +100,60 @@ func tidyFile(_ missionName: String, _ fileText: String) -> [String] {
         }
     }
 
-/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ drop blank lines (including blank comments) and page number lines ..                             ┆
-  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+/*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ now process all the lines in the file (including the replacements) ..                            │
+  └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
     for var line in oldLines {
         if skipNextLine { skipNextLine = false; continue }
 
-        if line.isEmpty || line == "#" { continue }
-        if line.contains("## Page ") { continue }
-
-        line.replace("0-..+", with: "0...+")                        // typo fix
-        line.replace("+0..+", with: "+0...+")                       // typo fix
-        line.replace("FALG", with: "FLAG")                          // typo fix
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ drop blank lines, blank comment lines and page number lines ..                                   ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+        if line.isEmpty || line == "#" || line.contains("## Page ") { continue }
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ keep comments                                                                                    ┆
+  ┆ correct some fairly common typos ..                                                              ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+        line.replace("0-..+", with: "0...+")                            // typo fix
+        line.replace("+0..+", with: "+0...+")                           // typo fix
+        line.replace("FALG", with: "FLAG")                              // typo fix
+
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ keep comment lines .. append to output and loops back to read next line ..                       ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
         if line.starts(with: "#") {
-            newLines.append(line)                                   // "# ..."
+            newLines.append(line)                                       // "# ..."
             continue
         }
         
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ match assembler code                                                                             ┆
+  ┆                  3DNADR     AGSBUFF      +1               # AGSBUFF +1...+6                      ┆
+  ┆     <1 label>    <2 opcode+operand+mod --->               < 3 comment --------------------->     ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-        var (label, opcode, comment) = doMatch(line)
+        var (label, instruction, comment) = matchAssembler(line)
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ ### SPECIAL CASE: one comment overflows to the next line so we fix it here ..                    ┆
+  ┆ ### SPECIAL CASE: where a comment overflows to the next line (two cases) we fix them here ..     ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-        if comment.contains("COMPNUMB,UPOLDMOD,UPVERB,UPCOUNT,") {
+        if comment.contains("COMPNUMB,UPOLDMOD,UPVERB,UPCOUNT,") {      // all the Luminary files
             comment.append("UPBUFF+0...+7")
             skipNextLine = true
         }
 
-        if comment.contains("DAPDATR3,CH5FAIL,CH6FAIL,") {
+        if comment.contains("DAPDATR3,CH5FAIL,CH6FAIL,") {              // only the Skylark048 file
             comment.append("DKRATE,DKDB,WHICHDAP")
             skipNextLine = true
         }
 
-        let reconstructedLine = "\(label.padTo10())\(opcode.padTo36())\(comment)"
-        newLines.append(reconstructedLine)                  // "LABEL OPCODE ARGS   # ..."
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ emit a new assembler code line ..                                                                ┆
+  ┆     LOWIDCOD  OCT 77340                           # LOW ID CODE                                  ┆
+  ┆     |         |                                   |                                              ┆
+  ┆     1 ...     11 ...                              47 ...                                         ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+        let reconstructedLine = "\(label.padTo10())\(instruction.padTo36())\(comment)"
+        newLines.append(reconstructedLine)
     }
 
     return newLines

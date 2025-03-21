@@ -13,15 +13,7 @@
 import Foundation
 
 /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
-  │ .. parse                                                                                         │
-  │                                                                                                  │
-  │   LABEL           OPCODE                                  COMMENT                                │
-  │   <--------------><--------------------------------------><--------------------------------      │
-  │   LMRENDDL        EQUALS                                  # SEND ID BY SPECIAL CODING            │
-  │                   DNPTR           LMREND01                # COLLECT SNAPSHOT                     │
-  │                   DNPTR           LMREND02                # SEND SNAPSHOT                        │
-  │                   2DNADR          DNLRVELX                # DNLRVELX,DNLRVELY,DNLRVELZ,DNLRALT   │
-  │                   1DNADR          VN +2                   # VN +2,+3                             │
+  │ .. merge the "snapshot" and "common data" blocks into the "downlist" and writes to "*.join"      │
   │                                                                                                  │
   │ .. add three line header, eg:                                                                    │
   │                                                                                                  │
@@ -32,8 +24,6 @@ import Foundation
   │ .. add ID,SYNC line which is not in the AGC code                                                 │
   │                                                                                                  │
   │                   1DNADR 77777                        #   (  000  )   1 # ID,SYNC                │
-  │                                                                                                  │
-  │ .. merge the "snapshot" and "common data" blocks into the "downlist"                             │
   │                                                                                                  │
   │ .. add index range and GSOP word number                                                 ###MAR12 │
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
@@ -48,7 +38,13 @@ func joinFile(_ missionName: String) -> [String] {
 
         let downListName = downListIDs[label] ?? "Unknown Downlist Label (XX-00000)"
         let downListCode = downListName.dropLast().suffix(5)
-
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ emit:                                                                                            ┆
+  ┆                                                                                                  ┆
+  ┆     ## ======================================================================================    ┆
+  ┆     ## Apollo 13 LM [LM131R1] -- Coast and Align (LM-77777)                                      ┆
+  ┆     ## ======================================================================================    ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
         newLines.append("## ".padding(toLength: 89, withPad: "=", startingAt: 0))
         newLines.append("## \(missionLookUp[missionName] ?? "?") [\(missionName)] -- \(downListName)")
         newLines.append("## ".padding(toLength: 89, withPad: "=", startingAt: 0))
@@ -61,50 +57,62 @@ func joinFile(_ missionName: String) -> [String] {
             continue
         }
 
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ emit necessary first line:                                                                       ┆
+  ┆               1DNADR 77777                        #   (  000  )   1 # ID,SYNC                    ┆
+  ┆     |         |                                   |                                              ┆
+  ┆     1 ...     11 ...                              47 ...                                         ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
         newLines.append("\(" ".padTo10())\("1DNADR \(downListCode)".padTo36())#   (  000  )   1 # ID,SYNC")
 
         for line in lines {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ break every line (again -- please factor this) because we need info from the OPCODE ..           ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-            let (label, opcode, comment) = doMatch(line)
+            let (label, instruction, comment) = matchAssembler(line)
 
 /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
   │ "DNPTR" indicates a need to copy a list into the DOWNLIST ..                 NO DATA IN DOWNLIST │
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
-            if opcode.contains("DNPTR") {                   //### SundanceXXX has a "-DNPTR"
-                newLines.append("#       → \(opcode.padTo36())#   (  ---  )     \(comment)")
+            if instruction.contains("DNPTR") {                   //### SundanceXXX has a "-DNPTR"
+                newLines.append("#       → \(instruction.padTo36())#   (  ---  )     \(comment)")
 
-                let address = opcode.split(separator: " ")[1]
-                guard let copyList = lookUpList(String(address)) else {
-                    newLines.append("# copylist: \(address) missing")
+                let operand = instruction.split(separator: " ")[1]
+                guard let copyList = lookUpList(String(operand)) else {
+                    newLines.append("# copylist: \(operand) missing")
                     continue
                 }
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ is it a SNAPSHOT or COPYLIST? ..                                                                 ┆
-  ┆                                                    .. mark the comment of the inclusion with "|" ┆
+  ┆ map the SNAPSHOT or COPYLIST lines to Label/Instruction/Comment ..                               ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-                let tripleArray = copyList.map { doMatch( $0 ) }
+                let lablInstCommArray = copyList.map { matchAssembler( $0 ) }
 
-                if tripleArray.first!.1.starts(with: "-") {         // SNAPSHOT
-
+                if lablInstCommArray.first!.1.starts(with: "-") {         // "-DNADR → "SNAPSHOT
+/*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ SNAPSHOT                                                                                         │
+  └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
+                    let instruction = String(lablInstCommArray.first!.1.drop(while: { $0 == "-" }))
+                    if instruction.contains("DNTMBUFF") {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ for a SNAPSHOT print the last line first ..                                                      ┆
+  ┆ ignore "DNTMBUFF" ..                                                                             ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-                    let opcode = String(tripleArray.first!.1.drop(while: { $0 == "-" }))
-                    if opcode.contains("DNTMBUFF") {
-                        newLines.append("#*      → \(opcode.padTo36())                  \(comment)")
+                        newLines.append("#*      → \(instruction.padTo36())                  \(comment)")
                         continue
                     }
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ for a SNAPSHOT emit the last line first ..                                                       ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
                     newLines.append("""
                             \(" ".padTo10())\
-                            \(tripleArray.last!.1.dropFirst().padTo36())\
-                            # s \(mem_mem(opcode)) \
-                            \(tripleArray.last!.2)
+                            \(lablInstCommArray.last!.1.dropFirst().padTo36())\
+                            # s \(mem_mem(instruction)) \
+                            \(lablInstCommArray.last!.2)
                             """)
-
-                    tripleArray[0..<copyList.count-1].forEach {
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ .. then lines 1 to last-1 ..                                                                     ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+                    lablInstCommArray[0..<copyList.count-1].forEach {
                         let opcode = String($0.1.drop(while: { $0 == "-" }))
                         newLines.append("""
                                 \(" ".padTo10())\
@@ -114,11 +122,20 @@ func joinFile(_ missionName: String) -> [String] {
                                 """)
                     }
                 } else {                                            // COPYLIST
-                    tripleArray.forEach {
+/*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ COPYLIST                                                                                         │
+  └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
+                    lablInstCommArray.forEach {
                         let opcode = String($0.1.drop(while: { $0 == "-" }))
                         if opcode.contains("DNTMBUFF") {
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ ignore "DNTMBUFF" ..                                                                             ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
                             newLines.append("#*      → \(opcode.padTo36())                  \(comment)")
                         } else {
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ for a COPYLIST emit the lines in order ..                                                        ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
                             newLines.append("""
                                 \(" ".padTo10())\
                                 \(opcode.padTo36())\
@@ -132,17 +149,17 @@ func joinFile(_ missionName: String) -> [String] {
 /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
   │ an address referring to "DNTMBUFF" can be marked as a comment ..             NO DATA IN DOWNLIST │
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
-            } else if opcode.contains("DNTMBUFF") {
-                newLines.append("#*      → \(opcode.padTo36())                  \(comment)")
+            } else if instruction.contains("DNTMBUFF") {
+                newLines.append("#*      → \(instruction.padTo36())                  \(comment)")
 
 /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
-  │ a line from the main DOWNLIST ..                                                                 │
+  │ emit a line from the main DOWNLIST ..                                                            │
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
             } else {
                 newLines.append("""
                     \(label.padTo10())\
-                    \(opcode.drop(while: { $0 == "-" }).padTo36())\
-                    #   \(mem_mem(opcode)) \
+                    \(instruction.drop(while: { $0 == "-" }).padTo36())\
+                    #   \(mem_mem(instruction)) \
                     \(comment)
                     """)
             }
@@ -154,7 +171,7 @@ func joinFile(_ missionName: String) -> [String] {
     return newLines
 }
 
-func lookUpList(_ address: String) -> [String]? {
+fileprivate func lookUpList(_ address: String) -> [String]? {
 
     if let copyList = copylists[String(address)] { return copyList }
     if let copyList = copylists[String(equalities[address]!)] { return copyList }
@@ -167,7 +184,7 @@ func lookUpList(_ address: String) -> [String]? {
   │ .. generate a string of one of the forms "(  034  )", "(034,036)", "(034-044)"                   │
   │ .. add the GSOP numbering                                                               ###MAR12 │
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
-func mem_mem(_ opcode: String) -> String {
+fileprivate func mem_mem(_ opcode: String) -> String {
 
     var result = "         "
 

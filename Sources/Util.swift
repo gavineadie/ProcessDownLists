@@ -34,7 +34,7 @@ func leftPad(_ s: String, _ n: Int) -> String {
   │ "LMNCSTA07  3DNADR  OGC                          # OGC,+1,IGC,+1,MGC,+1    COMMON DATA"          │
   │  < 1 ---->  < 2 ------>                            < 3 ------------------------------>           │
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
-func doMatch(_ line: String) -> (String, String, String) {
+func matchAssembler(_ line: String) -> (String, String, String) {
     let pattern = #/^(\S*)\s*(.*?)\s*(#.*)|^(\S*)\s*(.*)/#
 
     guard let match = line.wholeMatch(of: linePattern) else { return ("", "", "") }

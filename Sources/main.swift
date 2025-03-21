@@ -61,16 +61,16 @@ do {
 
         let missionName = fileURL.deletingLastPathComponent().lastPathComponent
 
-        if !missionList.contains(missionName) { continue }
+//      if !missionList.contains(missionName) { continue }
 
-//      if missionName != "LM131R1" { continue }
+        if missionName != "Luminary210" { continue }
 //      if missionName != "Artemis072" { continue }
 //      if missionName != "Skylark048" { continue }
 
         let fileText = try String(contentsOf: fileURL, encoding: .utf8)
         let homeDirURL = fileManager.homeDirectoryForCurrentUser
 
-/*────────────────────────────────────────────────────────────────────────────────────────────────────*/
+/*─ TIDY ─────────────────────────────────────────────────────────────────────────────────────────────*/
         var fileLinesT: [String] = []
 
         let tidyPrintURL = homeDirURL.appendingPathComponent("Desktop/Downlist/\(missionName)-tidy.txt")
@@ -88,7 +88,7 @@ do {
 
         print("tidyFile: Processed \(missionName).")
 
-/*────────────────────────────────────────────────────────────────────────────────────────────────────*/
+/*─ MASH ─────────────────────────────────────────────────────────────────────────────────────────────*/
         var fileLinesM: [String] = []
 
         let mashPrintURL = homeDirURL.appendingPathComponent("Desktop/Downlist/\(missionName)-mash.txt")
@@ -106,29 +106,29 @@ do {
 
         print("mashFile: Processed \(missionName).")
 
-/*────────────────────────────────────────────────────────────────────────────────────────────────────*/
-//        let listPrintURL = homeDirURL.appendingPathComponent("Desktop/Downlist/\(missionName)-list.txt")
-//        fileManager.createFile(atPath: listPrintURL.path, contents: nil, attributes: nil)
-//
-//        if let fileHandle = try? FileHandle(forWritingTo: listPrintURL) {
-//            defer { fileHandle.closeFile() }
-//            dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
-//
-//            print(">>> DOWNLISTS")
-//            prettyPrint(downlists)
-//
-//            print(">>> COPYLISTS")
-//            prettyPrint(copylists)
-//
-//            print(">>> EQUALS")
-//            print(equalities)
-//        }
-//
-//        dup2(originalStdout, STDOUT_FILENO)
-//
-//        print("listFile: Processed \(missionName).")
+/*─ LIST ─────────────────────────────────────────────────────────────────────────────────────────────*/
+        let listPrintURL = homeDirURL.appendingPathComponent("Desktop/Downlist/\(missionName)-list.txt")
+        fileManager.createFile(atPath: listPrintURL.path, contents: nil, attributes: nil)
 
-/*────────────────────────────────────────────────────────────────────────────────────────────────────*/
+        if let fileHandle = try? FileHandle(forWritingTo: listPrintURL) {
+            defer { fileHandle.closeFile() }
+            dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
+
+            print(">>> DOWNLISTS")
+            prettyPrint(downlists)
+
+            print(">>> COPYLISTS")
+            prettyPrint(copylists)
+
+            print(">>> EQUALS")
+            print(equalities)
+        }
+
+        dup2(originalStdout, STDOUT_FILENO)
+
+        print("listFile: Processed \(missionName).")
+
+/*─ JOIN ─────────────────────────────────────────────────────────────────────────────────────────────*/
         var fileLinesJ: [String] = []
 
         let joinPrintURL = homeDirURL.appendingPathComponent("Desktop/Downlist/\(missionName)-join.txt")
@@ -150,7 +150,7 @@ do {
 
         print("joinFile: Processed \(missionName).")
 
-/*────────────────────────────────────────────────────────────────────────────────────────────────────*/
+/*─ DATA ─────────────────────────────────────────────────────────────────────────────────────────────*/
         var fileLinesD: [String] = []
 
         let dataPrintURL = homeDirURL.appendingPathComponent("Desktop/Downlist/\(missionName)-data.txt")
@@ -168,7 +168,7 @@ do {
 
         print("dataFile: Processed \(missionName).")
 
-/*────────────────────────────────────────────────────────────────────────────────────────────────────*/
+/*─ XTRA ─────────────────────────────────────────────────────────────────────────────────────────────*/
         var fileLinesX: [String] = []
 
         let xtraPrintURL = homeDirURL.appendingPathComponent("Desktop/Downlist/\(missionName)-xtra.tsv")
@@ -186,12 +186,12 @@ do {
 
         print("xtraFile: Processed \(missionName).")
 
-/*────────────────────────────────────────────────────────────────────────────────────────────────────*/
+/*─ SORT ─────────────────────────────────────────────────────────────────────────────────────────────*/
         sortFile(missionName, fileLinesX)                                  // ..
 
         print("sortFile: Processed \(missionName).")
 
-/*────────────────────────────────────────────────────────────────────────────────────────────────────*/
+/*─ TELE ─────────────────────────────────────────────────────────────────────────────────────────────*/
         var fileLinesY: [String] = []
 
         fileLinesY = teleFile(missionName, fileLinesX)                      // ..
