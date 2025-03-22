@@ -61,9 +61,9 @@ do {
 
         let missionName = fileURL.deletingLastPathComponent().lastPathComponent
 
-//      if !missionList.contains(missionName) { continue }
+        if !missionList.contains(missionName) { continue }
 
-        if missionName != "Luminary210" { continue }
+//      if missionName != "Luminary210" { continue }
 //      if missionName != "Artemis072" { continue }
 //      if missionName != "Skylark048" { continue }
 

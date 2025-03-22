@@ -25,16 +25,10 @@ import RegexBuilder
 func mashFile(_ missionName: String, _ fileLines: [String]) -> [String] {
 
     var inDownlist = false
-    var inCopylist1 = false
-    var inCopylist2 = false
-    var inCopylist3 = false
     var inSnapshot = false
 
     var downListLabel = ""
     var copyListLabels: [String] = []
-    var copyListLabel1 = ""
-    var copyListLabel2 = ""
-    var copyListLabel3 = ""
 
     var previousLine = ""
     var newLines: [String] = []
@@ -48,9 +42,7 @@ func mashFile(_ missionName: String, _ fileLines: [String]) -> [String] {
   ┆     "# CSM POWERED FLIGHT DOWNLIST  -----------------------------------------"                   ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
             inDownlist = true
-
-            let line2 = "\((previousLine.uppercased() + "  ").padTo72("-"))"
-            newLines.append("\n" + line2)
+            newLines.append("\n\((previousLine.uppercased() + "  ").padTo72("-"))")
         }
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
@@ -90,75 +82,55 @@ func mashFile(_ missionName: String, _ fileLines: [String]) -> [String] {
                 }
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ "LABEL  EQUALS                  «COMMENT»"      starts a downlist ..                             ┆
+  ┆ "LABEL  EQUALS                  «COMMENT»"      starts a 'DOWNLIST' ..                           ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
                 if label.isNotEmpty && instruction == "EQUALS" {
                     newLines.append("L> \(label.padTo10()) \("EQUALS".padTo36()) ← downlist starts")
 
-                    downListLabel = String(label)               // start a downlist dictionary
-                    downlists[downListLabel] = []               // no need to copy the line
-
+                    downListLabel = String(label)
+                    downlists[downListLabel] = []               // start a downlist dictionary
                     continue                                    // no need to copy the line
                 }
 
+                let newLine = "\(label.padTo10()) \(instruction.padTo36()) \(comment)"
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ "LABEL  -1DNARG ADDRESS         «COMMENT»"      "LABEL -1DNARG" starts a 'snapshot' ..           ┆
+  ┆ "LABEL  -1DNARG ADDRESS         «COMMENT»"      "LABEL -1DNARG" starts a 'SNAPSHOT' ..           ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
                 if label.isNotEmpty && instruction.starts(with: "-") {
-                    let newLine = "\(label.padTo10()) \(instruction.padTo36()) \(comment)"
                     newLines.append("S> \(newLine) ← snapshot starts")
 
-                    inCopylist1 = true
-
-//                    copyListLabels.append(String(label))
-//
-//                    for copyListLabel in copyListLabels {
-//                        copylists[copyListLabel] = [newLine]    // .. and add this line to it
-//                    }
-//
-                    copyListLabel1 = String(label)           // start a copylist dictionary
-                    copylists[copyListLabel1] = [newLine]    // .. and add this line to it
+                    copyListLabels.append(String(label))
+                    copylists[String(label)] = [newLine]        // CREATE the snapshot and add line
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ "LABEL  OPCODE  ADDRESS         «COMMENT»"      every other label starts a 'copylist' ..         ┆
+  ┆ "LABEL  OPCODE  ADDRESS         «COMMENT»"      every label starts a 'COPYLIST' ..               ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
                 } else if label.isNotEmpty {
-                    let newLine = "\(label.padTo10()) \(instruction.padTo36()) \(comment)"
                     newLines.append("L> \(newLine) ← copylist starts")
 
-                    if inCopylist1 {
-                        inCopylist2 = true
-                        copyListLabel2 = String(label)           // start a second copylist dictionary
+                    copyListLabels.append(String(label))
+                    copylists[String(label)] = []               // CREATE the copylist EMPTY
 
-                        copylists[copyListLabel1]!.append(newLine)
-
-                        copylists[copyListLabel2] = [newLine]    // .. and add this line to second
-                    } else {
-                        inCopylist1 = true
-                        copyListLabel1 = String(label)           // start the first copylist dictionary
-
-                        copylists[copyListLabel1] = [newLine]    // .. and add this line to it
+                    for copyListLabel in copyListLabels {
+                        copylists[copyListLabel]!.append(newLine)    // .. NOW add this line to it
                     }
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ "_____  OPCODE  ADDRESS         «COMMENT»"      .. everything else                               ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
                 } else {
-                    let newLine = "\(label.padTo10()) \(instruction.padTo36()) \(comment)"
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ "        DNPTR   ADDRESS"       «COMMENT»"      copy a list from ADDRESS ..                      ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
                     newLines.append("\(instruction.starts(with: "DNPTR") ? "=>" : "+>") \(newLine)")
 
-                    if inCopylist1 {
-                        copylists[copyListLabel1]!.append(newLine)
-
-                        if inCopylist2 {
-                            copylists[copyListLabel2]!.append(newLine)
-                        }
-                    } else if inDownlist {
+                    if copyListLabels.isEmpty {
                         downlists[downListLabel]!.append(newLine)
+                    } else {
+                        for copyListLabel in copyListLabels {
+                            copylists[copyListLabel]!.append(newLine)    // .. and add this line to it
+                        }
                     }
                 }
 
@@ -171,8 +143,7 @@ func mashFile(_ missionName: String, _ fileLines: [String]) -> [String] {
                         inSnapshot = true
                     } else {
                         newLines.append(">> \("-".padTo36("-")) \(inSnapshot ? "SNAPSHOT" : "DOWNLIST")\n")
-                        inCopylist1 = false
-                        inCopylist2 = false
+                        copyListLabels = []
                         inSnapshot = false
                     }
                 }

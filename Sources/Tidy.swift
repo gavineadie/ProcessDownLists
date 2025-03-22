@@ -117,6 +117,7 @@ func tidyFile(_ missionName: String, _ fileText: String) -> [String] {
         line.replace("0-..+", with: "0...+")                            // typo fix
         line.replace("+0..+", with: "+0...+")                           // typo fix
         line.replace("FALG", with: "FLAG")                              // typo fix
+        line.replace("CHANNEL11 ,12", with: "CHANNELS11,12")            // Zerlina52 ###TYPO
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ keep comment lines .. append to output and loops back to read next line ..                       ┆
