@@ -13,10 +13,19 @@
 import Foundation
 import RegexBuilder
 
+/*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ .. reads from "*.join.txt" file and writes to "*.xtra.tsv"                                       │
+  │╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌│
+  │╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌│
+  │                                                                                                  │
+  │ .. emitLine(order, range, instr, oprnd, format, comment) to output                               │
+  │                                                                                                  │
+  └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
+
 func xtraFile(_ missionName: String, _ fileLines: [String]) -> [String] {
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ process the lines of the file and append extra columns ..                                        ┆
+  ┆ process the lines of the "join" file and append extra columns ..                                 ┆
   ┆                                                                                                  ┆
   ┆     0   ID          : B0     FMT_OCT                                                             ┆
   ┆     1   SYNC        : B0     FMT_OCT                                                             ┆
@@ -35,16 +44,24 @@ func xtraFile(_ missionName: String, _ fileLines: [String]) -> [String] {
 
     for line in fileLines {
 
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ keep "##" lines ..                                                                               ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
         if line.starts(with: "##") { newLines.append(line); order = 0; continue }
 
         var columns = line.split(separator: "\t")
         guard columns.count == 3 else { fatalError("too many columns in \(line)") }
 
-        if columns[0] == "2" || columns[0] == "\n2" {
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ insert "100 TIME" after "ID/SYNC"                                                                ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+        if columns[0].trimmingCharacters(in: .whitespacesAndNewlines) == "2" {
             newLines.append("100\tTIME\tB28\tFMT_DP\t\tTBD")
         }
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ corrections ..                                                                                   ┆
+  ┆     style:  remove "+0" on variables                                                             ┆
+  ┆             mark where there's unused cells                                                      ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
         columns[1].replace("+0", with: "")
 
@@ -55,13 +72,16 @@ func xtraFile(_ missionName: String, _ fileLines: [String]) -> [String] {
         }
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ GSOP substitutes ..                                                                              ┆
+  ┆ GSOP substitutes .. we don't do this any more                                                    ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
 //      let gsopName = lookupGsopNames[columns[1]] ?? columns[1]
 //      let tabLine = "\(columns[0])\t\(gsopName): \(getLookup(columns[1]))"
 
-
-//      let txtLine = "\(columns[0])\t\(columns[1].padTo12()): \(getLookup(columns[1]))"
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ clean up for tab-separated-value output ..                                                       ┆
+  ┆     edit: "«whitespace»:«whitespace»" to one tab                                                 ┆
+  ┆     edit: "«tab»tFormatRequired«tab»" to two tabs                                                ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
         let tabLine = "\(columns[0])\t\(columns[1]): \(getLookup(columns[1]))"
             .replacing(Regex {
                 ZeroOrMore(.whitespace)
@@ -70,7 +90,6 @@ func xtraFile(_ missionName: String, _ fileLines: [String]) -> [String] {
             }, with: "\t")
             .replacing("\tFormatRequired\t", with: "\t\t")
 
-        //        newLines.append(newLine)
         newLines.append(tabLine)
     }
 
