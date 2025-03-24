@@ -157,7 +157,8 @@ let lookupScaleFormatUnits = [
     "RSBBQ"         : "B0   : FMT_OCT  :                     : TBD",
     "RTARG"         : "B29  : FMT_DP   :                     : TBD",
     "RTHETA"        : "360  : FMT_DP   :                     : TBD",
-    "STARSAV"       : "2    : FMT_DP   :                     : TBD",
+    "STARSAV1"      : "2    : FMT_DP   :                     : TBD",
+    "STARSAV2"      : "2    : FMT_DP   :                     : TBD",
     "STATE"         : "B0   : FMT_2OCT :                     : TBD",
     "SYNC"          : "B0   : FMT_OCT  :                     : TBD",
     "T-OTHER"       : "B28  : FMT_DP   :                     : TBD",
@@ -557,6 +558,8 @@ let forceDouble = [
     "CENTANG",
     "DELVSLV",
     "DELVTPF",
+    "RTHETA",
+    "RDOTM",
     // 77774
     "DELLT4",
     "ELEV",
@@ -568,10 +571,13 @@ let forceDouble = [
     "TTPI",
     "RTARG",
     "TGO",
+//    "MARKTIME",       //### to be checked
+    "MASS",
     // 77773
     "LRVTIMDL",
     "VMEAS",
     "MKTIME",
+    "HMEASDL",
     "HMEAS",
     //    "RM",         // CM-77775 has single precision
     "UNFC/2",
@@ -600,6 +606,7 @@ let forceDouble = [
 
     "RSP-RREC",
     "DELTAR",
+    "LAUNCHAZ",
     "TET",
     "WBODY",
 
@@ -611,6 +618,13 @@ let forceDouble = [
     "DELTAR",
     "WBODY",
     "GAMMAEI",                  //### MAR10
+
+    // 77776
+
+    "L/D1",
+    "TTE",
+    "VIO",
+    "VPRED",
 
     // 77774
 
