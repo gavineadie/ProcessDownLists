@@ -86,7 +86,8 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
         line.replace("MARKDOWN,+1...+5,+6,GARBAGE", with: "MARKDOWN,+0...+5,+6,GARBAGE") // MARKTIME STAR 1
         line.replace("MARK2DWN,+1...+5,+6", with: "MARK2DWN,+0...+5,+6,GARBAGE")         // MARKTIME STAR 2
 
-        line.replace("OPTION1,2", with: "OPTION,+1")
+        line.replace("OPTION1,2", with: "OPTION1,OPTION2")
+        line.replace("PIPTIME1", with: "PIPTIME")
 
         line.replace("REFSMMAT,+1,...+10,+11", with: "REFSMMAT +0...+11")
 
@@ -253,6 +254,23 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
             let downCount = Int(String(instr.first!))!
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ .. a 1DNADR with a comment ending ",+1" will probably be a "double" .. deal with it now ..       ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+            if instr == "1DNADR" && !comment.contains("/") && comment.hasSuffix(",+1") {
+                let shortOperand = upToPlus(oprnd)
+                if forceSingle.contains(shortOperand) {
+                    newLines.append(emitLine(order, range, instr,
+                                             shortOperand, .single, comment))
+                    newLines.append(emitLine(order, range, instr,
+                                             shortOperand + "+1", .single, comment))
+                } else {
+                    newLines.append(emitLine(order, range, instr,
+                                             shortOperand, .double, comment))
+                }
+                continue
+            }
+
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ ### SPECIAL                                                                                      ┆
   ┆                                                                                                  ┆
   ┆ .. a 6DNADR with eight variables -- only happens once (four singles and four doubles)            ┆
@@ -279,14 +297,14 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ ### SPECIAL                                                                                      ┆
   ┆                                                                                                  ┆
-  ┆ .. a 4DNADR with eight variables -- only happens once (one double and six singles)               ┆
-  ┆     S46  4DNADR AGSBUFF +7   #   (026-032) # AGSBUFF+7...+13D,GARBAGE                            ┆
-  ┆                                                                                                  ┆
   ┆ .. a 4DNADR with eight variables -- only happens once (three doubles and two singles)            ┆
   ┆     S46  4DNADR MARKDOWN     #   (038-044) # MARKDOWN,+0...+5,+6,GARBAGE                         ┆
   ┆                                                                                                  ┆
-  ┆ .. a 4DNADR with eight variables -- only happens once (eight singles)                            ┆
-  ┆     S46  4DNADR UPBUFF +12D  #   (052-058) # UPBUFF +12...+19                                    ┆
+  ┆ .. a 4DNADR with eight variables -- only happens once (one double and six singles)               ┆
+  ┆     S46  4DNADR AGSBUFF +7   #   (026-032) # AGSBUFF+7...+13D,GARBAGE                            ┆
+  ┆                                                                                                  ┆
+//┆ .. a 4DNADR with eight variables -- only happens once (eight singles)                            ┆
+//┆     S46  4DNADR UPBUFF +12D  #   (052-058) # UPBUFF +12...+19                                    ┆
   ┆                                                                                                  ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
             if downCount == 4 && commentBits.count == 8 {
@@ -316,8 +334,7 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
 //                    logger.log("\(line)")
 //                    for commentBit in commentBits {
 //                        newLines.append(emitLine(order, range, instr,
-//                                                 String(commentBit),
-//                                                 .single, comment)) }
+//                                                 String(commentBit), .single, comment)) }
 //                }
             }
 
@@ -335,8 +352,7 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
                                          .double, comment))
                 for i in 1...6 {
                     newLines.append(emitLine(order, range, instr,
-                                             String(commentBits[i]),
-                                             .single, comment)) }
+                                             String(commentBits[i]), .single, comment)) }
                 continue
             }
 
@@ -345,15 +361,14 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
   ┆ May be SINGLE                                                                                    ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
 
-                let shortLabel = upToPlus(oprnd)
-                if forceDouble.contains(shortLabel) {
+                let shortOperand = upToPlus(oprnd)
+                if forceDouble.contains(shortOperand) {
                     let everyOtherBit = commentBits.enumerated()
                         .filter { $0.offset % 2 == 0 }.map { $0.element }
 
                     for bit in everyOtherBit {
                         newLines.append(emitLine(order, range, instr,
-                                                 String(bit),
-                                                 .double, comment))
+                                                 String(bit), .double, comment))
                         instr = "      "
                     }
 
@@ -361,8 +376,7 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
 
                     for bit in commentBits {
                         newLines.append(emitLine(order, range, instr,
-                                                 String(bit),
-                                                 .single, comment))
+                                                 String(bit), .single, comment))
                         instr = "      "
                     }
                 }
@@ -440,49 +454,47 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
         var bits = comment.split(separator: ",")
             .map { $0.replacingOccurrences(of: " ", with: "") }
 
+        if bits.count == 4 {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ the parsing is tricky since characters are missing                                               ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-        if bits.count == 4 {
             if bits[1...3] == ["+1", "...+4", "+5"] { bits = [bits[0], "+1...+5"] }
             if bits[1...3] == ["+1", "+2", "...+5"] { bits = [bits[0], "+1...+5"] }
             if bits[1...3] == ["+1", "...+10", "+11"] { bits = [bits[0], "+1...+11"] }
         }
 
+        if bits.count == 3 {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ coagulate run-on uses "1...4,5" ← "1...5"                                                        ┆
   ┆     ### could be more clever and deal with "D" and missing "+"                                   ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-        if bits.count == 3 {
             if bits[1...2] == ["+1...+4", "+5"] { bits = [bits[0], "+1...+5"] }
             if bits[1...2] == ["+1...+5", "+6"] { bits = [bits[0], "+1...+6"] }
             if bits[1...2] == ["+1...+10", "+11"] { bits = [bits[0], "+1...+11"] }
             if bits[1...2] == ["+1...+10", "+11D"] { bits = [bits[0], "+1...+11"] }
             if bits[1...2] == ["+13...+18", "+19D"] { bits = [bits[0], "+13...+19"] }
             if bits[1...2] == ["13...+18", "19D"] { bits = [bits[0], "+13...+19"] }
-        }
 
+            if bits[1].contains("/") {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ "A","B/C","D" → "A","B" [ the "C","D" was an alternate]                                          ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-        if bits.count == 3 && bits[1].contains("/") {
-            let twoBits = bits[1].split(separator: "/")     // ["B","C"]
-            bits[1] = String(twoBits[0])
-            bits = bits.dropLast()
+                let twoBits = bits[1].split(separator: "/")     // ["B","C"]
+                bits[1] = String(twoBits[0])
+                bits = bits.dropLast()
+            }
         }
 
+        if bits.count == 2 {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ "A","...5" → "A","+0...+5"                                                                       ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-        if bits.count == 2 {
             if bits[1] == "...+5" { bits = [bits[0], "+0...+5"] }
-        }
 
+            if bits[0] == "YNBSAV+0...+5" && bits[1] == "ZNBSAV+0...+5" {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ "A+0...+5","B+0...+5" → "A","+0...+5","B","+0...+5"                                              ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-        if bits.count == 2 {
-            if bits[0] == "YNBSAV+0...+5" && bits[1] == "ZNBSAV+0...+5" {
                 bits = ["YNBSAV", "+0...+5", "ZNBSAV", "+0...+5"]
             }
         }
@@ -529,7 +541,7 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
                 } else if let matchA = bits[0].firstMatch(of: plus),
                           let matchB = bits[1].firstMatch(of: numb) {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆     ["A+m", "+n"] → ["A", m, n] → ["A+m", "A+m", .. "A+n"]                                       ┆
+  ┆     ["A+m", "+n"] → ["A", m, n] → ["A+m", .., "A+n"]                                             ┆
   ┆                                                                                                  ┆
   ┆     ["DELV+4", "+5"] → ["DELV+4", "DELV+5"]                                                      ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
@@ -537,11 +549,8 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
                     let alpha = Int(String(matchA.2))!
                     let omega = Int(String(matchB.1))!
 
-                    if omega-alpha == 1 {
-                        result.append("\(label)+\(alpha)")
-                    } else {
-                        for i in alpha...omega { result.append("\(label)+\(i)") }
-                    }
+                    for i in alpha...omega { result.append("\(label)+\(i)") }
+
                     return result
 
                 } else if bits[1].starts(with: "+") && bits[1].last != "D" {

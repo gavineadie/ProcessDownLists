@@ -71,9 +71,8 @@ func tidyFile(_ missionName: String, _ fileText: String) -> [String] {
         }
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ ### SPECIAL CASE: substitute lines for AGS Initialization/Update (LM-77776)                      ┆
-  ┆ .. the "AGSBUFF      +0" line is unique across DOWNLINK_LISTS files so this is safe              ┆
-  ┆                                                                                                  ┆
+  ┆ ### SPECIAL CASE                     [Luminary099, LM131R1, Zerlina56, Luminary163, Luminary210] ┆
+  ┆                                                             AGS Initialization/Update (LM-77776) ┆
   ┆ .. replace:                                                                                      ┆
   ┆                  3DNADR     AGSBUFF      +0               # AGSBUFF +0...+5                      ┆
   ┆                  1DNADR     AGSBUFF      +12D             # AGSBUFF +12D,GARBAGE                 ┆
@@ -97,6 +96,60 @@ func tidyFile(_ missionName: String, _ fileText: String) -> [String] {
             oldLines[lineNum+5] = "\t\t1DNADR\tCM EPOCH\t\t\t# CM EPOCH"
             oldLines[lineNum+6] = "\t\t3DNADR\tCMEMBER\t\t\t# CM X VEL,GARBAGE,CM Y VEL,GARBAGE,CM Z VEL,GARBAGE"
             oldLines[lineNum+7] = "\t\t1DNADR\tCMEMBER\t\t\t# GARBAGE,GARBAGE"
+        }
+
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ ### SPECIAL CASE (same as above but it is a snapshot, so all "1DNADR")         [Sundance306ish]  ┆
+  ┆                                                             AGS Initialization/Update (LM-77776) ┆
+  ┆ .. replace:                                                                                      ┆
+  ┆                                                                                                  ┆
+  ┆     LMAGSI01     -1DNADR    AGSBUFF      +2               # AGSBUFF+2,+3             SNAPSHOT    ┆
+  ┆                  1DNADR     AGSBUFF      +4               # AGSBUFF+4,+5                         ┆
+  ┆                  1DNADR     AGSBUFF      +12D             # AGSBUFF+12D,GARBAGE                  ┆
+  ┆                  1DNADR     AGSBUFF      +1               # AGSBUFF+1,+2                         ┆
+  ┆                  1DNADR     AGSBUFF      +3               # AGSBUFF+3,+4                         ┆
+  ┆                  1DNADR     AGSBUFF      +5               # AGSBUFF+5,+6                         ┆
+  ┆                  1DNADR     AGSBUFF      +13D             # AGSBUFF+13D, GARBAGE                 ┆
+  ┆                  1DNADR     AGSBUFF      +6               # AGSBUFF+6,+7                         ┆
+  ┆                  1DNADR     AGSBUFF      +8D              # AGSBUFF+8D,+9D                       ┆
+  ┆                  1DNADR     AGSBUFF      +10D             # AGSBUFF+10D,+11D                     ┆
+  ┆                  1DNADR     AGSBUFF      +12D             # AGSBUFF+12,GARBAGE                   ┆
+  ┆                  -1DNADR    AGSBUFF                       # AGSBUFF+0,+1                         ┆
+  ┆                                                                                                  ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+        if line.contains(Regex {
+            "-1DNADR"
+            OneOrMore(.whitespace)
+            "AGSBUFF"
+            OneOrMore(.whitespace)
+            "+2"
+        }) {
+            oldLines[lineNum+0] = "LMAGSI01\t-1DNADR\tLLMEMBER\t\t\t# LM Y POS,GARBAGE"
+            oldLines[lineNum+1] = "\t\t1DNADR\tLMEMBER\t\t\t# LM Z POS,GARBAGE"
+            oldLines[lineNum+2] = "\t\t1DNADR\tLM EPOCH\t\t\t# LM EPOCH"
+            oldLines[lineNum+3] = "\t\t1DNADR\tLMEMBER\t\t\t# LM X VEL,GARBAGE"
+            oldLines[lineNum+4] = "\t\t1DNADR\tLMEMBER\t\t\t# LM Y VEL,GARBAGE,"
+            oldLines[lineNum+5] = "\t\t1DNADR\tLMEMBER\t\t\t# LM Z VEL,GARBAGE"
+            oldLines[lineNum+6] = "\t\t1DNADR\tLMEMBER\t\t\t# GARBAGE,GARBAGE"
+            oldLines[lineNum+7] = "\t\t3DNADR\tCMEMBER\t\t\t# CM X POS,GARBAGE,CM Y POS,GARBAGE,CM Z POS,GARBAGE"
+            oldLines[lineNum+8] = "\t\t1DNADR\tCM EPOCH\t\t\t# CM EPOCH"
+            oldLines[lineNum+9] = "\t\t3DNADR\tCMEMBER\t\t\t# CM X VEL,GARBAGE,CM Y VEL,GARBAGE,CM Z VEL,GARBAGE"
+            oldLines[lineNum+10] = "\t\t1DNADR\tCMEMBER\t\t\t# GARBAGE,GARBAGE"
+            oldLines[lineNum+11] = "\t\t-1DNADR\tLMEMBER\t\t\t# LM X POS,GARBAGE"
+        }
+
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ .. also, because a snapshot can only gather 12 words, another line in the downlist brings in     ┆
+  ┆    four more.  We remove that line                                                               ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+        if line.contains(Regex {
+            "4DNADR"
+            OneOrMore(.whitespace)
+            "AGSBUFF"
+            OneOrMore(.whitespace)
+            "+7"
+        }) {
+            oldLines[lineNum+0] = "# REMOVE '   4DNADR AGSBUFF  +7'"
         }
     }
 

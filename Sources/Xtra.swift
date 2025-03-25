@@ -18,28 +18,18 @@ import RegexBuilder
   │╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌│
   │╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌│
   │                                                                                                  │
-  │ .. emitLine(order, range, instr, oprnd, format, comment) to output                               │
+  │ .. append extra columns ..                                                                       │
+  │                                                                                                  │
+  │     0   ID          : B0     FMT_OCT                                                             │
+  │     1   SYNC        : B0     FMT_OCT                                                             │
+  │     2   R-OTHER+0   : B29    FMT_DP                                                              │
+  │     4   R-OTHER+2   : B29    FMT_DP                                                              │
+  │     6   R-OTHER+4   : B29    FMT_DP                                                              │
+  │     8   V-OTHER+0   : B7     FMT_DP                                                              │
   │                                                                                                  │
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
 
 func xtraFile(_ missionName: String, _ fileLines: [String]) -> [String] {
-
-/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ process the lines of the "join" file and append extra columns ..                                 ┆
-  ┆                                                                                                  ┆
-  ┆     0   ID          : B0     FMT_OCT                                                             ┆
-  ┆     1   SYNC        : B0     FMT_OCT                                                             ┆
-  ┆     2   R-OTHER+0   : B29    FMT_DP                                                              ┆
-  ┆     4   R-OTHER+2   : B29    FMT_DP                                                              ┆
-  ┆     6   R-OTHER+4   : B29    FMT_DP                                                              ┆
-  ┆     8   V-OTHER+0   : B7     FMT_DP                                                              ┆
-  ┆     10  V-OTHER+2   : B7     FMT_DP                                                              ┆
-  ┆     12  V-OTHER+4   : B7     FMT_DP                                                              ┆
-  ┆     14  T-OTHER+0   : B28    FMT_DP                                                              ┆
-  ┆     16  DNRRANGE    : B28    FMT_DP                                                              ┆
-  ┆     17  DNRRDOT     : B28    FMT_DP                                                              ┆
-  ┆                                                                                                  ┆
-  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
     var newLines: [String] = []
 
     for line in fileLines {
@@ -66,7 +56,7 @@ func xtraFile(_ missionName: String, _ fileLines: [String]) -> [String] {
         columns[1].replace("+0", with: "")
 
         if ["SPARE", "GARBAGE"].contains(columns[1]) {
-            let newLine = "# offset \(columns[0]) is unused"
+            let newLine = "# offset \(columns[0].trimmingCharacters(in: .whitespacesAndNewlines)) is unused"
             newLines.append(newLine)
             continue
         }
@@ -96,15 +86,12 @@ func xtraFile(_ missionName: String, _ fileLines: [String]) -> [String] {
     return newLines
 }
 
+/*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ try an exact match, then a match after removing "+n", and then a initial substring match ..      │
+  └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
 fileprivate func getLookup(_ key: Substring) -> String {
-
-    for (k, v) in lookupScaleFormatUnits {
-        if key == k { return v }
-    }
-
-    for (k, v) in lookupScaleFormatUnits {
-        if key.starts(with: k) { return v }
-    }
-
+    for (k, v) in lookupScaleFormatUnits { if key == k { return v } }
+    for (k, v) in lookupScaleFormatUnits { if key.replacing(#/\+\d+/#, with: "") == k { return v } }
+    for (k, v) in lookupScaleFormatUnits { if key.starts(with: k) { return v } }
     return "B0   : FMT_OCT  : FormatUnknown       : TBD"
 }

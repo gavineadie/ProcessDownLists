@@ -60,6 +60,9 @@ let lookupScaleFormatUnits = [
     "RSP-RREC"      : "360  : FMT_DP   :                     : TBD",        // == DELTAR
     "DELV"          : "B14  : FMT_DP   : FormatDELV          : TBD",
     "DELVEET"       : "B7   : FMT_DP   :                     : TBD",
+    "DELVEET1"      : "B7   : FMT_DP   :                     : TBD",
+    "DELVEET2"      : "B7   : FMT_DP   :                     : TBD",
+    "DELVEET3"      : "B7   : FMT_DP   :                     : TBD",
     "DELVSLV"       : "B7   : FMT_DP   :                     : TBD",
     "DELVTPF"       : "B7   : FMT_DP   :                     : TBD",
     "DIFFALT"       : "B29  : FMT_DP   :                     : TBD",
@@ -534,6 +537,18 @@ func addCommentary(missionName: String, downList: String, itemIndex: Int) -> Str
     return nil
 }
 
+let forceSingle = [
+    "TANGNB",
+    "RSBBQ",
+    "OPTION",
+    "LRTIMEDL",
+    "FC",
+    "PIF",
+    "VHFCNT",
+    "NN",
+    "RM",
+]
+
 let forceDouble = [
     "AGSK",                     //### "K FACTOR" (GSOP)
     "CHANBKUP",
@@ -560,6 +575,8 @@ let forceDouble = [
     "DELVTPF",
     "RTHETA",
     "RDOTM",
+    "SVEC",
+//    "DHDSP",
     // 77774
     "DELLT4",
     "ELEV",
@@ -740,4 +757,3 @@ let downListIDs = [
     "LMPWRDDL" : "Powered (LM-77774)",
 
 ]
-
