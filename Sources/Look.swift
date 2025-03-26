@@ -328,7 +328,8 @@ let lookupScaleFormatUnits = [
 
     // Luminary163
 
-    "FORVEL"        : "B0  :  FMT_2OCT : FormatRequired      : TBD",    //
+    "LATVEL"        : "B0  :  FMT_DEC   :                    : f/S",    //
+    "FORVEL"        : "B0  :  FMT_DEC   :                    : f/S",    //
 
     // Luminary210                                                        (annotations from GSOP-Luminary1E)
 
