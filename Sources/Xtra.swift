@@ -2,7 +2,7 @@
 //  Xtra.swift
 //  ProcessDownLists
 //
-//  Created by Gavin Eadie on 3/5/25.
+//  Created by Gavin Eadie on Mar05/25.
 //
 
 /*╔══════════════════════════════════════════════════════════════════════════════════════════════════╗
@@ -45,9 +45,9 @@ func xtraFile(_ missionName: String, _ fileLines: [String]) -> [String] {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ insert "100 TIME" after "ID/SYNC"                                                                ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-        if columns[0].trimmingCharacters(in: .whitespacesAndNewlines) == "2" {
-            newLines.append("100\tTIME\tB28\tFMT_DP\t\tTBD")
-        }
+//        if columns[0].trimmingCharacters(in: .whitespacesAndNewlines) == "2" {
+//            newLines.append("100\tTIME\tB28\tFMT_DP\t\tTBD")
+//        }
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ corrections ..                                                                                   ┆
   ┆     style:  remove "+0" on variables                                                             ┆
@@ -81,6 +81,42 @@ func xtraFile(_ missionName: String, _ fileLines: [String]) -> [String] {
             .replacing("\tFormatRequired\t", with: "\t\t")
 
         newLines.append(tabLine)
+    }
+
+/*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ do a sanity check for offset errors .. that is offset should increment by                        │
+  │     1 for FMT_OCT, FMT_DEC, FMT_SP, FMT_USP                                                      │
+  │     2 for FMT_2OCT, FMT_2DEC, FMT_DP ..                                                          │
+  └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
+    let testLines = newLines
+        .filter { !$0.starts(with: "##") }
+        .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+    for i in 0..<testLines.count-1 {
+
+        let columnsThis = testLines[i].split(separator: "\t")
+        let columnsNext = testLines[i+1].split(separator: "\t")
+
+        if columnsThis[0].starts(with: "#") { continue }
+        if columnsNext[0].starts(with: "#") { continue }
+        if Int(columnsNext[0])! == 0 { continue }
+
+        if ["FMT_OCT", "FMT_DEC", "FMT_SP", "FMT_USP"].contains(columnsThis[3]) {
+            if columnsNext[0].starts(with: "#") { continue }
+            if Int(columnsNext[0])! - Int(columnsThis[0])! == 1 {continue }
+        }
+
+        if ["FMT_2OCT", "FMT_2DEC", "FMT_DP"].contains(columnsThis[3]) {
+//            if columnsNext[0].starts(with: "#") { continue }
+            if Int(columnsNext[0])! - Int(columnsThis[0])! == 2 { continue }
+        }
+
+        logger.log("""
+            line \(i) of file \(missionName).tsv:
+               \(testLines[i])
+               \(testLines[i+1])
+            """)
+
     }
 
     return newLines

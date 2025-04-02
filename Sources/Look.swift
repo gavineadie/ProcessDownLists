@@ -2,7 +2,7 @@
 //  Look.swift
 //  ProcessDownLists
 //
-//  Created by Gavin Eadie on 3/12/25.
+//  Created by Gavin Eadie on Mar12/25.
 //
 
 /*╔══════════════════════════════════════════════════════════════════════════════════════════════════╗
@@ -144,7 +144,7 @@ let lookupScaleFormatUnits = [
     "R-OTHER"       : "B29  : FMT_DP   :                     : TBD",
     "RADMODES"      : "B0   : FMT_OCT  :                     : TBD",
     "RANGE"         : "B29  : FMT_DP   :                     : TBD",
-    "RANGRDOT"      : "B0   : FMT_2OCT :                     : TBD",
+    "RANGRDOT"      : "B0   : FMT_SP   :                     : TBD",    //Apr01: 2OCT -? FMT_SP
     "RCSFLAGS"      : "B0   : FMT_OCT  :                     : TBD",
     "RDOT"          : "B0   : FMT_DP   : FormatRDOT          : TBD",
     "REDOCTR"       : "B0   : FMT_DEC  :                     : TBD",
@@ -152,6 +152,8 @@ let lookupScaleFormatUnits = [
     "RGU"           : "B24  : FMT_DP   :                     : TBD",
     "RLS"           : "B27  : FMT_DP   :                     : TBD",
     "RM"            : "100  : FMT_DEC  :                     : TBD",
+    "RR_DIST"       : "B0   : FMT_SP   :                     : TBD",    //###Apr01/25
+    "RR_RATE"       : "B0   : FMT_SP   :                     : TBD",    //###Apr01/25
     "RN"            : "B29  : FMT_DP   :                     : TBD",
     "ROLLC"         : "360  : FMT_SP   :                     : TBD",
     "ROLLTM"        : "180  : FMT_SP   :                     : TBD",
@@ -204,7 +206,7 @@ let lookupScaleFormatUnits = [
     "VPRED"         : "B7   : FMT_DP   :                     : TBD",
     "VSELECT"       : "B0   : FMT_DEC  :                     : TBD",
     "WBODY"         : "450  : FMT_DP   : FormatAdotsOrOga    : TBD",
-    "X789"          : "B5   : FMT_SP   : FormatEarthOrMoonDP : TBD",
+    "X789"          : "B5   : FMT_DP   : FormatEarthOrMoonDP : TBD",    //### Apr01: FMT_SP → FMT_DP
     "YACTOFF"       : "B14  : FMT_SP   : FormatXACTOFF       : TBD",
     "YCMD"          : "B14  : FMT_SP   : FormatXACTOFF       : TBD",
     "YNBSAV"        : "B1   : FMT_DP   :                     : TBD",
@@ -305,7 +307,7 @@ let lookupScaleFormatUnits = [
     "UTYAW"         : "B0  :  FMT_2OCT : FormatRequired      : TBD",    // EQUALS   UTPIT   +2      # I(2)  N78 YAW
 
     "THETAH"        : "B0  :  FMT_2OCT : FormatRequired      : TBD",    // EQUALS    RDOT   +2      #   2P  DSP NOUN 64,67 FOR P63,64,67
-    "TEPHEM"        : "B0  :  FMT_2OCT : FormatRequired      : TBD",    // EQUALS    LIFTTEMP +2    #  (3)TMP
+    "TEPHEM"        : "B0  :  FMT_OCT  : FormatRequired      : TBD",    // EQUALS    LIFTTEMP +2    #  (3)TMP
 
     // Sundance306ish (unique)                                          (annotations from ERASABLE_ASSIGNMENTS.agc)
 
@@ -412,90 +414,6 @@ let lookupScaleFormatUnits = [
                                                                         //      degrees/360.
 ]
 
-let lookupGsopNames: [Substring : Substring] = [
-    "AGSK"          : "K-FACTOR",
-    "AIG"           : "CDU Y",
-    "AMG"           : "CDU Z",
-    "AOG"           : "CDU X",
-    "AOTCODE"       : "AOT CODE",
-    "BESTI"         : "STAR1 ID",
-    "BESTJ"         : "STAR2 ID",
-    "CDUS"          : "RR SHAFT",
-    "CDUT"          : "RR TRUN",
-    "CDUXD"         : "CDU XD",
-    "CDUYD"         : "CDU YD",
-    "CDUZD"         : "CDU ZD",
-    "DNRRANGE"      : "RR RANGE",
-    "DNRRDOT"       : "RR RRATE",
-    "DELLT4"        : "TF CONIC",
-    "REDOCTR"       : "REDO CTR",
-    "RLS"           : "L SITE X",
-    "RLS+2"         : "L SITE Y",
-    "RLS+4"         : "L SITE X",
-    "TRKMKCNT"      : "MARK CNT",
-
-    "TCSI"          : "CSI TIME",
-    "DELVEET1"      : "CSI dV X",
-    "DELVEET1+2"    : "CSI dV Y",
-    "DELVEET1+4"    : "CSI dV Z",
-
-    "DELVEET"       : "CSI dV X",
-    "DELVEET+2"     : "CSI dV Y",
-    "DELVEET+4"     : "CSI dV Z",
-
-    "TCDH"          : "CDH TIME",
-    "DELVEET2"      : "CDH dV X",
-    "DELVEET2+2"    : "CDH dV Y",
-    "DELVEET2+4"    : "CDH dV Z",
-
-    "TTPI"          : "TPI TIME",
-    "DELVEET3"      : "TPI dV X",
-    "DELVEET3+2"    : "TPI dV Y",
-    "DELVEET3+4"    : "TPI dV Z",
-
-    "TPASS4"        : "TPF TIME",
-
-    "X789"          : "d BETA",
-    "X789+2"        : "d THETA",
-
-    "LASTYCMD"      : "RR T ERR",
-    "LASTXCMD"      : "RR S ERR",
-
-    "RGU"           : "RX GUIDE",
-    "RGU+2"         : "RY GUIDE",
-    "RGU+4"         : "RZ GUIDE",
-    "VGU"           : "VX GUIDE",
-    "VGU+2"         : "VY GUIDE",
-    "VGU+4"         : "VZ GUIDE",
-
-    "UNFC/2"        : "THRUST X",
-    "UNFC/2+2"      : "THRUST Y",
-    "UNFC/2+4"      : "THRUST Z",
-
-    "RM"            : "VHF R ##",
-    "DELTAR"        : "OFFSET P",
-
-    "LAT"           : "LAND LAT",
-    "LONG"          : "LAND LON",
-    "ALT"           : "LAND ALT",
-
-    "8NN"           : "MARK CNT",
-
-    "MARKDOWN"      : "S1 TIME",
-    "MARKDOWN+2"    : "S1 Y CDU",
-    "MARKDOWN+3"    : "S1 SHAFT",
-    "MARKDOWN+4"    : "S1 Z CDU",
-    "MARKDOWN+5"    : "S1 TRUNN",
-    "MARKDOWN+6"    : "S1 X CDU",
-
-    "MARK2DWN"      : "S2 TIME",
-    "MARK2DWN+2"    : "S2 Y CDU",
-    "MARK2DWN+3"    : "S2 SHAFT",
-    "MARK2DWN+4"    : "S2 Z CDU",
-    "MARK2DWN+5"    : "S2 TRUNN",
-    "MARK2DWN+6"    : "S2 X CDU",
-]
-
 func addCommentary(missionName: String, downList: String, itemIndex: Int) -> String? {
 
     switch missionName {
@@ -542,9 +460,10 @@ let forceSingle = [
     "TANGNB",
     "RSBBQ",
     "OPTION",
-    "LRTIMEDL",
+//  "LRTIMEDL",                 //### Apr01/25
     "FC",
-    "PIF",
+    "CHANBKUP",                 //### Apr01/25
+//  "PIF",                      //### Apr01/25
     "VHFCNT",
     "NN",
     "RM",
@@ -552,7 +471,8 @@ let forceSingle = [
 
 let forceDouble = [
     "AGSK",                     //### "K FACTOR" (GSOP)
-    "CHANBKUP",
+//  "CHANBKUP",                 //### Apr01/25
+    "PIF",                      //### Apr01/25
     "DELV",
     "DELVEET1",
     "DSPTAB",
@@ -581,6 +501,9 @@ let forceDouble = [
     // 77774
     "DELLT4",
     "ELEV",
+    "GDT/2",            // Sundance306ish Apr01/25
+    "VRPREV",           // Sundance306ish Apr01/25
+    
     "TCSI",
     "TPASS4",
     "DELVEET2",
@@ -635,7 +558,7 @@ let forceDouble = [
     "DELVSLV",
     "DELTAR",
     "WBODY",
-    "GAMMAEI",                  //### MAR10
+    "GAMMAEI",          //### MAR10
 
     // 77776
 
@@ -655,10 +578,15 @@ let forceDouble = [
     "LONG",
     "ALT",
 
-    "ALMCADR",                  //###MAR11 Luminary210
+    "ALMCADR",          //###MAR11 Luminary210
     "TRUDELH",
     "GTCTIME",
     "DVTOTAL",
+
+    // 77777
+
+    "STARAD",           // Sundance306ish Apr01/25
+    "STAR",             // Sundance306ish Apr01/25
 ]
 
 let missionLookUp = [
@@ -757,4 +685,88 @@ let downListIDs = [
 
     "LMPWRDDL" : "Powered (LM-77774)",
 
+]
+
+let lookupGsopNames: [Substring : Substring] = [
+    "AGSK"          : "K-FACTOR",
+    "AIG"           : "CDU Y",
+    "AMG"           : "CDU Z",
+    "AOG"           : "CDU X",
+    "AOTCODE"       : "AOT CODE",
+    "BESTI"         : "STAR1 ID",
+    "BESTJ"         : "STAR2 ID",
+    "CDUS"          : "RR SHAFT",
+    "CDUT"          : "RR TRUN",
+    "CDUXD"         : "CDU XD",
+    "CDUYD"         : "CDU YD",
+    "CDUZD"         : "CDU ZD",
+    "DNRRANGE"      : "RR RANGE",
+    "DNRRDOT"       : "RR RRATE",
+    "DELLT4"        : "TF CONIC",
+    "REDOCTR"       : "REDO CTR",
+    "RLS"           : "L SITE X",
+    "RLS+2"         : "L SITE Y",
+    "RLS+4"         : "L SITE X",
+    "TRKMKCNT"      : "MARK CNT",
+
+    "TCSI"          : "CSI TIME",
+    "DELVEET1"      : "CSI dV X",
+    "DELVEET1+2"    : "CSI dV Y",
+    "DELVEET1+4"    : "CSI dV Z",
+
+    "DELVEET"       : "CSI dV X",
+    "DELVEET+2"     : "CSI dV Y",
+    "DELVEET+4"     : "CSI dV Z",
+
+    "TCDH"          : "CDH TIME",
+    "DELVEET2"      : "CDH dV X",
+    "DELVEET2+2"    : "CDH dV Y",
+    "DELVEET2+4"    : "CDH dV Z",
+
+    "TTPI"          : "TPI TIME",
+    "DELVEET3"      : "TPI dV X",
+    "DELVEET3+2"    : "TPI dV Y",
+    "DELVEET3+4"    : "TPI dV Z",
+
+    "TPASS4"        : "TPF TIME",
+
+    "X789"          : "d BETA",
+    "X789+2"        : "d THETA",
+
+    "LASTYCMD"      : "RR T ERR",
+    "LASTXCMD"      : "RR S ERR",
+
+    "RGU"           : "RX GUIDE",
+    "RGU+2"         : "RY GUIDE",
+    "RGU+4"         : "RZ GUIDE",
+    "VGU"           : "VX GUIDE",
+    "VGU+2"         : "VY GUIDE",
+    "VGU+4"         : "VZ GUIDE",
+
+    "UNFC/2"        : "THRUST X",
+    "UNFC/2+2"      : "THRUST Y",
+    "UNFC/2+4"      : "THRUST Z",
+
+    "RM"            : "VHF R ##",
+    "DELTAR"        : "OFFSET P",
+
+    "LAT"           : "LAND LAT",
+    "LONG"          : "LAND LON",
+    "ALT"           : "LAND ALT",
+
+    "8NN"           : "MARK CNT",
+
+    "MARKDOWN"      : "S1 TIME",
+    "MARKDOWN+2"    : "S1 Y CDU",
+    "MARKDOWN+3"    : "S1 SHAFT",
+    "MARKDOWN+4"    : "S1 Z CDU",
+    "MARKDOWN+5"    : "S1 TRUNN",
+    "MARKDOWN+6"    : "S1 X CDU",
+
+    "MARK2DWN"      : "S2 TIME",
+    "MARK2DWN+2"    : "S2 Y CDU",
+    "MARK2DWN+3"    : "S2 SHAFT",
+    "MARK2DWN+4"    : "S2 Z CDU",
+    "MARK2DWN+5"    : "S2 TRUNN",
+    "MARK2DWN+6"    : "S2 X CDU",
 ]

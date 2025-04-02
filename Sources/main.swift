@@ -2,7 +2,7 @@
 //  main.swift
 //  ProcessDownLists
 //
-//  Created by Gavin Eadie on 2/6/25.
+//  Created by Gavin Eadie on Feb06/25.
 //
 
 /*╔══════════════════════════════════════════════════════════════════════════════════════════════════╗
@@ -63,10 +63,10 @@ do {
 
         if !missionList.contains(missionName) { continue }
 
-//      if missionName != "Luminary210" { continue }
+//      if missionName != "Zerlina56" { continue }
 //      if missionName != "Artemis072" { continue }
 //      if missionName != "Skylark048" { continue }
-//    if missionName != "Sundance306ish" { continue }
+//      if missionName != "Sundance306ish" { continue }
 
         let fileText = try String(contentsOf: fileURL, encoding: .utf8)
         let homeDirURL = fileManager.homeDirectoryForCurrentUser
@@ -81,7 +81,7 @@ do {
             defer { fileHandle.closeFile() }
             dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
 
-            fileLinesT = tidyFile(missionName, fileText)        // tidy this file ..
+            fileLinesT = tidyFile(missionName, fileText)            // tidy this file ..
             fileLinesT.forEach { print("\($0)") }
         }
 
@@ -139,7 +139,7 @@ do {
             defer { fileHandle.closeFile() }
             dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
 
-            fileLinesJ = joinFile(missionName)                                  // ..
+            fileLinesJ = joinFile(missionName)                      // ..
             fileLinesJ.forEach { print("\($0)") }
         }
 
@@ -161,7 +161,7 @@ do {
             defer { fileHandle.closeFile() }
             dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
 
-            fileLinesD = dataFile(missionName, fileLinesJ)                 // ..
+            fileLinesD = dataFile(missionName, fileLinesJ)          // ..
             fileLinesD.forEach { print("\($0)") }
         }
 
@@ -179,7 +179,7 @@ do {
             defer { fileHandle.closeFile() }
             dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
 
-            fileLinesX = xtraFile(missionName, fileLinesD)                 // ..
+            fileLinesX = xtraFile(missionName, fileLinesD)          // ..
             fileLinesX.forEach { print("\($0)") }
         }
 
@@ -188,17 +188,17 @@ do {
         print("xtraFile: Processed \(missionName).")
 
 /*─ SORT ─────────────────────────────────────────────────────────────────────────────────────────────*/
-        sortFile(missionName, fileLinesX)                                  // ..
+        sortFile(missionName, fileLinesX)                           // ..
 
-        print("sortFile: Processed \(missionName).")
+        print("sortFile: Processed \(missionName).")                // writes TSV files
 
 /*─ TELE ─────────────────────────────────────────────────────────────────────────────────────────────*/
-        var fileLinesY: [String] = []
-
-        fileLinesY = teleFile(missionName, fileLinesX)                      // ..
-        fileLinesY.forEach { print("\($0)") }
-
-        print("teleFile: Processed \(missionName).")
+//        var fileLinesY: [String] = []
+//
+//        fileLinesY = teleFile(missionName, fileLinesX)              // ..
+//        fileLinesY.forEach { print("\($0)") }
+//
+//        print("teleFile: Processed \(missionName).")
 
     }
 

@@ -2,7 +2,7 @@
 //  Data.swift
 //  ProcessDownLists
 //
-//  Created by Gavin Eadie on 2/24/25.
+//  Created by Gavin Eadie on Feb24/25.
 //
 
 /*╔══════════════════════════════════════════════════════════════════════════════════════════════════╗
@@ -29,7 +29,7 @@ import OSLog
   │                                                                                                  │
   │ .. drops prefixes "# " and "#*" -- they don't contribute data to the output ..                   │
   │                                                                                                  │
-  │ .. edits a whole pile of lines with typos and inconsistent usage ..                              │
+  │ .. edits a whole pile of lines with typos and inconsistent usage .. some mission dependent       │
   │                                                                                                  │
   │ .. parse lines to                                                                                │
   │               1DNADR   PIPTIME         # s (  114  )  58 # PIPTIME,+1                            │
@@ -118,7 +118,33 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
 
         line.replace("CDUXD,CDUXD,CDUZD,GARBAGE", with: "CDUXD,CDUYD,CDUZD,GARBAGE")    // Luminary210 ###TYPO
 
-        if line.contains("2DNADR CHANBKUP") { line.append("# CHANBKUP, +0...+3") }      // Luminary210
+        line.replace("TSIGHT,TSIGHT +1", with: "TSIGHT")                                // Luminary210
+
+        line.replace("MKTIME,+1,RM,+1", with: "MKTIME,RM+0,RM+1")                       // Sundance306ish
+
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆     → Colossus249 (77776) [Colossus-1A]                                                 APR01/25 ┆
+  ┆     → Manche45R2 (77776) [           ]                                                  APR01/25 ┆
+  ┆     → Artemis072 (77776) [           ]                                                  APR01/25 ┆
+  ┆     →         3DNADR ERRORX                            # ERRORX/Y/Z,THETADX/Y/Z                  ┆
+  ┆     →                                                  # 6 single words                          ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+        if ["Colossus249", "Manche45R2", "Artemis072", "Skylark048"].contains(missionName) {
+            line.replace("ERRORX/Y/Z,THETADX/Y/Z",
+                   with: "ERRORX,ERRORY,ERRORZ,THETADX,THETADY,THETADZ")
+        }
+
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆     → Luminary210 (77776) [           ]                                                 APR01/25 ┆
+  ┆     →         2DNADR CHANBKUP                          → CHANBKUP,FAILREG,+1,+2                  ┆
+  ┆     →                                                  # 4 single words                          ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+        if ["Luminary210"].contains(missionName) {
+            if line.contains("2DNADR CHANBKUP") {
+                line.append("           # CHANBKUP,FAILREG,+1,+2")
+            }
+        }
+
 
         if let match = line.firstMatch(of: long) {
 /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -273,6 +299,21 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ ### SPECIAL                                                                                      ┆
   ┆                                                                                                  ┆
+  ┆ .. a 2DNADR with three variables -- only happens once (one doubles and two singles)              ┆
+             2DNADR MKTIME       #   (040,042) # MKTIME,RM+0,RM+1"                                   ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+            if downCount == 2 && commentBits.count == 3 {
+
+                newLines.append(emitLine(order, "", "", String(commentBits[0]), .double, comment))
+                newLines.append(emitLine(order, "", "", String("RR_DIST"), .single, comment))
+                newLines.append(emitLine(order, "", "", String("RR_RATE"), .single, comment))
+
+                continue
+            }
+
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ ### SPECIAL                                                                                      ┆
+  ┆                                                                                                  ┆
   ┆ .. a 6DNADR with eight variables -- only happens once (four singles and four doubles)            ┆
   ┆     S68  6DNADR COMPNUMB     #   (034-044) # COMPNUMB,UPOLDMOD,UPVERB,UPCOUNT,UPBUFF+0...+7      ┆
   ┆     S68  6DNADR COMPNUMB     # c (034-044) # COMPNUMB,UPOLDMOD,UPVERB,UPCOUNT,UPBUFF+0...+7      ┆
@@ -303,8 +344,8 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
   ┆ .. a 4DNADR with eight variables -- only happens once (one double and six singles)               ┆
   ┆     S46  4DNADR AGSBUFF +7   #   (026-032) # AGSBUFF+7...+13D,GARBAGE                            ┆
   ┆                                                                                                  ┆
-//┆ .. a 4DNADR with eight variables -- only happens once (eight singles)                            ┆
-//┆     S46  4DNADR UPBUFF +12D  #   (052-058) # UPBUFF +12...+19                                    ┆
+  ┆ .. a 4DNADR with eight variables -- only happens once (eight singles)                            ┆
+  ┆     S46  4DNADR UPBUFF +12D  #   (052-058) # UPBUFF +12...+19                                    ┆
   ┆                                                                                                  ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
             if downCount == 4 && commentBits.count == 8 {
@@ -587,6 +628,11 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
                 }
 
                 logger.log("×2z \(bits)")
+
+            case 3:
+                for bit in bits { result.append(Substring(bit)) }
+
+                return result
 
             case 4:
                 if bits[1] == "+1" && bits[3] == "+1" {
