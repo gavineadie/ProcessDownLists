@@ -81,9 +81,9 @@ let lookupScaleFormatUnits = [
     "GAMMAEI"       : "360  : FMT_DP   :                     : TBD",
     "GSAV"          : "2    : FMT_DP   :                     : TBD",
     "HAPO"          : "B29  : FMT_DP   :                     : TBD",
+    "HPER"          : "B29  : FMT_DP   :                     : TBD",
     "HMEAS"         : "B28  : FMT_DP   : FormatHMEAS         : TBD",
     "HOLDFLAG"      : "B0   : FMT_DEC  :                     : TBD",
-    "HPER"          : "B29  : FMT_DP   :                     : TBD",
     "ID"            : "B0   : FMT_OCT  :                     : TBD",
     "IGC"           : "360  : FMT_DP   :                     : TBD",
     "IMODES"        : "B0   : FMT_OCT  :                     : TBD",
@@ -414,65 +414,23 @@ let lookupScaleFormatUnits = [
                                                                         //      degrees/360.
 ]
 
-func addCommentary(missionName: String, downList: String, itemIndex: Int) -> String? {
-
-    switch missionName {
-        case "Colossus249":
-            switch downList {
-                case "77773": return [
-                    100: """
-                            # comment before TIME2,TIME1
-                            """,
-                    9: "",
-                ][itemIndex]
-                case "77774": return [
-                    100: """
-                            # comment before TIME2,TIME1
-                            """,
-                    9: "",
-                ][itemIndex]
-                case "77775": return [
-                    100: """
-                            # comment before TIME2,TIME1
-                            """,
-                    9: "",
-                ][itemIndex]
-                case "77776": return [
-                    100: """
-                            # comment before TIME2,TIME1
-                            """,
-                    9: "",
-                ][itemIndex]
-                case "77777": return [
-                    100: """
-                            # comment before TIME2,TIME1
-                            """,
-                    9: "",
-                ][itemIndex]
-                default: return nil
-            }
-        default : break
-    }
-    return nil
-}
-
 let forceSingle = [
     "TANGNB",
     "RSBBQ",
     "OPTION",
-//  "LRTIMEDL",                 //### Apr01/25
+//  "LRTIMEDL",         //### Apr01/25
     "FC",
-    "CHANBKUP",                 //### Apr01/25
-//  "PIF",                      //### Apr01/25
+    "CHANBKUP",         //### Apr01/25
+//  "PIF",              //### Apr01/25
     "VHFCNT",
     "NN",
     "RM",
 ]
 
 let forceDouble = [
-    "AGSK",                     //### "K FACTOR" (GSOP)
-//  "CHANBKUP",                 //### Apr01/25
-    "PIF",                      //### Apr01/25
+    "AGSK",             //### "K FACTOR" (GSOP)
+//  "CHANBKUP",         //### Apr01/25
+    "PIF",              //### Apr01/25
     "DELV",
     "DELVEET1",
     "DSPTAB",
@@ -512,7 +470,7 @@ let forceDouble = [
     "TTPI",
     "RTARG",
     "TGO",
-//    "MARKTIME",       //### to be checked
+//  "MARKTIME",         //### to be checked
     "MASS",
     // 77773
     "LRVTIMDL",
@@ -520,7 +478,7 @@ let forceDouble = [
     "MKTIME",
     "HMEASDL",
     "HMEAS",
-    //    "RM",         // CM-77775 has single precision
+//  "RM",               // CM-77775 has single precision
     "UNFC/2",
     "TTF/8",
     "DELTAH",
@@ -536,12 +494,12 @@ let forceDouble = [
     "YNBSAV",
     "ZNBSAV",
 
-    "PIPTIME",                  //###
-    "T-OTHER",                  //###
-    "TALIGN",                   //###
-    "TEVENT",                   //###
-    "TIG",                      //###
-    "V-OTHER",                  //###
+    "PIPTIME",          //###
+    "T-OTHER",          //###
+    "TALIGN",           //###
+    "TEVENT",           //###
+    "TIG",              //###
+    "V-OTHER",          //###
 
     // CM77777
 
@@ -604,58 +562,27 @@ let missionLookUp = [
 //  "Comanche072" : "Apollo 13 CM - Colossus 2D (not flown)",
 //  "Manche72R3"  : "Apollo 13 CM - Colossus 2D",
     "Artemis072"  : "Apollo 15/16/17 CM - Colossus 3",
-    "Skylark048"  : "Skylab 2/3/4 CM",
+    "Skylark048"  : "Skylab 2/3/4 CM - Colossus 2E",                // R-693-Sec2-RevX
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆  Lunar Modules ..                                                                                ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
     "Sundance306ish" : "Apollo 9 LM (not flown)",
 //  "SundanceXXX" : "Apollo 9 LM",
-//  "Luminary069" : "Apollo 10 LM - Luminary 1",
+    "LUM69R2"     : "Apollo 10 LM - Luminary 1",                    //### Apr02/25
 //  "Luminary096" : "Apollo 11 LM - Luminary 1A (not flown)",
 //  "Luminary097" : "Apollo 11 LM - Luminary 1A (not flown)",
 //  "Luminary098" : "Apollo 11 LM - Luminary 1A (not flown)",
     "Luminary099" : "Apollo 11 LM - Luminary 1A",
-//  "Luminary116" : "Apollo 12 LM - Luminary 1B",
+    "Luminary116" : "Apollo 12 LM - Luminary 1B",
 //  "Luminary130" : "Apollo 13 LM - Luminary 1C (not flown)",
-//  "Luminary131" : "Apollo 13 LM - Luminary 1C",                   // R-567-sec2-rev8.pdf
-    "LM131R1"     : "Apollo 13 LM",
+//  "Luminary131" : "Apollo 13 LM - Luminary 1C",
+    "LM131R1"     : "Apollo 13 LM - Luminary 1C",                   // R-567-sec2-rev8.pdf
     "Zerlina56"   : "Experimental LM (not flown)",
     "Luminary163" : "Apollo 14 LM - Luminary 1D (not flown)",
 //  "Luminary173" : "Apollo 14 LM - Luminary 1D (not flown)",
-//  "Luminary178" : "Apollo 14 LM - Luminary 1D",
+    "Luminary178" : "Apollo 14 LM - Luminary 1D",                   //### Apr02/25
     "Luminary210" : "Apollo 15/16/16 LM - Luminary 1E"              // R-567-sec2-rev12.pdf
 ]
-
-
-func getMissionListURL(_ mission: String, _ list: String) -> String? {
-
-    return [
-        "LM131R1+77772": "https://www.ibiblio.org/apollo/NARA-SW/R-567-sec2-rev8.pdf#page=126",
-        "LM131R1+77773": "https://www.ibiblio.org/apollo/NARA-SW/R-567-sec2-rev8.pdf#page=120",
-        "LM131R1+77774": "https://www.ibiblio.org/apollo/NARA-SW/R-567-sec2-rev8.pdf#page=44",
-        "LM131R1+77775": "https://www.ibiblio.org/apollo/NARA-SW/R-567-sec2-rev8.pdf#page=114",
-        "LM131R1+77776": "https://www.ibiblio.org/apollo/NARA-SW/R-567-sec2-rev8.pdf#page=130",
-        "LM131R1+77777": "https://www.ibiblio.org/apollo/NARA-SW/R-567-sec2-rev8.pdf#page=108",
-    ][mission + "+" + list]
-
-}
-
-let formatLookup = [
-    "FMT_SP" : ".single",
-    "FMT_DP" : ".double",
-    "FMT_OCT" : ".oneOct",
-    "FMT_DEC" : ".oneDec",
-    "FMT_2OCT" : ".twoOct",
-    "FMT_2DEC" : ".twoDec",
-]
-
-let scaleLookup = [
-    "B25" : "x2²⁵",
-    "B18" : "0x40000",
-    "B15" : "0x8000",
-    "B7" : "x2⁷",
-]
-
 
 let downListIDs = [
 
@@ -687,86 +614,59 @@ let downListIDs = [
 
 ]
 
-let lookupGsopNames: [Substring : Substring] = [
-    "AGSK"          : "K-FACTOR",
-    "AIG"           : "CDU Y",
-    "AMG"           : "CDU Z",
-    "AOG"           : "CDU X",
-    "AOTCODE"       : "AOT CODE",
-    "BESTI"         : "STAR1 ID",
-    "BESTJ"         : "STAR2 ID",
-    "CDUS"          : "RR SHAFT",
-    "CDUT"          : "RR TRUN",
-    "CDUXD"         : "CDU XD",
-    "CDUYD"         : "CDU YD",
-    "CDUZD"         : "CDU ZD",
-    "DNRRANGE"      : "RR RANGE",
-    "DNRRDOT"       : "RR RRATE",
-    "DELLT4"        : "TF CONIC",
-    "REDOCTR"       : "REDO CTR",
-    "RLS"           : "L SITE X",
-    "RLS+2"         : "L SITE Y",
-    "RLS+4"         : "L SITE X",
-    "TRKMKCNT"      : "MARK CNT",
+#if false
+func getMissionListURL(_ mission: String, _ list: String) -> String? {
 
-    "TCSI"          : "CSI TIME",
-    "DELVEET1"      : "CSI dV X",
-    "DELVEET1+2"    : "CSI dV Y",
-    "DELVEET1+4"    : "CSI dV Z",
+    return [
+        "LM131R1+77772": "https://www.ibiblio.org/apollo/NARA-SW/R-567-sec2-rev8.pdf#page=126",
+        "LM131R1+77773": "https://www.ibiblio.org/apollo/NARA-SW/R-567-sec2-rev8.pdf#page=120",
+        "LM131R1+77774": "https://www.ibiblio.org/apollo/NARA-SW/R-567-sec2-rev8.pdf#page=44",
+        "LM131R1+77775": "https://www.ibiblio.org/apollo/NARA-SW/R-567-sec2-rev8.pdf#page=114",
+        "LM131R1+77776": "https://www.ibiblio.org/apollo/NARA-SW/R-567-sec2-rev8.pdf#page=130",
+        "LM131R1+77777": "https://www.ibiblio.org/apollo/NARA-SW/R-567-sec2-rev8.pdf#page=108",
+    ][mission + "+" + list]
 
-    "DELVEET"       : "CSI dV X",
-    "DELVEET+2"     : "CSI dV Y",
-    "DELVEET+4"     : "CSI dV Z",
+}
 
-    "TCDH"          : "CDH TIME",
-    "DELVEET2"      : "CDH dV X",
-    "DELVEET2+2"    : "CDH dV Y",
-    "DELVEET2+4"    : "CDH dV Z",
+func addCommentary(missionName: String, downList: String, itemIndex: Int) -> String? {
 
-    "TTPI"          : "TPI TIME",
-    "DELVEET3"      : "TPI dV X",
-    "DELVEET3+2"    : "TPI dV Y",
-    "DELVEET3+4"    : "TPI dV Z",
-
-    "TPASS4"        : "TPF TIME",
-
-    "X789"          : "d BETA",
-    "X789+2"        : "d THETA",
-
-    "LASTYCMD"      : "RR T ERR",
-    "LASTXCMD"      : "RR S ERR",
-
-    "RGU"           : "RX GUIDE",
-    "RGU+2"         : "RY GUIDE",
-    "RGU+4"         : "RZ GUIDE",
-    "VGU"           : "VX GUIDE",
-    "VGU+2"         : "VY GUIDE",
-    "VGU+4"         : "VZ GUIDE",
-
-    "UNFC/2"        : "THRUST X",
-    "UNFC/2+2"      : "THRUST Y",
-    "UNFC/2+4"      : "THRUST Z",
-
-    "RM"            : "VHF R ##",
-    "DELTAR"        : "OFFSET P",
-
-    "LAT"           : "LAND LAT",
-    "LONG"          : "LAND LON",
-    "ALT"           : "LAND ALT",
-
-    "8NN"           : "MARK CNT",
-
-    "MARKDOWN"      : "S1 TIME",
-    "MARKDOWN+2"    : "S1 Y CDU",
-    "MARKDOWN+3"    : "S1 SHAFT",
-    "MARKDOWN+4"    : "S1 Z CDU",
-    "MARKDOWN+5"    : "S1 TRUNN",
-    "MARKDOWN+6"    : "S1 X CDU",
-
-    "MARK2DWN"      : "S2 TIME",
-    "MARK2DWN+2"    : "S2 Y CDU",
-    "MARK2DWN+3"    : "S2 SHAFT",
-    "MARK2DWN+4"    : "S2 Z CDU",
-    "MARK2DWN+5"    : "S2 TRUNN",
-    "MARK2DWN+6"    : "S2 X CDU",
-]
+    switch missionName {
+        case "Colossus249":
+            switch downList {
+                case "77773": return [
+                    100: """
+                            # comment before TIME2,TIME1
+                            """,
+                    9: "",
+                ][itemIndex]
+                case "77774": return [
+                    100: """
+                            # comment before TIME2,TIME1
+                            """,
+                    9: "",
+                ][itemIndex]
+                case "77775": return [
+                    100: """
+                            # comment before TIME2,TIME1
+                            """,
+                    9: "",
+                ][itemIndex]
+                case "77776": return [
+                    100: """
+                            # comment before TIME2,TIME1
+                            """,
+                    9: "",
+                ][itemIndex]
+                case "77777": return [
+                    100: """
+                            # comment before TIME2,TIME1
+                            """,
+                    9: "",
+                ][itemIndex]
+                default: return nil
+            }
+        default : break
+    }
+    return nil
+}
+#endif

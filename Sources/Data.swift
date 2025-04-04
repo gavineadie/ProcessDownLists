@@ -122,6 +122,8 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
 
         line.replace("MKTIME,+1,RM,+1", with: "MKTIME,RM+0,RM+1")                       // Sundance306ish
 
+        line.replace("HAPOX,+1,HPERX,+1", with: "HAPO,+1,HPER,+1")                      // Skylark048, Artemis072
+
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆     → Colossus249 (77776) [Colossus-1A]                                                 APR01/25 ┆
   ┆     → Manche45R2 (77776) [           ]                                                  APR01/25 ┆
@@ -161,9 +163,10 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
             let oprnd = match.2.trimmingCharacters(in: .whitespaces)
             let range = String(match.3)
             let comment = match.4
-                .replacingOccurrences(of: "DATA", with: "")                     // ← SPECIAL CASE
+                .replacingOccurrences(of: "DATA", with: "")             // ← SPECIAL CASE
                 .replacingOccurrences(of: "CHANNELS 76(GARBAGE),77", with: "GARBAGE,CHANNEL77")
-                .replacingOccurrences(of: "APOGEE AND PERIGEE FROM R30", with: "HAPO,HPER")
+                .replacingOccurrences(of: "APOGEE AND PERIGEE FROM R30   (28-29)",
+                                      with: "HAPO,HPER")                //###Apr03/25: Manche45R2
                 .replacingOccurrences(of: "CSI DELTA VELOCITY COMPONENTS", with: "DELVEET1 +0...+5")
                 .replacingOccurrences(of: "CDH DELTA VELOCITY COMPONENTS", with: "DELVEET2 +0...+5")
                 .replacingOccurrences(of: "CDH AND CSI TIME", with: "TCDH +0...+3")

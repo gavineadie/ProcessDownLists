@@ -20,8 +20,9 @@ let workDirURL = homeDirURL.appendingPathComponent("Developer/virtualagc",
 let resourceKeys: [URLResourceKey] = [.nameKey, .isDirectoryKey]
 
 let missionList = [
-    "Artemis072", "Colossus249", "Manche45R2", "Skylark048",
-    "LM131R1", "Luminary099", "Luminary163", "Luminary210", "Sundance306ish", "Zerlina56"
+    "Colossus249", "Manche45R2", "Artemis072", "Skylark048",
+    "Sundance306ish", "LUM69R2", "Luminary099", "LM131R1", "Zerlina56",
+    "Luminary163", "Luminary178", "Luminary210",
 ]
 
 var fileURLs: [URL] = []
@@ -193,12 +194,9 @@ do {
         print("sortFile: Processed \(missionName).")                // writes TSV files
 
 /*─ TELE ─────────────────────────────────────────────────────────────────────────────────────────────*/
-//        var fileLinesY: [String] = []
-//
-//        fileLinesY = teleFile(missionName, fileLinesX)              // ..
-//        fileLinesY.forEach { print("\($0)") }
-//
-//        print("teleFile: Processed \(missionName).")
+        teleFile(missionName, fileLinesX)                           // ..
+
+        print("teleFile: Processed \(missionName).")                // writes Swift files
 
     }
 

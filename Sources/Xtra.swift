@@ -107,7 +107,6 @@ func xtraFile(_ missionName: String, _ fileLines: [String]) -> [String] {
         }
 
         if ["FMT_2OCT", "FMT_2DEC", "FMT_DP"].contains(columnsThis[3]) {
-//            if columnsNext[0].starts(with: "#") { continue }
             if Int(columnsNext[0])! - Int(columnsThis[0])! == 2 { continue }
         }
 
