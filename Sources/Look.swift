@@ -8,6 +8,10 @@
 /*╔══════════════════════════════════════════════════════════════════════════════════════════════════╗
   ║ TO BE FIXED:                                                                                     ║
   ║                                                                                                  ║
+  ║     CDUT        The optics trunnion angle CDU, scaled (degrees-19.7754)/45 (two's complement).   ║
+  ║                 The angle varies from -19.775° to +45°.                                          ║
+  ║     PIPTIME     units = centiSecond (not "oneOct"?)                                              ║
+  ║                                                                                                  ║
   ╚══════════════════════════════════════════════════════════════════════════════════════════════════╝*/
 
 import Foundation
@@ -18,11 +22,19 @@ import Foundation
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
 
 let lookupScaleFormatUnits = [
+    "RN"            : "B29  : FMT_DP   :                     : m",      // STATE VECTOR (POS)
+    "VN"            : "B7   : FMT_DP   :                     : m/cS",   // STATE VECTOR (VEL)
+    "PIPTIME"       : "B28  : FMT_DP   :                     : cSec",   // STATE VECTOR (TIME)
+
+    "CDUX"          : "360  : FMT_SP   :                     : deg",    // outer gimbal
+    "CDUY"          : "360  : FMT_SP   :                     : deg",    // inner gimbal
+    "CDUZ"          : "360  : FMT_SP   :                     : deg",    // middle gimbal
+
     "8NN"           : "B0   : FMT_DEC  :                     : TBD",
     "ADOT"          : "450  : FMT_DP   : FormatAdotsOrOga    : TBD",
     "AGSK"          : "B28  : FMT_DP   :                     : TBD",
     "AIG"           : "360  : FMT_SP   :                     : TBD",
-    "AK"            : "180  : FMT_SP   :                     : TBD",
+    "AK"            : "180  : FMT_SP   :                     : TBD",    // roll,pitch,yaw for FDAI display
     "ALFA/180"      : "180  : FMT_SP   :                     : TBD",
     "ALPHA"         : "90   : FMT_SP   :                     : TBD",
     "ALT"           : "B29  : FMT_DP   :                     : TBD",
@@ -36,9 +48,6 @@ let lookupScaleFormatUnits = [
     "CADRFLSH"      : "B0   : FMT_OCT  :                     : TBD",
     "CDUS"          : "360  : FMT_SP   :                     : TBD",
     "CDUT"          : "B0   : FMT_OCT  :                     : TBD",
-    "CDUX"          : "360  : FMT_SP   :                     : deg",
-    "CDUY"          : "360  : FMT_SP   :                     : deg",
-    "CDUZ"          : "360  : FMT_SP   :                     : deg",
     "CENTANG"       : "360  : FMT_DP   :                     : TBD",
     "CHAN"          : "B0   : FMT_OCT  :                     : TBD",
     "CM EPOCH"      : "B18  : FMT_DP   : FormatEpoch         : TBD",
@@ -57,7 +66,7 @@ let lookupScaleFormatUnits = [
     "DELLT4"        : "B28  : FMT_DP   :                     : TBD",
     "DELTAH"        : "B24  : FMT_DP   :                     : TBD",
     "DELTAR"        : "360  : FMT_DP   :                     : TBD",
-    "RSP-RREC"      : "360  : FMT_DP   :                     : TBD",        // == DELTAR
+    "RSP-RREC"      : "360  : FMT_DP   :                     : TBD",    // == DELTAR
     "DELV"          : "B14  : FMT_DP   : FormatDELV          : TBD",
     "DELVEET"       : "B7   : FMT_DP   :                     : TBD",
     "DELVEET1"      : "B7   : FMT_DP   :                     : TBD",
@@ -75,7 +84,7 @@ let lookupScaleFormatUnits = [
     "DSPTAB"        : "B0   : FMT_2OCT :                     : TBD",
     "ECSTEER"       : "4    : FMT_SP   :                     : TBD",
     "ELEV"          : "360  : FMT_DP   :                     : TBD",
-    "ERROR"         : "180  : FMT_SP   :                     : TBD",        // X, Y, Z
+    "ERROR"         : "180  : FMT_SP   :                     : TBD",    // X, Y, Z
     "FAILREG"       : "B0   : FMT_OCT  :                     : TBD",
     "FC"            : "B14  : FMT_SP   : FormatGtc           : TBD",
     "GAMMAEI"       : "360  : FMT_DP   :                     : TBD",
@@ -110,13 +119,13 @@ let lookupScaleFormatUnits = [
     "LRXCDUDL"      : "360  : FMT_SP   :                     : TBD",
     "LRYCDUDL"      : "360  : FMT_SP   :                     : TBD",
     "LRZCDUDL"      : "360  : FMT_SP   :                     : TBD",
-    "MARK2DWN"      : "B28  : FMT_DP   :                     : TBD",        //###
+    "MARK2DWN"      : "B28  : FMT_DP   :                     : TBD",    //###
     "MARK2DWN+2"    : "360  : FMT_USP  :                     : TBD",
     "MARK2DWN+3"    : "360  : FMT_USP  :                     : TBD",
     "MARK2DWN+4"    : "360  : FMT_USP  :                     : TBD",
     "MARK2DWN+5"    : "360  : FMT_USP  :                     : TBD",
     "MARK2DWN+6"    : "45   : FMT_SP   : FormatOTRUNNION     : TBD",
-    "MARKDOWN"      : "B28  : FMT_DP   :                     : TBD",        //###
+    "MARKDOWN"      : "B28  : FMT_DP   :                     : TBD",    //###
     "MARKDOWN+2"    : "360  : FMT_USP  :                     : TBD",
     "MARKDOWN+3"    : "360  : FMT_USP  :                     : TBD",
     "MARKDOWN+4"    : "360  : FMT_USP  :                     : TBD",
@@ -125,19 +134,18 @@ let lookupScaleFormatUnits = [
     "MARKTIME"      : "B28  : FMT_DP   :                     : TBD",
     "MGC"           : "360  : FMT_DP   :                     : TBD",
     "MKTIME"        : "B28  : FMT_DP   :                     : TBD",
-    "NEGTORK"       : "32   : FMT_DEC  :                     : TBD",          // P, U, V
+    "NEGTORK"       : "32   : FMT_DEC  :                     : TBD",    // P, U, V
     "NN"            : "B0   : FMT_DEC  :                     : TBD",
     "OFFSET"        : "B29  : FMT_DP   :                     : TBD",
     "OGC"           : "360  : FMT_DP   :                     : TBD",
     "OMEGA"         : "45   : FMT_SP   :                     : TBD",
-    "OPTION"        : "B0   : FMT_OCT  :                     : TBD",          // 1, 2
+    "OPTION"        : "B0   : FMT_OCT  :                     : TBD",    // 1, 2
     "OPTMODES"      : "B0   : FMT_OCT  :                     : TBD",
     "PACTOFF"       : "B14  : FMT_SP   : FormatXACTOFF       : TBD",
     "PAXERR1"       : "360  : FMT_SP   :                     : TBD",
     "PCMD"          : "B14  : FMT_SP   : FormatXACTOFF       : TBD",
-    "PIPA"          : "B14  : FMT_SP   :                     : TBD",          // X, Y, Z
-    "PIPTIME"       : "B28  : FMT_DP   :                     : TBD",
-    "POSTORK"       : "32   : FMT_DEC  :                     : TBD",          // P, U, V
+    "PIPA"          : "B14  : FMT_SP   :                     : TBD",    // X, Y, Z
+    "POSTORK"       : "32   : FMT_DEC  :                     : TBD",    // P, U, V
     "PREL"          : "1800 : FMT_SP   :                     : TBD",
     "PSEUDO55"      : "B14  : FMT_SP   : FormatGtc           : TBD",
     "QREL"          : "1800 : FMT_SP   :                     : TBD",
@@ -154,7 +162,6 @@ let lookupScaleFormatUnits = [
     "RM"            : "100  : FMT_DEC  :                     : TBD",
     "RR_DIST"       : "B0   : FMT_SP   :                     : TBD",    //###Apr01/25
     "RR_RATE"       : "B0   : FMT_SP   :                     : TBD",    //###Apr01/25
-    "RN"            : "B29  : FMT_DP   :                     : TBD",
     "ROLLC"         : "360  : FMT_SP   :                     : TBD",
     "ROLLTM"        : "180  : FMT_SP   :                     : TBD",
     "RRATE"         : "B7   : FMT_DP   :                     : TBD",
@@ -174,11 +181,11 @@ let lookupScaleFormatUnits = [
     "TET"           : "B28  : FMT_DP   :                     : TBD",
     "TEVENT"        : "B28  : FMT_DP   :                     : TBD",
     "TGO"           : "B28  : FMT_DP   :                     : TBD",
-    "THETAD"        : "360  : FMT_SP   :                     : deg",        //### Luminary099
+    "THETAD"        : "360  : FMT_SP   :                     : deg",    //### Luminary099
     "THETADX"       : "360  : FMT_SP   :                     : deg",
     "THETADY"       : "360  : FMT_SP   :                     : deg",
     "THETADZ"       : "360  : FMT_SP   :                     : deg",
-    "THETEDZ"       : "360  : FMT_SP   :                     : deg",        //### Artemis072
+    "THETEDZ"       : "360  : FMT_SP   :                     : deg",    //### Artemis072
     "TIG"           : "B28  : FMT_DP   :                     : TBD",
     "TIME"          : "B28  : FMT_DP   :                     : TBD",
     "TLAND"         : "B28  : FMT_DP   :                     : TBD",
@@ -202,7 +209,6 @@ let lookupScaleFormatUnits = [
     "VHFTIME"       : "B28  : FMT_DP   :                     : TBD",
     "VIO"           : "B7   : FMT_DP   :                     : TBD",
     "VMEAS"         : "B28  : FMT_DP   :                     : TBD",
-    "VN"            : "B7   : FMT_DP   :                     : TBD",
     "VPRED"         : "B7   : FMT_DP   :                     : TBD",
     "VSELECT"       : "B0   : FMT_DEC  :                     : TBD",
     "WBODY"         : "450  : FMT_DP   : FormatAdotsOrOga    : TBD",
@@ -311,7 +317,7 @@ let lookupScaleFormatUnits = [
 
     // Sundance306ish (unique)                                          (annotations from ERASABLE_ASSIGNMENTS.agc)
 
-    "MASS"          : "B24 :  FMT_DP   :                     : kg",     // EQUALS   GDT/2   +6      # B(2)
+    "MASS"          : "B24 :  FMT_DP   :                     : Kg",     // EQUALS   GDT/2   +6      # B(2)
 
     "SUMRATEQ"      : "90  :  FMT_DEC  : FormatRequired      : r/S",    //                          # SUM OF UN-WEIGHTED JETRATE TERMS
     "SUMRATER"      : "90  :  FMT_DEC  : FormatRequired      : r/S",    //                          # SCALED AT PI/4 RADIANS/SECOND
@@ -448,15 +454,19 @@ let forceDouble = [
     "UPBUFF",
     "VGTIG",
     "VN",
+
     // 77775
+
     "CENTANG",
     "DELVSLV",
     "DELVTPF",
     "RTHETA",
     "RDOTM",
     "SVEC",
-//    "DHDSP",
+//  "DHDSP",
+
     // 77774
+
     "DELLT4",
     "ELEV",
     "GDT/2",            // Sundance306ish Apr01/25
@@ -472,7 +482,9 @@ let forceDouble = [
     "TGO",
 //  "MARKTIME",         //### to be checked
     "MASS",
+
     // 77773
+
     "LRVTIMDL",
     "VMEAS",
     "MKTIME",
@@ -490,7 +502,9 @@ let forceDouble = [
     "TTOGO",
     "ZDOTD",
     "X789",
+
     //77772
+
     "YNBSAV",
     "ZNBSAV",
 

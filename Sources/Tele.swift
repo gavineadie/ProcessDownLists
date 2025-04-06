@@ -97,7 +97,7 @@ func teleFile(_ missionName: String, _ fileLines: [String]) {
                 let index = Int(match.1)!
                 let label = leftPad(String(match.2), 11)
                 let units = match.6 == "TBD" ? "" : "\"" + match.6 + "\", "
-                let scale = leftPad(scaleLookup[String(match.3)] ?? String(match.3), 11-units.count) + ","
+                let scale = leftPad(scaleLookup[String(match.3)] ?? String(match.3), 12-units.count) + ","
 //                let scale = String(match.3) == "B0" ? "            " :
 //                        leftPad(scaleLookup[String(match.3)] ?? String(match.3), 11-units.count) + ","
                 let format = match.4
@@ -185,34 +185,34 @@ fileprivate let scaleLookup = [
     "B29" : "x2²⁹",
     "B28" : "x2²⁸",
     "B27" : "x2²⁷",
-    "B26" : "x2²⁶",
+//  "B26" : "x2²⁶",
     "B25" : "x2²⁵",
     "B24" : "x2²⁴",
 
-    "B23" : "x2²³",
-    "B22" : "x2²²",
-    "B21" : "x2²¹",
-    "B20" : "x2²⁰",
-    "B19" : "x2¹⁹",
-    "B18" : "0x40000",
-    "B17" : "x2¹⁷",
+//  "B23" : "x2²³",
+//  "B22" : "x2²²",
+//  "B21" : "x2²¹",
+//  "B20" : "x2²⁰",
+//  "B19" : "x2¹⁹",
+    "B18" : "x2¹⁹",
+    "B17" : "x2¹⁵",
     "B16" : "x2¹⁶",
 
     "B15" : "0x8000",
     "B14" : "x2¹⁴",
-    "B13" : "x2¹³",
-    "B12" : "x2¹²",
-    "B11" : "x2¹¹",
+//  "B13" : "x2¹³",
+//  "B12" : "x2¹²",
+//  "B11" : "x2¹¹",
     "B10" : "x2¹⁰",
     "B9"  : "x2⁹",
-    "B8"  : "x2⁸",
+//  "B8"  : "x2⁸",
 
     "B7"  : "x2⁷",
     "B6"  : "x2⁶",
     "B5"  : "x2⁵",
-    "B4"  : "x2⁴",
-    "B3"  : "8",
-    "B2"  : "4",
+//  "B4"  : "x2⁴",
+//  "B3"  : "8",
+//  "B2"  : "4",
     "B1"  : "2",
     "B0"  : "1"
 ]

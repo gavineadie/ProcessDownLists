@@ -65,7 +65,7 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
         line.replace("# FORMERLY PIF", with: "")
 
         line.replace("DISPLAY TABLES", with: "DSPTAB +0...+11")
-        line.replace("DSPTAB TABLES", with: "DSPTAB +0...+11")
+        line.replace("DSPTAB TABLES",  with: "DSPTAB +0...+11")
 
         line.replace("FLAGWRD0 THRU FLAGWRD9", with: "STATE +0...+9")               // Colossus237
         line.replace("FLAGWRDS 10 AND 11", with: "STATE +10...+11")                 // Colossus237
@@ -76,12 +76,12 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
         line.replace("CSTEER,+1", with: "CSTEER,GARBAGE")                               // CM-77774
         line.replace("ECSTEER,+1", with: "ECSTEER,GARBAGE")                             // CM-77775
 
-        line.replace("DELV,+1,...+4,+5", with: "DELV +0...+5")                          // CM-77774
+        line.replace("DELV,+1,...+4,+5",    with: "DELV +0...+5")                       // CM-77774
         line.replace("DELVEET3,+1,...+4,+5", with: "DELVEET3 +0...+5")                  // CM-77775
-        line.replace("DELVSLV,+1...+4,+5", with: "DELVSLV +0...+5")                     // CM-77775
+        line.replace("DELVSLV,+1...+4,+5",   with: "DELVSLV +0...+5")                   // CM-77775
 
         line.replace("LAT(SPL),+1,LNG(SPL),+1", with: "LAT(SPL),+1,LNG(SPL),+1")        // CM-77776
-        line.replace("LAT(SPL),LNG(SPL),+1", with: "LAT(SPL),+1,LNG(SPL),+1")
+        line.replace("LAT(SPL),LNG(SPL),+1",    with: "LAT(SPL),+1,LNG(SPL),+1")
 
         line.replace("MARKDOWN,+1...+5,+6,GARBAGE", with: "MARKDOWN,+0...+5,+6,GARBAGE") // MARKTIME STAR 1
         line.replace("MARK2DWN,+1...+5,+6", with: "MARK2DWN,+0...+5,+6,GARBAGE")         // MARKTIME STAR 2
@@ -94,29 +94,31 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
         line.replace("RLS,+1,...+4,+5", with: "RLS +0...+5")                            // CM-77773
 
         line.replace("RTARG,+1,+2,...+5", with: "RTARG +0...+5")                        // CM-77774
-        line.replace("RTARG,+1...+4,+5", with: "RTARG +0...+5")                         // CM-77775
-        line.replace("RTARG,+1...+5", with: "RTARG +0...+5")
+        line.replace("RTARG,+1...+4,+5",  with: "RTARG +0...+5")                        // CM-77775
+        line.replace("RTARG,+1...+5",     with: "RTARG +0...+5")
 
-        line.replace("TIME/1", with: "TIME2,TIME1")
+        line.replace("TIME/1",  with: "TIME2,TIME1")
         line.replace("TIME2/1", with: "TIME2,TIME1")
 
-        line.replace("UPBUFF,+1...+10,+11", with: "UPBUFF +0...+11")                    // CM-77776
-        line.replace("UPBUFF+0,+1...+10,+11D", with: "UPBUFF +0...+11")
+        line.replace("UPBUFF,+1...+10,+11",      with: "UPBUFF +0...+11")               // CM-77776
+        line.replace("UPBUFF+0,+1...+10,+11D",   with: "UPBUFF +0...+11")
         line.replace("UPBUFF+12,+13...+18,+19D", with: "UPBUFF +12...+19")
-        line.replace("UPBUFF+12,13...+18,19D", with: "UPBUFF +12...+19")                // CM-77776
+        line.replace("UPBUFF+12,13...+18,19D",   with: "UPBUFF +12...+19")              // CM-77776
 
-        line.replace("VGTIG,...+5", with: "VGTIGX,VGTIGY,VGTIGZ")
+        line.replace("VGTIG,...+5",       with: "VGTIGX,VGTIGY,VGTIGZ")
         line.replace("VGTIG,+1,...+4,+5", with: "VGTIGX,VGTIGY,VGTIGZ")
-        line.replace("VGTIGX,Y,Z", with: "VGTIGX,VGTIGY,VGTIGZ")
+        line.replace("VGTIGX,Y,Z",        with: "VGTIGX,VGTIGY,VGTIGZ")
 
         line.replace("VGVECT +0...+5", with: "VG VEC X,VG VEC Y,VG VEC Z")
-        line.replace("VGVECT+0...+5", with: "VG VEC X,VG VEC Y,VG VEC Z")
+        line.replace("VGVECT+0...+5",  with: "VG VEC X,VG VEC Y,VG VEC Z")
 
         line.replace("DVOTAL,+1", with: "DVTOTAL,+1")                                   // Skylark048 ###TYPO
 
+        line.replace("APOGEE AND PERIGEE FROM R30   (28-29)", with: "HAPO,HPER")        //###Apr03/25: Manche45R2
         line.replace("PACTOFF, YACTOFF                 (30)", with: "PACTOFF,YACTOFF")  // Skylark048 ###MAR12
 
-        line.replace("CDUXD,CDUXD,CDUZD,GARBAGE", with: "CDUXD,CDUYD,CDUZD,GARBAGE")    // Luminary210 ###TYPO
+        line.replace("CDUXD,CDUXD,CDUZD,GARBAGE", with: "CDUXD,CDUYD,CDUZD,GARBAGE")    // Luminary099 ###TYPO
+        line.replace("# FC,+1", with: "# FC,GARBAGE")                                   // Luminary210
 
         line.replace("TSIGHT,TSIGHT +1", with: "TSIGHT")                                // Luminary210
 
@@ -165,8 +167,6 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
             let comment = match.4
                 .replacingOccurrences(of: "DATA", with: "")             // ← SPECIAL CASE
                 .replacingOccurrences(of: "CHANNELS 76(GARBAGE),77", with: "GARBAGE,CHANNEL77")
-                .replacingOccurrences(of: "APOGEE AND PERIGEE FROM R30   (28-29)",
-                                      with: "HAPO,HPER")                //###Apr03/25: Manche45R2
                 .replacingOccurrences(of: "CSI DELTA VELOCITY COMPONENTS", with: "DELVEET1 +0...+5")
                 .replacingOccurrences(of: "CDH DELTA VELOCITY COMPONENTS", with: "DELVEET2 +0...+5")
                 .replacingOccurrences(of: "CDH AND CSI TIME", with: "TCDH +0...+3")

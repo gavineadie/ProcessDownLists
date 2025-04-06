@@ -98,7 +98,7 @@ func sortFile(_ missionName: String, _ fileLines: [String]) {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ put all the subfile lines back together and write them to "ddd-id-mission.tsv" ..                ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-        content += fileLines[lineRange.lowerBound+3...lineRange.upperBound].joined(separator: "\n")
+        content += fileLines[lineRange.lowerBound+3...lineRange.upperBound].joined(separator: "\n") + "\n"
 
         if let tsvDirectory = fileManager.urls(for: .desktopDirectory,
                                                in: .userDomainMask).first {
