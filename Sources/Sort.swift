@@ -94,7 +94,7 @@ func sortFile(_ missionName: String, _ fileLines: [String]) {
         if let tsvDirectory = fileManager.urls(for: .desktopDirectory,
                                                in: .userDomainMask).first {
             let fileURL = tsvDirectory
-                .appendingPathComponent("downlist")
+                .appendingPathComponent("Downlist")
                 .appendingPathComponent("tsv")
                 .appendingPathComponent("ddd-\(downListID)-\(missionName).tsv")
 

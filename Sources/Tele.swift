@@ -131,7 +131,7 @@ func teleFile(_ missionName: String, _ fileLines: [String]) {
         if let swiftDirectory = fileManager.urls(for: .desktopDirectory,
                                                in: .userDomainMask).first {
             let fileURL = swiftDirectory
-                .appendingPathComponent("downlist")
+                .appendingPathComponent("Downlist")
                 .appendingPathComponent("swift")
                 .appendingPathComponent("\(missionName)_\(downListID).swift")
 
