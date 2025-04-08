@@ -35,19 +35,14 @@ func xtraFile(_ missionName: String, _ fileLines: [String]) -> [String] {
     for line in fileLines {
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ keep "##" lines ..                                                                               ┆
+  ┆ keep lines with no tabs ..                                                                       ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-        if line.starts(with: "##") { newLines.append(line); order = 0; continue }
-
         var columns = line.split(separator: "\t")
-        guard columns.count == 3 else { fatalError("too many columns in \(line)") }
 
-/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ insert "100 TIME" after "ID/SYNC"                                                                ┆
-  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-//        if columns[0].trimmingCharacters(in: .whitespacesAndNewlines) == "2" {
-//            newLines.append("100\tTIME\tB28\tFMT_DP\t\tTBD")
-//        }
+        if columns.count == 1 { newLines.append(line); continue }
+
+        guard columns.count == 3 else { fatalError("column count not 3 in \(line)") }
+
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ corrections ..                                                                                   ┆
   ┆     style:  remove "+0" on variables                                                             ┆
@@ -97,6 +92,7 @@ func xtraFile(_ missionName: String, _ fileLines: [String]) -> [String] {
         let columnsThis = testLines[i].split(separator: "\t")
         let columnsNext = testLines[i+1].split(separator: "\t")
 
+        if columnsThis.count == 1 || columnsNext.count == 1 { continue } 
         if columnsThis[0].starts(with: "#") { continue }
         if columnsNext[0].starts(with: "#") { continue }
         if Int(columnsNext[0])! == 0 { continue }

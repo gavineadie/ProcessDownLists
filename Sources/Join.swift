@@ -21,6 +21,10 @@ import Foundation
   │     ## Apollo 13 LM [LM131R1] -- Coast and Align (LM-77777)                                      │
   │     ## ======================================================================================    │
   │                                                                                                  │
+  │ .. add "title" line ..                                                                  ###APR07 │
+  │                                                                                                  │
+  │     Coast and Align                                                                              │
+  │                                                                                                  │
   │ .. add ID,SYNC line which is not in the AGC code                                                 │
   │                                                                                                  │
   │                   1DNADR 77777                        #   (  000  )   1 # ID,SYNC                │
@@ -44,13 +48,12 @@ func joinFile(_ missionName: String) -> [String] {
   ┆     ## ======================================================================================    ┆
   ┆     ## Apollo 13 LM [LM131R1] -- Coast and Align (LM-77777)                                      ┆
   ┆     ## ======================================================================================    ┆
+  ┆     Coast and Align                                                                              ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
         newLines.append("## ".padding(toLength: 89, withPad: "=", startingAt: 0))
         newLines.append("## \(missionLookUp[missionName] ?? "?") [\(missionName)] -- \(downListName)")
         newLines.append("## ".padding(toLength: 89, withPad: "=", startingAt: 0))
-        newLines.append("")
-
-        offset = 2
+        newLines.append("\(downListName.dropLast(11))")
 
         guard lines.isNotEmpty else {
             newLines.append("\(label.padTo10()) [MISSING]")
@@ -64,6 +67,7 @@ func joinFile(_ missionName: String) -> [String] {
   ┆     1 ...     11 ...                              47 ...                                         ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
         newLines.append("\(" ".padTo10())\("1DNADR \(downListCode)".padTo36())#   (  000  )   1 # ID,SYNC")
+        offset = 2
 
         for line in lines {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮

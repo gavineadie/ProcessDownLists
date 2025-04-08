@@ -613,7 +613,7 @@ let downListIDs = [
     "LMAGSIDL" : "AGS Initialization and Update (LM-77776)",
     "LMCSTADL" : "Coast and Align (LM-77777)",
 
-    // Zerlina onwards
+    // Zerlina onwards (LM)
 
     "SURFALIN" : "Surface Align (LM-77772)",
     "DESC/ASC" : "Descent and Ascent (LM-77773)",
@@ -624,7 +624,7 @@ let downListIDs = [
 
     // Sundance306ish
 
-    "LMPWRDDL" : "Powered (LM-77774)",
+    "LMPWRDDL" : "Orbital Maneuvers (LM-77774)",
 
 ]
 
