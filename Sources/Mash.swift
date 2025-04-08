@@ -2,139 +2,135 @@
 //  Mash.swift
 //  ProcessDownLists
 //
-//  Created by Gavin Eadie on 2/9/25.
+//  Created by Gavin Eadie on Feb09/25.
 //
 
-import Foundation
+/*╔══════════════════════════════════════════════════════════════════════════════════════════════════╗
+  ║ TO BE FIXED:                                                                                     ║
+  ║                                                                                                  ║
+  ╚══════════════════════════════════════════════════════════════════════════════════════════════════╝*/
 
-func mashFile(_ fileName: String, _ fileLines: [String]) -> [String] {
+import Foundation
+import RegexBuilder
 
 /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
-  │ process the lines of the file to isolate downlists ..                                            │
+  │ .. reads from "*.tidy" file and writes to "*.mash" [NOTE: The output file is not used]           │
+  │╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌│
+  │                                                                                                  │
+  │ .. process the lines of the file to isolate downlists, snapshots and commmon data.  These are    │
+  │    collected and used by the "Join" process ..                                                   │
+  │                                                                                                  │
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
 
+func mashFile(_ missionName: String, _ fileLines: [String]) -> [String] {
+
     var inDownlist = false
-    var inCopylist = false
     var inSnapshot = false
 
     var downListLabel = ""
-    var copyListLabel = ""
+    var copyListLabels: [String] = []
 
+    var previousLine = ""
     var newLines: [String] = []
 
-    for lineIndex in 0..<fileLines.count {
+    for line in fileLines {
 
-        let line = fileLines[lineIndex]
-
+        if line.contains(dList) {                                       // "-- CONTROL LIST --"
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ we are starting a new downlist ..                                                                ┆
+  ┆ we are starting a new downlist .. emit:                                                          ┆
+  ┆                                                                                                  ┆
+  ┆     "# CSM POWERED FLIGHT DOWNLIST  -----------------------------------------"                   ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-        if line.contains(#/--\s*CONTROL LIST\s*--/#) {
             inDownlist = true
-
-            let line2 = "\((fileLines[lineIndex-1].uppercased() + "  ").padTo72("-"))"
-            newLines.append("\n" + line2)
+            newLines.append("\n\((previousLine.uppercased() + "  ").padTo72("-"))")
         }
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ match assembler code                                                                             ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-        let (label, opcode, comment) = doMatch(line)
+        let (label, instruction, comment) = matchAssembler(line)
         
             if inDownlist {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ "# ...................                          transfer a comment as is ..                      ┆
+  ┆ "# ...................                          ditch comments ..                                ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-                if line.starts(with: "#") {
-                    newLines.append("#> \(line)")
+                if line.starts(with: "#") { previousLine = line; continue }
 
-                    continue
-                }
-
+                if let match = instruction.firstMatch(of: equals) {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ "LABEL  EQUALS  ADDRESS         «COMMENT»"      make a symbol connection (ADDRESS ← LABEL)       ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-                if let match = opcode.firstMatch(of: #/EQUALS\s+(\w+)/#) {
                     newLines.append("E> \(label.padTo10()) EQUALS \(match.1)")
-
                     equalities[label] = String(match.1).trimmingCharacters(in: .whitespaces)
-
                     continue                                // no list actions required
                 }
 
+                if let match = instruction.firstMatch(of: genadr) {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ "LABEL  GENADR  ADDRESS         «COMMENT»"      make a symbol connection (ADDRESS ← LABEL)       ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-                if let match = opcode.firstMatch(of: #/GENADR\s+(\w+)/#) {
                     newLines.append("G> \(label.padTo10()) GENADR \(match.1)")
-
                     continue                                // no list actions required
                 }
 
+                if let match = instruction.firstMatch(of: sameAs) {
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ "LABEL  =       ADDRESS         «COMMENT»"      make a symbol connection (ADDRESS ← LABEL)       ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-                if let match = opcode.firstMatch(of: #/=\s+(\w+)/#) {
                     newLines.append("=> \(label.padTo10()) = \(match.1)")
-
                     continue                                // no list actions required
                 }
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ "LABEL  EQUALS                  «COMMENT»"      starts a downlist ..                             ┆
+  ┆ "LABEL  EQUALS                  «COMMENT»"      starts a 'DOWNLIST' ..                           ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-                if label.isNotEmpty && opcode == "EQUALS" {
+                if label.isNotEmpty && instruction == "EQUALS" {
                     newLines.append("L> \(label.padTo10()) \("EQUALS".padTo36()) ← downlist starts")
 
-                    downListLabel = String(label)           // start a downlist dictionary
-                    downlists[downListLabel] = []           // no need to copy the line
-
-                    continue                                // no need to copy the line
+                    downListLabel = String(label)
+                    downlists[downListLabel] = []               // start a downlist dictionary
+                    continue                                    // no need to copy the line
                 }
 
+                let newLine = "\(label.padTo10()) \(instruction.padTo36()) \(comment)"
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ "LABEL  -1DNARG ADDRESS         «COMMENT»"      "LABEL -1DNARG" starts a 'snapshot' ..           ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-                if label.isNotEmpty && opcode.starts(with: "-") {
-                    let newLine = "\(label.padTo10()) \(opcode.padTo36()) \(comment)"
-                    newLines.append("S> \(label.padTo10()) \(opcode.padTo36()) ← snapshot starts")
+                if label.isNotEmpty && instruction.starts(with: "-") {
+                    newLines.append("S> \(newLine) ← snapshot starts")
 
-                    inCopylist = true
-
-                    copyListLabel = String(label)           // start a copylist dictionary
-                    copylists[copyListLabel] = [newLine]    // .. and add this line to it
+                    copyListLabels.append(String(label))
+                    copylists[String(label)] = [newLine]        // CREATE the snapshot and add line
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ "LABEL  OPCODE  ADDRESS         «COMMENT»"      every other label starts a 'copylist' ..         ┆
+  ┆ "LABEL  OPCODE  ADDRESS         «COMMENT»"      every label starts a 'COPYLIST' ..               ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
                 } else if label.isNotEmpty {
-                    let newLine = "\(label.padTo10()) \(opcode.padTo36()) \(comment)"
-                    newLines.append("L> \(label.padTo10()) \(opcode.padTo36()) ← copylist starts")
+                    newLines.append("L> \(newLine) ← copylist starts")
 
-                    inCopylist = true
+                    copyListLabels.append(String(label))
+                    copylists[String(label)] = []               // CREATE the copylist EMPTY
 
-                    copyListLabel = String(label)           // start a copylist dictionary
-                    copylists[copyListLabel] = [newLine]    // .. and add this line to it
+                    for copyListLabel in copyListLabels {
+                        copylists[copyListLabel]!.append(newLine)    // .. NOW add this line to it
+                    }
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ "_____  OPCODE  ADDRESS         «COMMENT»"      .. everything else                               ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
                 } else {
-                    let newLine = "\(label.padTo10()) \(opcode.padTo36()) \(comment)"
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ "        DNPTR   ADDRESS"       «COMMENT»"      copy a list from ADDRESS ..                      ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-                    if opcode.starts(with: "DNPTR") {
-                        newLines.append("=> \(newLine)")
-                    } else {
-                        newLines.append("+> \(newLine)")
-                    }
+                    newLines.append("\(instruction.starts(with: "DNPTR") ? "=>" : "+>") \(newLine)")
 
-                    if inCopylist {
-                        copylists[copyListLabel]!.append(newLine)
-                    } else if inDownlist {
+                    if copyListLabels.isEmpty {
                         downlists[downListLabel]!.append(newLine)
+                    } else {
+                        for copyListLabel in copyListLabels {
+                            copylists[copyListLabel]!.append(newLine)    // .. and add this line to it
+                        }
                     }
                 }
 
@@ -142,17 +138,61 @@ func mashFile(_ fileName: String, _ fileLines: [String]) -> [String] {
   ┆ "LABEL   -1DNADR R-OTHER        «COMMENT»"      LABEL and "-" on OPCODE → copylist start ..      ┆
   ┆ "        -1DNADR R-OTHER        «COMMENT»"      no LABEL and "-" on OPCODE → list end ..         ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-                if opcode.starts(with: "-") {
+                if instruction.starts(with: "-") {
                     if label.isNotEmpty {
                         inSnapshot = true
                     } else {
-                        newLines.append(">> \("-".padTo36("-")) \(inSnapshot ? "SNAPSHOT" : "DOWNLIST")")
-                        inCopylist = false
+                        newLines.append(">> \("-".padTo36("-")) \(inSnapshot ? "SNAPSHOT" : "DOWNLIST")\n")
+                        copyListLabels = []
                         inSnapshot = false
                     }
                 }
             }
+
+        previousLine = line
     }
     
     return newLines
+}
+
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ "EQUALS  «word»"                                                                                 ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+let equals = Regex {
+    "EQUALS"
+    spWord}
+
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ "GENADR  «word»"                                                                                 ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+let genadr = Regex {
+    "GENADR"
+    spWord}
+
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ "=  «word»"                                                                                      ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+let sameAs = Regex {
+    "="
+    spWord}
+
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ "  «word»"                                                                                       ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+let spWord = Regex {
+    OneOrMore(.whitespace)
+    Capture {
+        OneOrMore(.word)
+    }
+}
+
+/*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+  ┆ "-- CONTROL LIST --"                                                                             ┆
+  ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
+let dList = Regex {
+    "--"
+    ZeroOrMore(.whitespace)
+    "CONTROL LIST"
+    ZeroOrMore(.whitespace)
+    "--"
 }

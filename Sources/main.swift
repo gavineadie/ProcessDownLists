@@ -2,28 +2,28 @@
 //  main.swift
 //  ProcessDownLists
 //
-//  Created by Gavin Eadie on 2/6/25.
+//  Created by Gavin Eadie on Feb06/25.
 //
 
+/*╔══════════════════════════════════════════════════════════════════════════════════════════════════╗
+  ║ TO BE FIXED:                                                                                     ║
+  ║                                                                                                  ║
+  ╚══════════════════════════════════════════════════════════════════════════════════════════════════╝*/
+
 import Foundation
-#if os(macOS)
-import OSLog
-#elseif os(Linux)
-import Logging
-#endif
 
 let fileManager = FileManager.default
-#if os(macOS)
-let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.ramsaycons.PDL", category: "main")
-#elseif os(Linux)
-let logger = Logger(label: "com.ramsaycons.PDL")
-#endif
-
 let homeDirURL = fileManager.homeDirectoryForCurrentUser
 let workDirURL = homeDirURL.appendingPathComponent("Developer/virtualagc",
                                                    isDirectory: true)
 
 let resourceKeys: [URLResourceKey] = [.nameKey, .isDirectoryKey]
+
+let missionList = [
+    "Colossus249", "Manche45R2", "Artemis072", "Skylark048",
+    "Sundance306ish", "LUM69R2", "Luminary099", "LM131R1", "Zerlina56",
+    "Luminary163", "Luminary178", "Luminary210",
+]
 
 var fileURLs: [URL] = []
 
@@ -40,9 +40,7 @@ if let enumerator = fileManager.enumerator(at: workDirURL,
     for case let fileURL as URL in enumerator {
         if fileURL.absoluteString.contains("/VirtualAGC/") { continue }
             
-        if fileURL.lastPathComponent == "DOWNLINK_LISTS.agc" {
-            fileURLs.append(fileURL)
-        }
+        if fileURL.lastPathComponent == "DOWNLINK_LISTS.agc" { fileURLs.append(fileURL) }
     }
 } else {
     print("Failed to create enumerator.")
@@ -55,87 +53,95 @@ if let enumerator = fileManager.enumerator(at: workDirURL,
 
 var downlists: [String : [String]] = [:]            // LABEL : LINES
 var copylists: [String : [String]] = [:]            // LABEL : LINES
-var equalities: [String : String] = [:]              // LABEL : LABEL
+var equalities: [String : String] = [:]             // LABEL : LABEL
 
 let originalStdout = dup(STDOUT_FILENO)
 
 do {
     for fileURL in fileURLs {
 
-        let fileName = fileURL.deletingLastPathComponent().lastPathComponent
+        let missionName = fileURL.deletingLastPathComponent().lastPathComponent
+
+        if !missionList.contains(missionName) { continue }
+
+//      if missionName != "Zerlina56" { continue }
+//      if missionName != "Artemis072" { continue }
+//      if missionName != "Skylark048" { continue }
+//      if missionName != "Sundance306ish" { continue }
+
         let fileText = try String(contentsOf: fileURL, encoding: .utf8)
         let homeDirURL = fileManager.homeDirectoryForCurrentUser
 
-/*────────────────────────────────────────────────────────────────────────────────────────────────────*/
+/*─ TIDY ─────────────────────────────────────────────────────────────────────────────────────────────*/
         var fileLinesT: [String] = []
 
-        let tidyPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(fileName)-tidy.txt")
+        let tidyPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(missionName)-tidy.txt")
         fileManager.createFile(atPath: tidyPrintURL.path, contents: nil, attributes: nil)
 
         if let fileHandle = try? FileHandle(forWritingTo: tidyPrintURL) {
             defer { fileHandle.closeFile() }
             dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
 
-            fileLinesT = tidyFile(fileName, fileText)        // tidy this file ..
+            fileLinesT = tidyFile(missionName, fileText)            // tidy this file ..
             fileLinesT.forEach { print("\($0)") }
         }
 
         dup2(originalStdout, STDOUT_FILENO)
 
-        print("tidyFile: Processed \(fileName).")
+        print("tidyFile: Processed \(missionName).")
 
-/*────────────────────────────────────────────────────────────────────────────────────────────────────*/
+/*─ MASH ─────────────────────────────────────────────────────────────────────────────────────────────*/
         var fileLinesM: [String] = []
 
-        let mashPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(fileName)-mash.txt")
+        let mashPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(missionName)-mash.txt")
         fileManager.createFile(atPath: mashPrintURL.path, contents: nil, attributes: nil)
 
         if let fileHandle = try? FileHandle(forWritingTo: mashPrintURL) {
             defer { fileHandle.closeFile() }
             dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
 
-            fileLinesM = mashFile(fileName, fileLinesT)
-//          fileLinesM.forEach { print("\($0)") }
+            fileLinesM = mashFile(missionName, fileLinesT)
+            fileLinesM.forEach { print("\($0)") }
         }
 
         dup2(originalStdout, STDOUT_FILENO)
 
-        print("mashFile: Processed \(fileName).")
+        print("mashFile: Processed \(missionName).")
 
-/*────────────────────────────────────────────────────────────────────────────────────────────────────*/
-//        let listPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(fileName)-list.txt")
-//        fileManager.createFile(atPath: listPrintURL.path, contents: nil, attributes: nil)
-//
-//        if let fileHandle = try? FileHandle(forWritingTo: listPrintURL) {
-//            defer { fileHandle.closeFile() }
-//            dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
-//
-//            print(">>> DOWNLISTS")
-//            prettyPrint(downlists)
-//
-//            print(">>> COPYLISTS")
-//            prettyPrint(copylists)
-//
-//            print(">>> EQUALS")
-//            print(equalites)
-//        }
-//
-//        dup2(originalStdout, STDOUT_FILENO)
-//
-//        print("listFile: Processed \(fileName).")
+/*─ LIST ─────────────────────────────────────────────────────────────────────────────────────────────*/
+        let listPrintURL = homeDirURL.appendingPathComponent("Desktop/Downlist/\(missionName)-list.txt")
+        fileManager.createFile(atPath: listPrintURL.path, contents: nil, attributes: nil)
 
-/*────────────────────────────────────────────────────────────────────────────────────────────────────*/
+        if let fileHandle = try? FileHandle(forWritingTo: listPrintURL) {
+            defer { fileHandle.closeFile() }
+            dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
+
+            print(">>> DOWNLISTS")
+            prettyPrint(downlists)
+
+            print(">>> COPYLISTS")
+            prettyPrint(copylists)
+
+            print(">>> EQUALS")
+            print(equalities)
+        }
+
+        dup2(originalStdout, STDOUT_FILENO)
+
+        print("listFile: Processed \(missionName).")
+
+/*─ JOIN ─────────────────────────────────────────────────────────────────────────────────────────────*/
         var fileLinesJ: [String] = []
 
-        let joinPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(fileName)-join.txt")
+        let joinPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(missionName)-join.txt")
         fileManager.createFile(atPath: joinPrintURL.path, contents: nil, attributes: nil)
 
         if let fileHandle = try? FileHandle(forWritingTo: joinPrintURL) {
             defer { fileHandle.closeFile() }
             dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
 
-            fileLinesJ = joinFile(fileName)                                  // ..
-//          fileLinesJ.forEach { print("\($0)") }
+            fileLinesJ = joinFile(missionName)                      // ..
+            fileLinesJ.forEach { print("\($0)") }
         }
 
         dup2(originalStdout, STDOUT_FILENO)
@@ -144,33 +150,59 @@ do {
         copylists = [:]
         equalities = [:]
 
-        print("joinFile: Processed \(fileName).")
+        print("joinFile: Processed \(missionName).")
 
-/*────────────────────────────────────────────────────────────────────────────────────────────────────*/
+/*─ DATA ─────────────────────────────────────────────────────────────────────────────────────────────*/
         var fileLinesD: [String] = []
 
-        let dataPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(fileName)-data.txt")
+        let dataPrintURL = homeDirURL.appendingPathComponent("Desktop/downlist/\(missionName)-data.txt")
         fileManager.createFile(atPath: dataPrintURL.path, contents: nil, attributes: nil)
 
         if let fileHandle = try? FileHandle(forWritingTo: dataPrintURL) {
             defer { fileHandle.closeFile() }
             dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
 
-            fileLinesD = dataFile(fileName, fileLinesJ)                 // ..
+            fileLinesD = dataFile(missionName, fileLinesJ)          // ..
             fileLinesD.forEach { print("\($0)") }
         }
 
         dup2(originalStdout, STDOUT_FILENO)
 
-        print("dataFile: Processed \(fileName).")
+        print("dataFile: Processed \(missionName).")
+
+/*─ XTRA ─────────────────────────────────────────────────────────────────────────────────────────────*/
+        var fileLinesX: [String] = []
+
+        let xtraPrintURL = homeDirURL.appendingPathComponent("Desktop/Downlist/\(missionName)-xtra.tsv")
+        fileManager.createFile(atPath: xtraPrintURL.path, contents: nil, attributes: nil)
+
+        if let fileHandle = try? FileHandle(forWritingTo: xtraPrintURL) {
+            defer { fileHandle.closeFile() }
+            dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
+
+            fileLinesX = xtraFile(missionName, fileLinesD)          // ..
+            fileLinesX.forEach { print("\($0)") }
+        }
+
+        dup2(originalStdout, STDOUT_FILENO)
+
+        print("xtraFile: Processed \(missionName).")
+
+/*─ SORT ─────────────────────────────────────────────────────────────────────────────────────────────*/
+        sortFile(missionName, fileLinesX)                           // ..
+
+        print("sortFile: Processed \(missionName).")                // writes TSV files
+
+/*─ TELE ─────────────────────────────────────────────────────────────────────────────────────────────*/
+        teleFile(missionName, fileLinesX)                           // ..
+
+        print("teleFile: Processed \(missionName).")                // writes Swift files
 
     }
 
 } catch {
     print("Error: \(error.localizedDescription)")
 }
-
-
 
 
 fileprivate func prettyPrint(_ downlists: [String: [String]]) {
