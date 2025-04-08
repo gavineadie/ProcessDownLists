@@ -27,6 +27,29 @@ let missionList = [
 
 var fileURLs: [URL] = []
 
+#if true
+
+let allFileURLs = try! fileManager.contentsOfDirectory(at: workDirURL,
+                                                 includingPropertiesForKeys: [],
+                                                 options: .skipsHiddenFiles)
+
+for fileURL in allFileURLs {
+    if fileURL.hasDirectoryPath {
+        let allFileURLs = try! fileManager.contentsOfDirectory(at: fileURL,
+                                             includingPropertiesForKeys: [],
+                                             options: .skipsHiddenFiles)
+
+        for fileURL in allFileURLs {
+            if fileURL.lastPathComponent == "DOWNLINK_LISTS.agc" {
+                fileURLs.append(fileURL)
+                print(fileURL)
+            }
+        }
+    }
+}
+
+#else
+
 /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
   │ make a list of all the "DOWNLINK_LISTS.agc" files ..                                             │
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
@@ -45,6 +68,8 @@ if let enumerator = fileManager.enumerator(at: workDirURL,
 } else {
     print("Failed to create enumerator.")
 }
+
+#endif
 
 /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
   │ process each file ..                                                                             │

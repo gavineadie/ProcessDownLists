@@ -80,7 +80,7 @@ func teleFile(_ missionName: String, _ fileLines: [String]) {
         //  \(fileLines[lineRange.lowerBound+1].dropFirst(3))
         //  \(missionName.lowercased())_\(downListID).swift
         //
-        //  Created by Gavin Eadie on \(Date().formatted(date: .abbreviated, time: .omitted)) (copyright 2024-25)
+        //  Created by Gavin Eadie (copyright 2024-25)
         //
         let \(missionName.lowercased())_\(downListID) = FormatTable(
             listName: "\(fileLines[lineRange.lowerBound+1].dropFirst(3))",
