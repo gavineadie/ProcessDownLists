@@ -98,8 +98,6 @@ func teleFile(_ missionName: String, _ fileLines: [String]) {
                 let label = leftPad(String(match.2), 11)
                 let units = match.6 == "TBD" ? "" : "\"" + match.6 + "\", "
                 let scale = leftPad(scaleLookup[String(match.3)] ?? String(match.3), 12-units.count) + ","
-//                let scale = String(match.3) == "B0" ? "            " :
-//                        leftPad(scaleLookup[String(match.3)] ?? String(match.3), 11-units.count) + ","
                 let format = match.4
                 let special = match.5
 
