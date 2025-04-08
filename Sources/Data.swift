@@ -12,7 +12,11 @@
 
 import Foundation
 import RegexBuilder
+#if os(macOS)
 import OSLog
+#elseif os(Linux)
+import Logging
+#endif
         
 /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
   │ .. reads from "*.join" file and writes to "*.data"                                               │
@@ -39,7 +43,11 @@ import OSLog
   │                                                                                                  │
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
 
+#if os(macOS)
 let logger = Logger(subsystem: "com.ramsaycons.PDL", category: "data")
+#elseif os(Linux)
+let logger = Logger(label: "com.ramsaycons.PDL")
+#endif
 
 var order = 0
 
