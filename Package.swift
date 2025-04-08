@@ -12,7 +12,8 @@ let package = Package(
         .executableTarget(
             name: "ProcessDownLists",
             dependencies: [
-                .product(name: "Logging", package: "swift-log")
+                .product(name: "Logging", package: "swift-log",
+                         condition: .when(platforms: [.linux]))
             ]),
     ]
 )

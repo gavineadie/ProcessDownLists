@@ -6,10 +6,18 @@
 //
 
 import Foundation
+#if os(macOS)
+import OSLog
+#elseif os(Linux)
 import Logging
+#endif
 
 let fileManager = FileManager.default
+#if os(macOS)
+let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.ramsaycons.PDL", category: "main")
+#elseif os(Linux)
 let logger = Logger(label: "com.ramsaycons.PDL")
+#endif
 
 let homeDirURL = fileManager.homeDirectoryForCurrentUser
 let workDirURL = homeDirURL.appendingPathComponent("Developer/virtualagc",
