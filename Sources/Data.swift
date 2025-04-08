@@ -562,7 +562,7 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
 
                 }
 
-                logger.log("×1 \(bits)")
+                logger.warning("×1 \(bits)")
 
             case 2:
                 if !bits[0].contains("+") && bits[1].contains("...") {
@@ -582,7 +582,7 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
                         return result
 
                     } else {
-                        logger.log("×2a \(bits)")
+                        logger.warning("×2a \(bits)")
                     }
 
                 } else if let matchA = bits[0].firstMatch(of: plus),
@@ -612,7 +612,7 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
                         result.append("\(bits[0])+\(offset-1)")         // "AGSK+0"
                         result.append("\(bits[0])+\(offset)")
                     } else {
-                        logger.log("×2 (+\(offset)) \(bits)")           // doesn't happen
+                        logger.warning("×2 (+\(offset)) \(bits)")           // doesn't happen
                     }
                     return result
 
@@ -633,7 +633,7 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
 
                 }
 
-                logger.log("×2z \(bits)")
+                logger.warning("×2z \(bits)")
 
             case 3:
                 for bit in bits { result.append(Substring(bit)) }
@@ -748,7 +748,7 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
 
                 }
 
-                logger.log("×4  \(bits)")
+                logger.warning("×4  \(bits)")
 
             case 5:
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
@@ -768,7 +768,7 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
                     return result
                 }
 
-                logger.log("×5  \(bits)")
+                logger.warning("×5  \(bits)")
 
             case 6:
                 if bits[1] == "+1" && bits[3] == "+1" && bits[5] == "+1" {
@@ -794,7 +794,7 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
                     return result
                 }
 
-                logger.log("×6  \(bits)")
+                logger.warning("×6  \(bits)")
 
             case 7:
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
@@ -806,7 +806,7 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
                 }
 
             default:
-                logger.log("×\(bits.count)  \(bits)")
+                logger.warning("×\(bits.count)  \(bits)")
 
         }
 
@@ -831,7 +831,7 @@ fileprivate func splitComment(_ label: String, _ comment: String) -> [Substring]
   ┆ comment text contains no "," and no "+" (ERROR)                                                  ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
 
-        logger.log("-  \(#function): '\(comment)'")
+        logger.error("-  \(#function): '\(comment)'")
 
     }
 

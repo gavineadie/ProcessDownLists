@@ -106,7 +106,7 @@ func xtraFile(_ missionName: String, _ fileLines: [String]) -> [String] {
             if Int(columnsNext[0])! - Int(columnsThis[0])! == 2 { continue }
         }
 
-        logger.log("""
+        logger.info("""
             line \(i) of file \(missionName).tsv:
                \(testLines[i])
                \(testLines[i+1])
