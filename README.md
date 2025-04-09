@@ -1,62 +1,62 @@
 # ProcessDownLists
 
-You'll be reading this only if you know quite a lot about the 
-[Virtual AGC](https://www.ibiblio.org/apollo/) so I'm not not
-going to cover that very well documented material.
+You'll be reading this only if you know quite a lot about the [Virtual
+AGC](https://www.ibiblio.org/apollo/) project so I'm not not going to cover that
+very well documented material.
 
-This so-called `ProcessDownLists` command line application reads
-particular Apollo Guidance Computer source code files and generates
-tab separated value files that describe the data stream which
-is transmitted, in telemetry, from an Apollo capsule to ground 
-stations for ultimate display on mission controllers' consoles.
+This so-called `ProcessDownLists` command line application reads particular
+Apollo Guidance Computer source code files and generates tab separated value
+(tsv) files that describe the data stream (the 'downlist', 100 words sent every
+two seconds) which is transmitted, in telemetry, from an Apollo capsule to
+ground stations for ultimate display on mission controllers' consoles.
 
 In the Virtual AGC project, those tsv files are used by the `yaTelemetry`
-application to display that data
+application to display that data as sent from an emulated AGC.
 
 ### The application
 
-`ProcessDownLists` is written in Swift.  It is what, in my youth, I
-would have called a `GLP` (Grungy Little Program) in that it started
-simple and unstructured as a `main` program that called a sequence
-of function that progressive translated the AGC source to the tsv files.
-As I learned how the AGC source was structured, the program grew too.
+`ProcessDownLists` is written in Swift.  It is what, in my youth, I would have
+called a 'GLP' (Grungy Little Program) in that it started simple and
+unstructured as a `main` program that called a sequence of function that
+progressive translated the AGC source to the tsv files. As I learned how the AGC
+source was used, the program grew to cope.
 
-Each mission's AGC code contains a file named `DOWNLINK_LISTS.agc`.
-These are the files which describe the several 'downlists' for each
-mission, and which `ProcessDownLists` reads.  Given the 
-constraints of the day, the programmers employed some tricks to use
-as little AGC memory as possible; in particular, when the same groups
-of words were to be transmitted in different flight modes (Coasting, 
-Rendezvous, Descent, etc), those groups were separated into common
-blocks and included in that mode's 'downlist', as necessary.
+Each Apollo mission's AGC code contains a file named `DOWNLINK_LISTS.agc`. These
+files are the the part which describe the several 'downlists' for each mission,
+and which `ProcessDownLists` reads.  Given the constraints of the day, the
+programmers employed clever tricks to use as little AGC memory as possible; in
+particular, when the same groups of words were to be transmitted in different
+flight modes (Coasting, Rendezvous, Descent, etc), those groups were separated
+into common sections and included in that mode's 'downlist', where necessary.
 
-`ProcessDownLists` has to deal with two challenges.  One is the
-intricate process of gathering the above mentioned 'common blocks' 
-and inserting them at the right place in each 'downlist'.
+`ProcessDownLists` has to deal with two challenges.  One is the intricate
+process of gathering the above mentioned 'common blocks' and inserting them at
+the right places in each 'downlist'.
 
-The other challenge is that the AGC source code in the 
-`DOWNLINK_LISTS.agc` files cannot be sufficiently descriptive to
-provide all that's needed.  For example, the instruction `3DNADR APOGEE`
-means add the __three__ 'words', at the address labeled `APOGEE`, to 
-the 'downlist'.  However, without recourse to other parts of the source
-code, there's no information about what the following 'words' might be,
-and this is compounded by some 'words' actually being two 'half-words'.
+The other challenge is that the AGC source code in the `DOWNLINK_LISTS.agc`
+files cannot be sufficiently descriptive to provide all that's needed.  For
+example, the instruction `3DNADR APOGEE` means add the __three__ 'words',
+starting at the address labeled `APOGEE`, to the 'downlist'.  However, without
+recourse to other parts of the source code, there's no information about what
+the following 'words' might be, and this is compounded by some 'words' actually
+being two 'half-words'.
 
-I suspect this was an issue for the original authors too because the
-comment fields of each line contain the necessary information.  The
-challenge continues because these comments are just that, comments, so 
-not constrained to strict format, though some conventions are, mostly, 
-followed.
+I suspect this was an issue for the original authors too because the comment
+fields of each line contain the necessary information.  The challenge continues
+because these comments are just that, comments, so not constrained to strict
+format.  Some conventions are, mostly, followed but the interpretation of the
+comment fields is complicated and involved some trial and error -- and some
+errors may remain.
 
 ### Platform and Use
 
-As mentioned `ProcessDownLists` is written in Swift.  It was authored
-on a Mac but, since it's a command line executable, it has no need for
-any Mac-specific usages and can be built and run on Linux too.
+As mentioned, `ProcessDownLists` is written in Swift.  It was authored on a Mac
+but, since it's a command line executable, it has no need for any Mac-specific
+usages and can be built and run on Linux too (and, maybe, Windows too).
 
-In it's current state (remember, GLP), `ProcessDownLists` expects to
-find the Virtual AGC project at `~/Developer/virtualagc/` and will 
-write all it's output to `~/Desktop/Downlist/`.
+In it's current state (remember, GLP), `ProcessDownLists` expects to find the
+Virtual AGC project at `~/Developer/virtualagc/` and will write all it's output
+to `~/Desktop/Downlist/`.
 
 ```
    cd ~/Developer/ProcessDownLists
@@ -75,7 +75,7 @@ As I write this, a convenient cross-platform tool for the installation
 of Swift has come available.  It is called `Swiftly` and lives at 
 https://www.swift.org/swiftly/
 
-I've used `Swiftly` to install Swift on Ubuntu and then build and run 
+I've used `Swiftly` to install Swift on Ubuntu and used that installation to build and run 
 `ProcessDownLists`.  For what it's worth, here's abbreviated 
 transcript of that (the multi-line command that comes first is copied
 and pasted from that above web documentation):
@@ -157,10 +157,7 @@ Building for debugging...
 Build of product 'ProcessDownLists' complete! (0.20s)
 file:///home/guest/Developer/virtualagc/LUM69R2/DOWNLINK_LISTS.agc
 file:///home/guest/Developer/virtualagc/Luminary131/DOWNLINK_LISTS.agc
-file:///home/guest/Developer/virtualagc/Luminary096/DOWNLINK_LISTS.agc
  . . . 
-file:///home/guest/Developer/virtualagc/Manche72R3/DOWNLINK_LISTS.agc
-file:///home/guest/Developer/virtualagc/Comanche067/DOWNLINK_LISTS.agc
 file:///home/guest/Developer/virtualagc/Comanche044/DOWNLINK_LISTS.agc
 file:///home/guest/Developer/virtualagc/LUM99R2/DOWNLINK_LISTS.agc
 
