@@ -30,6 +30,8 @@ import Foundation
   │                   1DNADR 77777                        #   (  000  )   1 # ID,SYNC                │
   │                                                                                                  │
   │ .. add index range and GSOP word number                                                 ###MAR12 │
+  │                                                                                                  │
+  │ .. insert common sections (annotated with comments)                                              │
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
 
 var offset = 2                                      // starting offset into memory (0,1) is ID,SYNC

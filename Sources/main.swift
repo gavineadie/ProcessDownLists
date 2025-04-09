@@ -27,7 +27,9 @@ let missionList = [
 
 var fileURLs: [URL] = []
 
-#if true
+/*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ make a list of all the "DOWNLINK_LISTS.agc" files ..                                             │
+  └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
 
 let allFileURLs = try! fileManager.contentsOfDirectory(at: workDirURL,
                                                  includingPropertiesForKeys: [],
@@ -38,7 +40,6 @@ for fileURL in allFileURLs {
         let allFileURLs = try! fileManager.contentsOfDirectory(at: fileURL,
                                              includingPropertiesForKeys: [],
                                              options: .skipsHiddenFiles)
-
         for fileURL in allFileURLs {
             if fileURL.lastPathComponent == "DOWNLINK_LISTS.agc" {
                 fileURLs.append(fileURL)
@@ -47,29 +48,6 @@ for fileURL in allFileURLs {
         }
     }
 }
-
-#else
-
-/*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
-  │ make a list of all the "DOWNLINK_LISTS.agc" files ..                                             │
-  └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
-if let enumerator = fileManager.enumerator(at: workDirURL,
-                                           includingPropertiesForKeys: resourceKeys,
-                                           options: [.skipsHiddenFiles],
-                                           errorHandler: { (url, error) -> Bool in
-    print("Error accessing file: \(url): \(error)")
-    return true                                                 // Continue enumeration
-}) {
-    for case let fileURL as URL in enumerator {
-        if fileURL.absoluteString.contains("/VirtualAGC/") { continue }
-            
-        if fileURL.lastPathComponent == "DOWNLINK_LISTS.agc" { fileURLs.append(fileURL) }
-    }
-} else {
-    print("Failed to create enumerator.")
-}
-
-#endif
 
 /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
   │ process each file ..                                                                             │

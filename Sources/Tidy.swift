@@ -32,15 +32,12 @@ import RegexBuilder
   │     <LABEL>      <OPCODE>   <OPERAND>    <MOD>            <COMMENT     ..>                       │
   │╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌│
   │                                                                                                  │
-  │ .. edits lines which won't parse later with typos and inconsistent usage ..                      │
+  │ .. scan the whole file for bulk replacements.  To avoid complications related to adding or       │
+  │    removing lines, the replacements don't add or remove lines.                                   │
   │                                                                                                  │
-  │ .. drops prefixes "# " and "#*" -- they don't contribute data to the output ..                   │
+  │ .. delete blank lines, blank comment lines and page number lines ..                              │
   │                                                                                                  │
-  │ .. parse lines to                                                                                │
-  │               1DNADR   PIPTIME         # s (  114  )  58 # PIPTIME,+1                            │
-  │               opCode   label             range             comment                               │
-  │                                                                                                  │
-  │ .. emitLine(order, range, opCode, label, .double, comment) to output                             │
+  │ .. where a comment overflows to the next line (two cases), unwrap them ..                        │
   │                                                                                                  │
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
 
@@ -53,7 +50,8 @@ func tidyFile(_ missionName: String, _ fileText: String) -> [String] {
 
 /*┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
   │  scan the whole file for bulk replacements replacing the original lines (oldLines) in place. To  │
-  │  avoid complications related to adding or removing lines, the replacements are N-for-N.          │
+  │  avoid complications related to adding or removing lines, the replacements don't add or remove   │
+  │  lines.                                                                                          │
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
     for lineNum in 0..<oldLines.count {
         let line = oldLines[lineNum]
@@ -139,7 +137,7 @@ func tidyFile(_ missionName: String, _ fileText: String) -> [String] {
         }
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-  ┆ .. also, because a snapshot can only gather 12 words, another line in the downlist brings in     ┆
+  ┆ .. also, because a snapshot can only gather 12 words, another line in this downlist brings in    ┆
   ┆    four more.  We remove that line                                                               ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
         if line.contains(Regex {

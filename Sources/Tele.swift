@@ -97,15 +97,19 @@ func teleFile(_ missionName: String, _ fileLines: [String]) {
                 let index = Int(match.1)!
                 let label = leftPad(String(match.2), 11)
                 let units = match.6 == "TBD" ? "" : "\"" + match.6 + "\", "
-                let scale = leftPad(scaleLookup[String(match.3)] ?? String(match.3), 12-units.count) + ","
+                var scale = leftPad(scaleLookup[String(match.3)] ?? String(match.3), 12-units.count) + ","
+                if scale == "           1," { scale = "             " }
                 let format = match.4
-                let special = match.5
+                var special = match.5
+                if label == "      TIME2" {
+                    special = "formatTimeDP"
+                }
 
                 let newLine = """
                         tmFormat(\
                 \(String(format: "%3d", index)), \
                 "\(label)", \
-                \(scale) \
+                \(scale == "           1," ? "             " : scale) \
                 \(units)\
                 vType: \(formatLookup[String(format)] ?? ".ignore")\
                 \(special == "" ? ")," : ", " + lookupSpecial[String(special)]! + "),")
@@ -228,7 +232,9 @@ fileprivate let lookupSpecial = [
     "FormatRDOT"          : "formatRdot",
     "FormatRrRange"       : "fmtRadarRange",
     "FormatRrRangeRate"   : "fmtRadarRangeRate",
-    "FormatXACTOFF"       : "formatXACTOFF"
+    "FormatXACTOFF"       : "formatXACTOFF",
+
+    "formatTimeDP"        : "formatTimeDP",         // special for Swift Telemetry
 ]
 
 
