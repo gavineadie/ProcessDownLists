@@ -20,6 +20,22 @@
 			"problemMatcher": [],
 			"label": "swift: Build Release ProcessDownLists",
 			"detail": "swift build -c release --product ProcessDownLists -Xswiftc -diagnostic-style=llvm"
+		},
+		{
+			"type": "swift",
+			"args": [
+				"build",
+				"--build-tests",
+				"-Xswiftc",
+				"-diagnostic-style=llvm"
+			],
+			"env": {},
+			"cwd": "/home/gavin/Developer/ProcessDownLists",
+			"disableTaskQueue": true,
+			"group": "build",
+			"problemMatcher": [],
+			"label": "swift: Build All",
+			"detail": "swift build --build-tests -Xswiftc -diagnostic-style=llvm"
 		}
 	]
 }
