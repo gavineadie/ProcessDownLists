@@ -1,0 +1,185 @@
+# ProcessDownLists
+
+You'll be reading this only if you know quite a lot about the 
+[Virtual AGC](https://www.ibiblio.org/apollo/) so I'm not not
+going to cover that very well documented material.
+
+This so-called `ProcessDownLists` command line application reads
+particular Apollo Guidance Computer source code files and generates
+tab separated value files that describe the data stream which
+is transmitted, in telemetry, from an Apollo capsule to ground 
+stations for ultimate display on mission controllers' consoles.
+
+In the Virtual AGC project, those tsv files are used by the `yaTelemetry`
+application to display that data
+
+### The application
+
+`ProcessDownLists` is written in Swift.  It is what, in my youth, I
+would have called a `GLP` (Grungy Little Program) in that it started
+simple and unstructured as a `main` program that called a sequence
+of function that progressive translated the AGC source to the tsv files.
+As I learned how the AGC source was structured, the program grew too.
+
+Each mission's AGC code contains a file named `DOWNLINK_LISTS.agc`.
+These are the files which describe the several 'downlists' for each
+mission, and which `ProcessDownLists` reads.  Given the 
+constraints of the day, the programmers employed some tricks to use
+as little AGC memory as possible; in particular, when the same groups
+of words were to be transmitted in different flight modes (Coasting, 
+Rendezvous, Descent, etc), those groups were separated into common
+blocks and included in that mode's 'downlist', as necessary.
+
+`ProcessDownLists` has to deal with two challenges.  One is the
+intricate process of gathering the above mentioned 'common blocks' 
+and inserting them at the right place in each 'downlist'.
+
+The other challenge is that the AGC source code in the 
+`DOWNLINK_LISTS.agc` files cannot be sufficiently descriptive to
+provide all that's needed.  For example, the instruction `3DNADR APOGEE`
+means add the __three__ 'words', at the address labeled `APOGEE`, to 
+the 'downlist'.  However, without recourse to other parts of the source
+code, there's no information about what the following 'words' might be,
+and this is compounded by some 'words' actually being two 'half-words'.
+
+I suspect this was an issue for the original authors too because the
+comment fields of each line contain the necessary information.  The
+challenge continues because these comments are just that, comments, so 
+not constrained to strict format, though some conventions are, mostly, 
+followed.
+
+### Platform and Use
+
+As mentioned `ProcessDownLists` is written in Swift.  It was authored
+on a Mac but, since it's a command line executable, it has no need for
+any Mac-specific usages and can be built and run on Linux too.
+
+In it's current state (remember, GLP), `ProcessDownLists` expects to
+find the Virtual AGC project at `~/Developer/virtualagc/` and will 
+write all it's output to `~/Desktop/Downlist/`.
+
+```
+   cd ~/Developer/ProcessDownLists
+   swift build
+   swift run
+```
+
+### Swift
+
+Though Swift was a creation of Apple, is open-source and available on 
+most platforms.  It is an integral part of Apple's IDE (Xcode) and a
+supported plug-in for Visual Studio Code.  It is also a stand-alone 
+compiler usable without the above IDEs.
+
+As I write this, a convenient cross-platform tool for the installation
+of Swift has come available.  It is called `Swiftly` and lives at 
+https://www.swift.org/swiftly/
+
+I've used `Swiftly` to install Swift on Ubuntu and then build and run 
+`ProcessDownLists`.  For what it's worth, here's abbreviated 
+transcript of that (the multi-line command that comes first is copied
+and pasted from that above web documentation):
+
+```
+Welcome to Ubuntu 24.04.2 LTS (GNU/Linux 6.8.0-57-generic x86_64)
+
+→ :~$ curl -O https://download.swift.org/swiftly/linux/swiftly-$(uname -m).tar.gz && \
+tar zxf swiftly-$(uname -m).tar.gz && \
+./swiftly init --quiet-shell-followup && \
+. ~/.local/share/swiftly/env.sh && \
+hash -r
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100 27.2M  100 27.2M    0     0  16.1M      0  0:00:01  0:00:01 --:--:-- 16.1M
+Swiftly will be installed into the following locations:
+
+/home/guest/.local/share/swiftly - Data and configuration files directory including toolchains
+/home/guest/.local/share/swiftly/bin - Executables installation directory
+
+These locations can be changed with SWIFTLY_HOME_DIR and SWIFTLY_BIN_DIR environment variables and run this again.
+
+Once swiftly is installed it will install the latest available swift toolchain. 
+In the process of installing the new toolchain swiftly will add swift.org GnuPG keys 
+into your keychain to verify the integrity of the downloads.
+
+Proceed? (Y/n): 
+y
+Installing swiftly in /home/guest/.local/share/swiftly/bin/swiftly...
+Creating shell environment file for the user...
+Updating profile...
+Fetching the latest stable Swift release...
+Installing Swift 6.1.0
+                                Downloading Swift 6.1.0
+100% [==================================================================================]
+Downloaded 839.6 MiB of 839.6 MiB
+
+Verifying toolchain signature...
+Extracting toolchain...
+The global default toolchain has been set to `Swift 6.1.0`
+Swift 6.1.0 installed successfully!
+
+[ NOTE: You may not need to do this -- I did ]
+| There are some dependencies that should be installed before using this toolchain.
+| You can run the following script as the system administrator (e.g. root) to prepare
+| your system:
+| 
+|     apt-get -y install libpython3-dev
+| 
+| → :~$ sudo apt-get -y install libpython3-dev
+| [sudo] password for guest: 
+| Reading package lists... Done
+| Building dependency tree... Done
+| Reading state information... Done
+| The following additional packages will be installed:
+|   libpython3.12-dev
+| The following NEW packages will be installed:
+|   libpython3-dev libpython3.12-dev
+| 0 upgraded, 2 newly installed, 0 to remove and 1 not upgraded.
+| Need to get 5,685 kB of archives.
+| After this operation, 29.7 MB of additional disk space will be used.
+|  . . . 
+ 
+→ :~$ swift --version
+Swift version 6.1 (swift-6.1-RELEASE)
+Target: x86_64-unknown-linux-gnu
+
+→ :~$ cd Developer/ProcessDownLists/
+→ :~/Developer/ProcessDownLists$ swift build
+[1/1] Planning build
+Building for debugging...
+ . . .
+[25/25] Linking ProcessDownLists
+Build complete! (11.84s)
+
+→ :~/Developer/ProcessDownLists$ swift run
+Building for debugging...
+[1/1] Write swift-version-27DA9706154FFCF8.txt
+Build of product 'ProcessDownLists' complete! (0.20s)
+file:///home/guest/Developer/virtualagc/LUM69R2/DOWNLINK_LISTS.agc
+file:///home/guest/Developer/virtualagc/Luminary131/DOWNLINK_LISTS.agc
+file:///home/guest/Developer/virtualagc/Luminary096/DOWNLINK_LISTS.agc
+ . . . 
+file:///home/guest/Developer/virtualagc/Manche72R3/DOWNLINK_LISTS.agc
+file:///home/guest/Developer/virtualagc/Comanche067/DOWNLINK_LISTS.agc
+file:///home/guest/Developer/virtualagc/Comanche044/DOWNLINK_LISTS.agc
+file:///home/guest/Developer/virtualagc/LUM99R2/DOWNLINK_LISTS.agc
+
+tidyFile: Processed LUM69R2.
+mashFile: Processed LUM69R2.
+listFile: Processed LUM69R2.
+joinFile: Processed LUM69R2.
+dataFile: Processed LUM69R2.
+xtraFile: Processed LUM69R2.
+File successfully written to: /home/guest/Desktop/Downlist/tsv/ddd-77776-LUM69R2.tsv
+File successfully written to: /home/guest/Desktop/Downlist/tsv/ddd-77777-LUM69R2.tsv
+File successfully written to: /home/guest/Desktop/Downlist/tsv/ddd-77773-LUM69R2.tsv
+File successfully written to: /home/guest/Desktop/Downlist/tsv/ddd-77772-LUM69R2.tsv
+File successfully written to: /home/guest/Desktop/Downlist/tsv/ddd-77774-LUM69R2.tsv
+File successfully written to: /home/guest/Desktop/Downlist/tsv/ddd-77775-LUM69R2.tsv
+sortFile: Processed LUM69R2.
+ . . . 
+ 
+→ :~/Developer/ProcessDownLists$ 
+```
+
+.. all done and desired tsv files in `/home/guest/Desktop/Downlist/tsv/`

@@ -315,8 +315,8 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
             if downCount == 2 && commentBits.count == 3 {
 
                 newLines.append(emitLine(order, "", "", String(commentBits[0]), .double, comment))
-                newLines.append(emitLine(order, "", "", String("RR_DIST"), .single, comment))
-                newLines.append(emitLine(order, "", "", String("RR_RATE"), .single, comment))
+                newLines.append(emitLine(order, "", "", String("RM+0"), .single, comment))
+                newLines.append(emitLine(order, "", "", String("RM+1"), .single, comment))
 
                 continue
             }

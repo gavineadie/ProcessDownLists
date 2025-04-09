@@ -112,11 +112,7 @@ func teleFile(_ missionName: String, _ fileLines: [String]) {
                 """
                 content.append(newLine + "\n")
 
-
-            } else {
-                print("line not matching: \(line)")
             }
-
         }
 
         content += """

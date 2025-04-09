@@ -624,7 +624,7 @@ let downListIDs = [
 
     // Sundance306ish
 
-    "LMPWRDDL" : "Orbital Maneuvers (LM-77774)",
+    "LMPWRDDL" : "Powered (LM-77774)",
 
 ]
 

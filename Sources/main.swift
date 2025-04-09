@@ -101,7 +101,7 @@ do {
         var fileLinesT: [String] = []
 
         let tidyPrintURL = homeDirURL.appendingPathComponent("Desktop/Downlist/\(missionName)-tidy.txt")
-        fileManager.createFile(atPath: tidyPrintURL.path, contents: nil, attributes: nil)
+        _ = fileManager.createFile(atPath: tidyPrintURL.path, contents: nil, attributes: nil)
 
         if let fileHandle = try? FileHandle(forWritingTo: tidyPrintURL) {
             defer { fileHandle.closeFile() }
@@ -119,7 +119,7 @@ do {
         var fileLinesM: [String] = []
 
         let mashPrintURL = homeDirURL.appendingPathComponent("Desktop/Downlist/\(missionName)-mash.txt")
-        fileManager.createFile(atPath: mashPrintURL.path, contents: nil, attributes: nil)
+        _ = fileManager.createFile(atPath: mashPrintURL.path, contents: nil, attributes: nil)
 
         if let fileHandle = try? FileHandle(forWritingTo: mashPrintURL) {
             defer { fileHandle.closeFile() }
@@ -135,7 +135,7 @@ do {
 
 /*─ LIST ─────────────────────────────────────────────────────────────────────────────────────────────*/
         let listPrintURL = homeDirURL.appendingPathComponent("Desktop/Downlist/\(missionName)-list.txt")
-        fileManager.createFile(atPath: listPrintURL.path, contents: nil, attributes: nil)
+        _ = fileManager.createFile(atPath: listPrintURL.path, contents: nil, attributes: nil)
 
         if let fileHandle = try? FileHandle(forWritingTo: listPrintURL) {
             defer { fileHandle.closeFile() }
@@ -159,7 +159,7 @@ do {
         var fileLinesJ: [String] = []
 
         let joinPrintURL = homeDirURL.appendingPathComponent("Desktop/Downlist/\(missionName)-join.txt")
-        fileManager.createFile(atPath: joinPrintURL.path, contents: nil, attributes: nil)
+        _ = fileManager.createFile(atPath: joinPrintURL.path, contents: nil, attributes: nil)
 
         if let fileHandle = try? FileHandle(forWritingTo: joinPrintURL) {
             defer { fileHandle.closeFile() }
@@ -181,7 +181,7 @@ do {
         var fileLinesD: [String] = []
 
         let dataPrintURL = homeDirURL.appendingPathComponent("Desktop/Downlist/\(missionName)-data.txt")
-        fileManager.createFile(atPath: dataPrintURL.path, contents: nil, attributes: nil)
+        _ = fileManager.createFile(atPath: dataPrintURL.path, contents: nil, attributes: nil)
 
         if let fileHandle = try? FileHandle(forWritingTo: dataPrintURL) {
             defer { fileHandle.closeFile() }
@@ -199,7 +199,7 @@ do {
         var fileLinesX: [String] = []
 
         let xtraPrintURL = homeDirURL.appendingPathComponent("Desktop/Downlist/\(missionName)-xtra.tsv")
-        fileManager.createFile(atPath: xtraPrintURL.path, contents: nil, attributes: nil)
+        _ = fileManager.createFile(atPath: xtraPrintURL.path, contents: nil, attributes: nil)
 
         if let fileHandle = try? FileHandle(forWritingTo: xtraPrintURL) {
             defer { fileHandle.closeFile() }
@@ -219,9 +219,11 @@ do {
         print("sortFile: Processed \(missionName).")                // writes TSV files
 
 /*─ TELE ─────────────────────────────────────────────────────────────────────────────────────────────*/
+#if os(macOS)
         teleFile(missionName, fileLinesX)                           // ..
 
         print("teleFile: Processed \(missionName).")                // writes Swift files
+#endif
 
     }
 
