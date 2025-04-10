@@ -56,6 +56,12 @@ func xtraFile(_ missionName: String, _ fileLines: [String]) -> [String] {
             continue
         }
 
+/*╔══════════════════════════════════════════════════════════════════════════════════════════════════╗
+  ║ EXPERIMENT                                                                                       ║
+  ╚══════════════════════════════════════════════════════════════════════════════════════════════════╝*/
+        let symbols = symbolTables[missionName]!
+        let eMemory = symbols[columns[1]] ?? "---------"
+
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆ GSOP substitutes .. we don't do this any more                                                    ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
@@ -67,7 +73,7 @@ func xtraFile(_ missionName: String, _ fileLines: [String]) -> [String] {
   ┆     edit: "«whitespace»:«whitespace»" to one tab                                                 ┆
   ┆     edit: "«tab»tFormatRequired«tab»" to two tabs                                                ┆
   ╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯*/
-        let tabLine = "\(columns[0])\t\(columns[1]): \(getLookup(columns[1]))"
+        let tabLine = "\(columns[0])\t\(columns[1].padTo12()) | \(leftPad(eMemory, 10))"
             .replacing(Regex {
                 ZeroOrMore(.whitespace)
                 ":"
@@ -83,6 +89,7 @@ func xtraFile(_ missionName: String, _ fileLines: [String]) -> [String] {
   │     1 for FMT_OCT, FMT_DEC, FMT_SP, FMT_USP                                                      │
   │     2 for FMT_2OCT, FMT_2DEC, FMT_DP ..                                                          │
   └──────────────────────────────────────────────────────────────────────────────────────────────────┘*/
+#if false
     let testLines = newLines
         .filter { !$0.starts(with: "##") }
         .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -113,6 +120,7 @@ func xtraFile(_ missionName: String, _ fileLines: [String]) -> [String] {
             """)
 
     }
+#endif
 
     return newLines
 }

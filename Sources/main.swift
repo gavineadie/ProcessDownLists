@@ -197,7 +197,7 @@ do {
         var fileLinesX: [String] = []
 
         if emitDiagnosticFiles {
-            let xtraPrintURL = homeDirURL.appendingPathComponent("Desktop/Downlist/\(missionName)-xtra.tsv")
+            let xtraPrintURL = homeDirURL.appendingPathComponent("Desktop/Downlist/\(missionName)-stab.txt")
             _ = fileManager.createFile(atPath: xtraPrintURL.path, contents: nil, attributes: nil)
 
             if let fileHandle = try? FileHandle(forWritingTo: xtraPrintURL) {
@@ -216,16 +216,16 @@ do {
         print("xtraFile: Processed \(missionName).")
 
 /*─ SORT ─────────────────────────────────────────────────────────────────────────────────────────────*/
-        sortFile(missionName, fileLinesX)                           // ..
-
-        print("sortFile: Processed \(missionName).")                // writes TSV files
+//        sortFile(missionName, fileLinesX)                           // ..
+//
+//        print("sortFile: Processed \(missionName).")                // writes TSV files
 
 /*─ TELE ─────────────────────────────────────────────────────────────────────────────────────────────*/
-#if os(macOS)
-        teleFile(missionName, fileLinesX)                           // ..
-
-        print("teleFile: Processed \(missionName).")                // writes Swift files
-#endif
+//#if os(macOS)
+//        teleFile(missionName, fileLinesX)                           // ..
+//
+//        print("teleFile: Processed \(missionName).")                // writes Swift files
+//#endif
 
     }
 
