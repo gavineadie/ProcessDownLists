@@ -132,6 +132,8 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
         line.replace("MKTIME,+1,RM,+1", with: "MKTIME,RM+0,RM+1")                       // Sundance306ish
 
         line.replace("HAPOX,+1,HPERX,+1", with: "HAPO,+1,HPER,+1")                      // Skylark048, Artemis072
+        line.replace("THETADX,THETADY,THETEDZ,GARBAGE",
+               with: "THETADX,THETADY,THETADZ,GARBAGE")                                 // Skylark048, Artemis072
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆     → Colossus249 (77776) [Colossus-1A]                                                 APR01/25 ┆
