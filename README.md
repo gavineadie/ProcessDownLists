@@ -15,10 +15,10 @@ application to display that data as sent from an emulated AGC.
 
 ### The application
 
-`ProcessDownLists` is written in Swift.  It is what, in my youth, I would have
-called a 'GLP' (Grungy Little Program) in that it started simple and
-unstructured as a `main` program that called a sequence of function that
-progressive translated the AGC source to the tsv files. As I learned how the AGC
+`ProcessDownLists` is written in Swift.  It is what I call
+a 'GLP' (Grungy Little Program) in that it is a `main` program that calls
+a sequence of functions that
+progressively translated the AGC source to the tsv files. As I learned how the AGC
 source was used, the program grew to cope.
 
 Each Apollo mission's AGC code contains a file named `DOWNLINK_LISTS.agc`. These
@@ -56,12 +56,13 @@ usages and can be built and run on Linux too (and, maybe, Windows too).
 
 In it's current state (remember, GLP), `ProcessDownLists` expects to find the
 Virtual AGC project at `~/Developer/virtualagc/` and will write all it's output
-to `~/Desktop/Downlist/`.
+to `~/Desktop/Downlist/`.  __NOTE:__ options to specify these directories will
+be added soon.
 
 ```
    cd ~/Developer/ProcessDownLists
    swift build
-   swift run
+   ./.build/debug/ProcessDownLists
 ```
 
 ### Swift
@@ -180,3 +181,63 @@ sortFile: Processed LUM69R2.
 ```
 
 .. all done and desired tsv files in `/home/guest/Desktop/Downlist/tsv/`
+
+### Program Details
+
+`ProcessDownLists` is a `main` program that calls a sequence of functions that
+progressively translate the AGC source to the tsv files.
+
+“tidyFile” .. cleans up the AGC code
+
+* scan the whole DOWNLINK_LISTS.agc file for bulk replacements.  To avoid
+   complications related to adding or removing lines, the replacements
+   don't add or remove lines.                            
+
+* delete blank lines, blank comment lines and page number lines ..                       
+
+* where a comment overflows to the next line (two cases), unwrap them ..                 
+
+“mashFile” .. gathers the common sections and emits a “list” file showing them. This file is not used again, it’s for visual examination and was vital for checking multi-use common sections ..
+
+* process the lines of the file to isolate downlists, snapshots and commmon
+   data.  These are collected in memory and used by the "Join" process ..                                               
+
+“joinFile” .. start to build the final form, put the common sections in the right places and insert downlist indices and GSOP numbers for checks ..
+
+* add three line header, eg:                                                      
+```
+    ## ============================================================================
+    ## Apollo 13 LM [LM131R1] -- Coast and Align (LM-77777)                        
+    ## ============================================================================
+```
+* add "title" line ..                                                             
+```
+    Coast and Align                                                                
+```
+* add ID,SYNC line which is not in the AGC code                                   
+```
+        1DNADR 77777                        #   (  000  )   1 # ID,SYNC  
+```
+* add index range and GSOP word number                        
+
+* insert common sections (annotated with comments)          
+
+“dataFile” .. put the common sections in the right places and add downlist and GSOP numbers .. also edits more inconsistent usages and typos ..
+
+* remove prefixes "# " and "#*" (the common section annotations) ..            
+
+* edits a whole pile of lines with typos and inconsistent usage ..
+
+“xtraFile” .. adds the scale, format, formatter and units and does a sanity check .. emits a per-mission TSV file.
+
+* adds "# offset N is unused"
+
+“sortFile” .. reads a per-mission TSV file and outputs per-ID TSV files to /tsv/ directory.
+
+### Diagnostics
+
+Each function can emit an intermediate file for diagnostic examination.  They will be emitted if the
+command line option `-d` is used. 
+```
+./.build/debug/ProcessDownLists -d
+```
