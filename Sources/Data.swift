@@ -85,6 +85,9 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
 
         line.replace("DELV,+1,...+4,+5",    with: "DELV +0...+5")                       // CM-77774
         line.replace("DELVEET3,+1,...+4,+5", with: "DELVEET3 +0...+5")                  // CM-77775
+        line.replace("DELVEET +0-..+5", with: "DELVEET1 +0...+5")                       // LM131R1
+        line.replace("DELVEET +0...+5", with: "DELVEET1 +0...+5")                       // LM131R1
+        line.replace("DELVEET+0...+5", with: "DELVEET1 +0...+5")                        // LM131R1
         line.replace("DELVSLV,+1...+4,+5",   with: "DELVSLV +0...+5")                   // CM-77775
 
         line.replace("LAT(SPL),+1,LNG(SPL),+1", with: "LAT(SPL),+1,LNG(SPL),+1")        // CM-77776

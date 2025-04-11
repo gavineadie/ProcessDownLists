@@ -68,7 +68,7 @@ let lookupScaleFormatUnits = [
     "DELTAR"        : "360  : FMT_DP   :                     : TBD",
     "RSP-RREC"      : "360  : FMT_DP   :                     : TBD",    // == DELTAR
     "DELV"          : "B14  : FMT_DP   : FormatDELV          : TBD",
-    "DELVEET"       : "B7   : FMT_DP   :                     : TBD",
+//  "DELVEET"       : "B7   : FMT_DP   :                     : TBD",    //###APR10
     "DELVEET1"      : "B7   : FMT_DP   :                     : TBD",
     "DELVEET2"      : "B7   : FMT_DP   :                     : TBD",
     "DELVEET3"      : "B7   : FMT_DP   :                     : TBD",
