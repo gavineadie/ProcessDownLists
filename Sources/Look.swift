@@ -201,7 +201,7 @@ let lookupScaleFormatUnits = [
     "UPOLDMOD"      : "B0   : FMT_DEC  :                     : TBD",
     "UPVERB"        : "B0   : FMT_DEC  :                     : TBD",
     "V-OTHER"       : "B7   : FMT_DP   :                     : TBD",
-    "VG VEC"        : "B7   : FMT_DP   :                     : TBD",
+    "VGVECT"        : "B7   : FMT_DP   :                     : TBD",
     "VGTIG"         : "B7   : FMT_DP   :                     : TBD",
     "VGU"           : "B10  : FMT_DP   :                     : TBD",
     "VHFCNT"        : "B0   : FMT_DEC  :                     : TBD",
