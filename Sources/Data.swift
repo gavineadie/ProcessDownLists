@@ -85,6 +85,9 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
 
         line.replace("DELV,+1,...+4,+5",    with: "DELV +0...+5")                       // CM-77774
         line.replace("DELVEET3,+1,...+4,+5", with: "DELVEET3 +0...+5")                  // CM-77775
+        line.replace("DELVEET +0-..+5", with: "DELVEET1 +0...+5")                       // LM131R1
+        line.replace("DELVEET +0...+5", with: "DELVEET1 +0...+5")                       // LM131R1
+        line.replace("DELVEET+0...+5", with: "DELVEET1 +0...+5")                        // LM131R1
         line.replace("DELVSLV,+1...+4,+5",   with: "DELVSLV +0...+5")                   // CM-77775
 
         line.replace("LAT(SPL),+1,LNG(SPL),+1", with: "LAT(SPL),+1,LNG(SPL),+1")        // CM-77776
@@ -116,8 +119,8 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
         line.replace("VGTIG,+1,...+4,+5", with: "VGTIGX,VGTIGY,VGTIGZ")
         line.replace("VGTIGX,Y,Z",        with: "VGTIGX,VGTIGY,VGTIGZ")
 
-        line.replace("VGVECT +0...+5", with: "VG VEC X,VG VEC Y,VG VEC Z")
-        line.replace("VGVECT+0...+5",  with: "VG VEC X,VG VEC Y,VG VEC Z")
+        line.replace("VGVECT +0...+5", with: "VGVECTX,VGVECTY,VGVECTZ")
+        line.replace("VGVECT+0...+5",  with: "VGVECTX,VGVECTY,VGVECTZ")
 
         line.replace("DVOTAL,+1", with: "DVTOTAL,+1")                                   // Skylark048 ###TYPO
 
@@ -132,6 +135,8 @@ func dataFile(_ missionName: String, _ fileLines: [String]) -> [String] {
         line.replace("MKTIME,+1,RM,+1", with: "MKTIME,RM+0,RM+1")                       // Sundance306ish
 
         line.replace("HAPOX,+1,HPERX,+1", with: "HAPO,+1,HPER,+1")                      // Skylark048, Artemis072
+        line.replace("THETADX,THETADY,THETEDZ,GARBAGE",                                 //###TYPO
+               with: "THETADX,THETADY,THETADZ,GARBAGE")                                 // Skylark048, Artemis072
 
 /*╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
   ┆     → Colossus249 (77776) [Colossus-1A]                                                 APR01/25 ┆
