@@ -185,7 +185,6 @@ let lookupScaleFormatUnits = [
     "THETADX"       : "360  : FMT_SP   :                     : deg",
     "THETADY"       : "360  : FMT_SP   :                     : deg",
     "THETADZ"       : "360  : FMT_SP   :                     : deg",
-//  "THETEDZ"       : "360  : FMT_SP   :                     : deg",    //### Artemis072
     "TIG"           : "B28  : FMT_DP   :                     : TBD",
     "TIME"          : "B28  : FMT_DP   :                     : TBD",
     "TLAND"         : "B28  : FMT_DP   :                     : TBD",
