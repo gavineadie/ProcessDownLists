@@ -1,5 +1,12 @@
 # ProcessDownLists
 
+### Changes
+Apr11/25 
+* add `-d` option to suppress diagnostic files
+* add `-s` option to emit symbol table check file
+___
+### The application
+
 You'll be reading this only if you know quite a lot about the [Virtual
 AGC](https://www.ibiblio.org/apollo/) project so I'm not not going to cover that
 very well documented material.
@@ -12,8 +19,6 @@ ground stations for ultimate display on mission controllers' consoles.
 
 In the Virtual AGC project, those tsv files are used by the `yaTelemetry`
 application to display that data as sent from an emulated AGC.
-
-### The application
 
 `ProcessDownLists` is written in Swift.  It is what I call
 a 'GLP' (Grungy Little Program) in that it is a `main` program that calls
