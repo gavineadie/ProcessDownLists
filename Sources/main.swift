@@ -193,6 +193,24 @@ do {
 
         print("dataFile: Processed \(missionName).")
 
+        if emitSymTablefile {
+/*─ STAB ─────────────────────────────────────────────────────────────────────────────────────────────*/
+            var fileLinesS: [String] = []
+
+            let xtraPrintURL = homeDirURL.appendingPathComponent("Desktop/Downlist/\(missionName)-stab.txt")
+            _ = fileManager.createFile(atPath: xtraPrintURL.path, contents: nil, attributes: nil)
+
+            if let fileHandle = try? FileHandle(forWritingTo: xtraPrintURL) {
+                defer { fileHandle.closeFile() }
+                dup2(fileHandle.fileDescriptor, STDOUT_FILENO)
+
+                fileLinesS = stabFile(missionName, fileLinesD)          // ..
+                fileLinesS.forEach { print("\($0)") }
+            }
+
+            dup2(originalStdout, STDOUT_FILENO)
+
+        } else {
 /*─ XTRA ─────────────────────────────────────────────────────────────────────────────────────────────*/
         var fileLinesX: [String] = []
 
@@ -227,6 +245,8 @@ do {
         print("teleFile: Processed \(missionName).")                // writes Swift files
 #endif
 
+        }
+
     }
 
 } catch {
@@ -256,6 +276,7 @@ fileprivate func prettyPrint(_ downlists: [String: [String]]) {
 }
 
 var emitDiagnosticFiles = false
+var emitSymTablefile = false
 var importDirectory = ""
 var exportDirectory = ""
 
@@ -266,6 +287,7 @@ fileprivate func extractOptions() {
         logger.info("command line argument: \(arg)")
 
         if arg.hasPrefix("--diagnostics") || arg.hasPrefix("-d") { emitDiagnosticFiles = true }
+        if arg.hasPrefix("--symtable") || arg.hasPrefix("-s") { emitSymTablefile = true }
 
         else if arg.hasPrefix("--import=") { arg.removeFirst(9); importDirectory = arg }
 
